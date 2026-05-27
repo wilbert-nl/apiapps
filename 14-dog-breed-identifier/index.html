@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dog Breed Identifier — Dark Factory</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --green: #43d9ad;
+      --yellow: #f7c948;
+      --radius: 12px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 1rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo-icon {
+      font-size: 1.5rem;
+      animation: wag 2s ease-in-out infinite;
+      display: inline-block;
+      transform-origin: bottom center;
+    }
+    @keyframes wag {
+      0%, 100% { transform: rotate(-10deg); }
+      50% { transform: rotate(10deg); }
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Tab nav ── */
+    nav { display: flex; gap: 0.25rem; }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--surface2); }
+    .tab-btn.active {
+      color: var(--accent);
+      background: rgba(108,99,255,0.12);
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Section headings ── */
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      background: linear-gradient(135deg, var(--text) 40%, var(--muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.8rem;
+    }
+
+    /* ── Quiz Panel ── */
+    #quiz-panel { max-width: 720px; margin: 0 auto; }
+
+    .quiz-score-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .score-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .score-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .score-dot.correct { background: var(--green); }
+    .score-dot.wrong { background: var(--accent2); }
+
+    .quiz-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: box-shadow 0.3s;
+    }
+    .quiz-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(108,99,255,0.15); }
+
+    .quiz-image-wrap {
+      position: relative;
+      height: 320px;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+    .quiz-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+    }
+    .quiz-image-wrap:hover img { transform: scale(1.03); }
+
+    .quiz-skeleton {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .quiz-label-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      padding: 1rem;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .quiz-question-count {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      backdrop-filter: blur(6px);
+    }
+
+    .quiz-body { padding: 1.5rem; }
+    .quiz-prompt {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .option-btn {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.18s;
+      line-height: 1.3;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.1);
+      transform: translateY(-1px);
+    }
+    .option-btn:disabled { cursor: default; }
+    .option-btn.correct {
+      border-color: var(--green);
+      background: rgba(67,217,173,0.12);
+      color: var(--green);
+    }
+    .option-btn.wrong {
+      border-color: var(--accent2);
+      background: rgba(255,101,132,0.1);
+      color: var(--accent2);
+    }
+
+    .quiz-feedback {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.correct {
+      background: rgba(67,217,173,0.1);
+      border: 1px solid rgba(67,217,173,0.3);
+      color: var(--green);
+    }
+    .quiz-feedback.wrong {
+      background: rgba(255,101,132,0.1);
+      border: 1px solid rgba(255,101,132,0.3);
+      color: var(--accent2);
+    }
+
+    .breed-info-mini {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: var(--surface);
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .breed-info-mini-item {
+      text-align: center;
+      padding: 0.4rem;
+      border-radius: 6px;
+      background: var(--surface2);
+    }
+    .breed-info-mini-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+    }
+    .breed-info-mini-val {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+    }
+
+    .quiz-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-decoration: none;
+    }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #7d75ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(108,99,255,0.4); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Browse Panel ── */
+    .browse-controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .search-wrap {
+      flex: 1;
+      position: relative;
+      min-width: 200px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.65rem 1rem 0.65rem 2.5rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--accent); }
+
+    .filter-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.65rem 1rem;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      appearance: none;
+      padding-right: 2rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238892b0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+
+    .breeds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .breed-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.22s;
+      animation: fadeUp 0.35s ease both;
+    }
+    .breed-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(108,99,255,0.2);
+    }
+    .breed-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .breed-card-img-wrap {
+      position: relative;
+      height: 180px;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+    .breed-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      loading: lazy;
+      transition: transform 0.35s;
+    }
+    .breed-card:hover .breed-card-img-wrap img { transform: scale(1.06); }
+
+    .breed-card-body { padding: 0.85rem 1rem; }
+    .breed-card-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      margin-bottom: 0.3rem;
+    }
+    .breed-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.18rem 0.55rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tag-group { background: rgba(108,99,255,0.18); color: var(--accent); }
+    .tag-size { background: rgba(247,201,72,0.18); color: var(--yellow); }
+    .tag-sub { background: rgba(67,217,173,0.15); color: var(--green); font-size: 0.62rem; color: var(--muted); background: var(--surface2); }
+
+    .breeds-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .breeds-empty-icon { font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.5; }
+
+    .skeleton-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .skeleton-img {
+      height: 180px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    .skeleton-text {
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* ── Breed Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.95) translateY(10px);
+      transition: transform 0.25s;
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+
+    .modal-header {
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    .modal-close {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .modal-close:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    .modal-body { padding: 1.25rem; }
+
+    .modal-photos {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .modal-photos img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      transition: transform 0.3s;
+      cursor: zoom-in;
+    }
+    .modal-photos img:hover { transform: scale(1.04); }
+    .modal-photos img:first-child {
+      grid-column: span 2;
+      height: 220px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .info-card {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+    }
+    .info-card-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .info-card-val {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .trait-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .trait-pill {
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.25);
+      color: var(--accent);
+      font-size: 0.8rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+    }
+
+    .grooming-bar-wrap {
+      margin-bottom: 1rem;
+    }
+    .grooming-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .bar-name { font-size: 0.8rem; color: var(--text); width: 90px; flex-shrink: 0; }
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+    .bar-fill.green { background: var(--green); }
+    .bar-fill.yellow { background: var(--yellow); }
+    .bar-fill.red { background: var(--accent2); }
+    .bar-val { font-size: 0.75rem; color: var(--muted); width: 24px; text-align: right; }
+
+    .health-section { margin-bottom: 1rem; }
+    .health-section h4 {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+    .health-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .health-list li {
+      font-size: 0.85rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      background: rgba(255,101,132,0.08);
+      border-left: 3px solid rgba(255,101,132,0.4);
+      color: var(--text);
+    }
+
+    .product-section { margin-top: 1rem; }
+    .product-section h4 {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.6rem;
+    }
+    .product-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .product-chip {
+      background: rgba(67,217,173,0.1);
+      border: 1px solid rgba(67,217,173,0.25);
+      color: var(--green);
+      font-size: 0.8rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+    }
+
+    /* ── Loading state ── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .stat-chip-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .stat-chip-label { font-size: 0.72rem; color: var(--muted); }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1.1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      animation: toastIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 240px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error { border-left: 3px solid var(--accent2); }
+    .toast.info { border-left: 3px solid var(--accent); }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .quiz-options { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .modal-photos { grid-template-columns: repeat(2, 1fr); }
+      .modal-photos img:first-child { grid-column: span 2; height: 160px; }
+      .breed-info-mini { grid-template-columns: 1fr 1fr; }
+      nav .tab-btn { padding: 0.4rem 0.65rem; font-size: 0.8rem; }
+      .stats-bar { gap: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo" aria-label="Dog Breed Identifier home">
+      <span class="logo-icon" aria-hidden="true">🐶</span>
+      <span>Breed ID</span>
+      <span class="logo-badge">Pro</span>
+    </a>
+    <nav role="navigation" aria-label="Main navigation">
+      <button class="tab-btn active" data-tab="quiz" aria-selected="true">🎮 Quiz</button>
+      <button class="tab-btn" data-tab="browse" aria-selected="false">🔍 Browse</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ─── Quiz Tab ─── -->
+  <section id="quiz-panel" class="tab-panel active" role="tabpanel" aria-label="Breed Quiz">
+    <h1 class="section-title">Breed Quiz</h1>
+    <p class="section-sub">Can you identify the breed? Earn points and learn care tips for each dog.</p>
+
+    <div class="quiz-score-bar">
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <div class="score-chip">
+          <span class="score-dot correct"></span>
+          <span id="score-correct">0</span> correct
+        </div>
+        <div class="score-chip">
+          <span class="score-dot wrong"></span>
+          <span id="score-wrong">0</span> wrong
+        </div>
+        <div class="score-chip" style="border-color:var(--accent);color:var(--accent);">
+          <span id="score-streak">🔥 0</span> streak
+        </div>
+      </div>
+      <button class="btn btn-secondary" id="quiz-reset-btn" aria-label="Reset quiz score">Reset</button>
+    </div>
+
+    <div class="quiz-card" id="quiz-card">
+      <div class="quiz-image-wrap">
+        <div class="quiz-skeleton" id="quiz-skeleton" aria-hidden="true"></div>
+        <img id="quiz-img" src="" alt="Dog photo for identification" style="opacity:0;transition:opacity 0.3s;" loading="lazy" />
+        <div class="quiz-question-count" id="quiz-count" aria-live="polite">Q 0</div>
+        <div class="quiz-label-bar">Dog CEO API — random breed photo</div>
+      </div>
+      <div class="quiz-body">
+        <p class="quiz-prompt" id="quiz-prompt">Loading a dog photo…</p>
+        <div class="quiz-options" id="quiz-options" role="group" aria-label="Breed answer options"></div>
+        <div class="quiz-feedback" id="quiz-feedback" role="alert" aria-live="assertive"></div>
+        <div class="quiz-actions" id="quiz-actions" style="display:none">
+          <button class="btn btn-primary" id="next-btn">Next Dog →</button>
+          <button class="btn btn-secondary" id="view-breed-btn">View Full Info</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Browse Tab ─── -->
+  <section id="browse-panel" class="tab-panel" role="tabpanel" aria-label="Browse Breeds">
+    <h1 class="section-title">Browse Breeds</h1>
+    <p class="section-sub">Search and explore 340+ dog breeds with care profiles, grooming requirements, and health flags.</p>
+
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-chip">
+        <span class="stat-chip-val" id="stat-total">–</span>
+        <span class="stat-chip-label">Total Breeds</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-chip-val">6</span>
+        <span class="stat-chip-label">Breed Groups</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-chip-val">340+</span>
+        <span class="stat-chip-label">Sub-breeds</span>
+      </div>
+    </div>
+
+    <div class="browse-controls">
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="search"
+          id="breed-search"
+          class="search-input"
+          placeholder="Search breeds…"
+          aria-label="Search dog breeds"
+          autocomplete="off"
+        />
+      </div>
+      <select id="group-filter" class="filter-select" aria-label="Filter by breed group">
+        <option value="">All Groups</option>
+        <option value="herding">Herding</option>
+        <option value="hound">Hound</option>
+        <option value="sporting">Sporting</option>
+        <option value="terrier">Terrier</option>
+        <option value="toy">Toy</option>
+        <option value="working">Working</option>
+      </select>
+      <select id="size-filter" class="filter-select" aria-label="Filter by size">
+        <option value="">All Sizes</option>
+        <option value="small">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+      </select>
+    </div>
+
+    <div class="breeds-grid" id="breeds-grid" role="list" aria-label="Dog breeds"></div>
+  </section>
+</main>
+
+<!-- ─── Breed Modal ─── -->
+<div class="modal-overlay" id="breed-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title-text">Loading…</h2>
+      <button class="modal-close" id="modal-close-btn" aria-label="Close breed details">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ─── Toast container ─── -->
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════
+   BREED DATA — hardcoded traits for 40+ breeds
+═══════════════════════════════════════════════ */
+const BREED_DATA = {
+  labrador: {
+    group: 'sporting', size: 'large', weight: '55–80 lbs', life: '10–12 yr',
+    traits: ['Friendly', 'Outgoing', 'Active', 'Gentle', 'Intelligent'],
+    grooming: { shedding: 4, bathing: 2, brushing: 3 },
+    health: ['Hip dysplasia', 'Obesity', 'Elbow dysplasia', 'Eye problems'],
+    products: ['Deshedding brush', 'Joint supplement', 'Fetch toys', 'Large dog bed'],
+  },
+  poodle: {
+    group: 'toy', size: 'small', weight: '4–70 lbs', life: '10–18 yr',
+    traits: ['Intelligent', 'Active', 'Alert', 'Faithful', 'Instinctual'],
+    grooming: { shedding: 1, bathing: 3, brushing: 5 },
+    health: ['Addison\'s disease', 'Bloat', 'Hip dysplasia'],
+    products: ['Slicker brush', 'Detangling spray', 'Grooming scissors', 'Hypoallergenic shampoo'],
+  },
+  bulldog: {
+    group: 'working', size: 'medium', weight: '40–50 lbs', life: '8–10 yr',
+    traits: ['Docile', 'Willful', 'Friendly', 'Gregarious', 'Devoted'],
+    grooming: { shedding: 3, bathing: 2, brushing: 2 },
+    health: ['Brachycephalic syndrome', 'Hip dysplasia', 'Skin fold dermatitis', 'Cherry eye'],
+    products: ['Wrinkle wipes', 'Orthopedic bed', 'Cooling mat', 'Harness (no collar)'],
+  },
+  beagle: {
+    group: 'hound', size: 'small', weight: '20–30 lbs', life: '10–15 yr',
+    traits: ['Merry', 'Friendly', 'Curious', 'Gentle', 'Independent'],
+    grooming: { shedding: 3, bathing: 2, brushing: 2 },
+    health: ['Epilepsy', 'Hypothyroidism', 'Hip dysplasia', 'Beagle dwarfism'],
+    products: ['Shed control shampoo', 'Long leash', 'Puzzle toys', 'Harness'],
+  },
+  pug: {
+    group: 'toy', size: 'small', weight: '14–18 lbs', life: '13–15 yr',
+    traits: ['Charming', 'Stubborn', 'Sociable', 'Playful', 'Quiet'],
+    grooming: { shedding: 5, bathing: 2, brushing: 3 },
+    health: ['Brachycephalic syndrome', 'Pug dog encephalitis', 'Obesity', 'Eye prolapse'],
+    products: ['Deshedding glove', 'Cooling vest', 'Wrinkle cleaner', 'Harness'],
+  },
+  germanshepherd: {
+    group: 'herding', size: 'large', weight: '65–90 lbs', life: '9–13 yr',
+    traits: ['Loyal', 'Courageous', 'Confident', 'Intelligent', 'Alert'],
+    grooming: { shedding: 5, bathing: 2, brushing: 4 },
+    health: ['Hip dysplasia', 'Degenerative myelopathy', 'Bloat', 'Elbow dysplasia'],
+    products: ['Undercoat rake', 'Joint supplement', 'Working dog harness', 'XL crate'],
+  },
+  husky: {
+    group: 'working', size: 'large', weight: '35–60 lbs', life: '12–15 yr',
+    traits: ['Outgoing', 'Mischievous', 'Loyal', 'Athletic', 'Friendly'],
+    grooming: { shedding: 5, bathing: 2, brushing: 4 },
+    health: ['Hip dysplasia', 'Hereditary cataracts', 'Hypothyroidism'],
+    products: ['Undercoat rake', 'Cooling mat', 'High-protein food', 'GPS tracker'],
+  },
+  goldenretriever: {
+    group: 'sporting', size: 'large', weight: '55–75 lbs', life: '10–12 yr',
+    traits: ['Trustworthy', 'Reliable', 'Friendly', 'Confident', 'Kind'],
+    grooming: { shedding: 4, bathing: 2, brushing: 4 },
+    health: ['Cancer', 'Hip dysplasia', 'Heart issues', 'Skin conditions'],
+    products: ['Slicker brush', 'Omega-3 supplement', 'Fetch ball set', 'Waterproof mat'],
+  },
+  chihuahua: {
+    group: 'toy', size: 'small', weight: '2–6 lbs', life: '12–20 yr',
+    traits: ['Devoted', 'Alert', 'Confident', 'Lively', 'Quick'],
+    grooming: { shedding: 2, bathing: 2, brushing: 2 },
+    health: ['Hydrocephalus', 'Hypoglycemia', 'Patellar luxation', 'Heart issues'],
+    products: ['Soft harness', 'Dental chews', 'Small sweater', 'Portable carrier'],
+  },
+  dachshund: {
+    group: 'hound', size: 'small', weight: '8–32 lbs', life: '12–16 yr',
+    traits: ['Stubborn', 'Playful', 'Devoted', 'Curious', 'Lively'],
+    grooming: { shedding: 2, bathing: 2, brushing: 2 },
+    health: ['Intervertebral disc disease', 'Obesity', 'Epilepsy', 'Eye conditions'],
+    products: ['Ramp/steps', 'Spine support harness', 'Low-calorie treats', 'Long toy'],
+  },
+  boxer: {
+    group: 'working', size: 'large', weight: '55–70 lbs', life: '10–12 yr',
+    traits: ['Playful', 'Devoted', 'Loyal', 'Energetic', 'Fearless'],
+    grooming: { shedding: 2, bathing: 1, brushing: 1 },
+    health: ['Aortic stenosis', 'Hip dysplasia', 'Bloat', 'Cancer'],
+    products: ['Rubber curry brush', 'Cardiac supplement', 'Tug toy', 'Cooling bandana'],
+  },
+  rottweiler: {
+    group: 'working', size: 'large', weight: '85–130 lbs', life: '9–10 yr',
+    traits: ['Loyal', 'Confident', 'Courageous', 'Calm', 'Alert'],
+    grooming: { shedding: 3, bathing: 2, brushing: 2 },
+    health: ['Hip dysplasia', 'Osteosarcoma', 'Elbow dysplasia', 'Aortic stenosis'],
+    products: ['Bristle brush', 'Joint glucosamine', 'Heavy duty leash', 'XL orthopedic bed'],
+  },
+  dalmatian: {
+    group: 'sporting', size: 'large', weight: '45–70 lbs', life: '11–13 yr',
+    traits: ['Playful', 'Sensitive', 'Energetic', 'Intelligent', 'Active'],
+    grooming: { shedding: 4, bathing: 2, brushing: 3 },
+    health: ['Deafness', 'Bladder stones', 'Hip dysplasia', 'Allergies'],
+    products: ['Shedding brush', 'Low-purine diet', 'Running leash', 'Water fountain'],
+  },
+  greyhound: {
+    group: 'hound', size: 'large', weight: '60–70 lbs', life: '10–14 yr',
+    traits: ['Gentle', 'Athletic', 'Quiet', 'Affectionate', 'Even-tempered'],
+    grooming: { shedding: 2, bathing: 1, brushing: 1 },
+    health: ['Osteosarcoma', 'Gastric dilatation', 'Bloat', 'Sensitivity to anaesthesia'],
+    products: ['Soft coat polish cloth', 'Padded bed', 'Muzzle', 'Hound collar'],
+  },
+  shiba: {
+    group: 'herding', size: 'small', weight: '17–23 lbs', life: '13–16 yr',
+    traits: ['Alert', 'Active', 'Attentive', 'Confident', 'Independent'],
+    grooming: { shedding: 5, bathing: 2, brushing: 3 },
+    health: ['Allergies', 'Patellar luxation', 'Hip dysplasia', 'Eye problems'],
+    products: ['Undercoat rake', 'Natural shampoo', 'Puzzle toys', 'Long line leash'],
+  },
+  corgi: {
+    group: 'herding', size: 'small', weight: '25–30 lbs', life: '12–15 yr',
+    traits: ['Bold', 'Friendly', 'Tenacious', 'Playful', 'Outgoing'],
+    grooming: { shedding: 4, bathing: 2, brushing: 3 },
+    health: ['Hip dysplasia', 'Intervertebral disc disease', 'Progressive retinal atrophy'],
+    products: ['Slicker brush', 'Low-rise steps', 'Agility kit', 'Omega supplement'],
+  },
+  samoyed: {
+    group: 'working', size: 'large', weight: '35–65 lbs', life: '12–14 yr',
+    traits: ['Lively', 'Gentle', 'Adaptable', 'Friendly', 'Stubborn'],
+    grooming: { shedding: 5, bathing: 3, brushing: 5 },
+    health: ['Hip dysplasia', 'Samoyed hereditary glomerulopathy', 'Progressive retinal atrophy'],
+    products: ['Pin brush', 'Whitening shampoo', 'Detangler', 'Cooling coat'],
+  },
+  maltese: {
+    group: 'toy', size: 'small', weight: '4–7 lbs', life: '12–15 yr',
+    traits: ['Gentle', 'Responsive', 'Affectionate', 'Playful', 'Fearless'],
+    grooming: { shedding: 1, bathing: 3, brushing: 5 },
+    health: ['Hypoglycemia', 'Luxating patella', 'Liver shunt', 'Heart problems'],
+    products: ['Dematting comb', 'Tear stain remover', 'Silk brush', 'Tiny harness'],
+  },
+  akita: {
+    group: 'working', size: 'large', weight: '70–130 lbs', life: '10–14 yr',
+    traits: ['Alert', 'Responsive', 'Dignified', 'Courageous', 'Loyal'],
+    grooming: { shedding: 4, bathing: 2, brushing: 3 },
+    health: ['Hip dysplasia', 'Hypothyroidism', 'Autoimmune disorders', 'Bloat'],
+    products: ['Furminator', 'Fish oil supplement', 'Heavy-duty harness', 'XL bed'],
+  },
+  border: {
+    group: 'herding', size: 'medium', weight: '30–55 lbs', life: '12–15 yr',
+    traits: ['Energetic', 'Responsive', 'Alert', 'Intelligent', 'Loyal'],
+    grooming: { shedding: 3, bathing: 2, brushing: 3 },
+    health: ['Hip dysplasia', 'Collie eye anomaly', 'Epilepsy', 'Hypothyroidism'],
+    products: ['Slicker brush', 'Agility equipment', 'Brain games', 'High-energy food'],
+  },
+};
+
+/* ═══════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════ */
+function toast(msg, type = 'info', duration = 3500) {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  el.textContent = `${icon} ${msg}`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s';
+    setTimeout(() => el.remove(), 350);
+  }, duration);
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function formatBreedName(key) {
+  return key.replace(/([a-z])([A-Z])/g, '$1 $2')
+    .split(/[\s_-]/).map(capitalize).join(' ');
+}
+
+/* ═══════════════════════════════════════════════
+   API
+═══════════════════════════════════════════════ */
+const BASE = 'https://dog.ceo/api';
+let allBreedsMap = {};
+
+async function fetchAllBreeds() {
+  const res = await fetch(`${BASE}/breeds/list/all`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return json.message;
+}
+
+async function fetchBreedImage(breed, sub = '') {
+  const path = sub ? `${breed}/${sub}` : breed;
+  const res = await fetch(`${BASE}/breed/${path}/images/random`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return json.message;
+}
+
+async function fetchBreedImages(breed, count = 6, sub = '') {
+  const path = sub ? `${breed}/${sub}` : breed;
+  const res = await fetch(`${BASE}/breed/${path}/images/random/${count}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return json.message;
+}
+
+/* ═══════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════ */
+function initTabs() {
+  const btns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      document.getElementById(`${btn.dataset.tab}-panel`).classList.add('active');
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════════════ */
+const quizState = {
+  correct: 0,
+  wrong: 0,
+  streak: 0,
+  questionNum: 0,
+  currentBreed: '',
+  currentSub: '',
+  answered: false,
+};
+
+let breedsList = [];
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickDistractors(correct, allBreeds, count = 3) {
+  const pool = allBreeds.filter(b => b !== correct);
+  return shuffleArray(pool).slice(0, count);
+}
+
+function updateScoreboard() {
+  document.getElementById('score-correct').textContent = quizState.correct;
+  document.getElementById('score-wrong').textContent = quizState.wrong;
+  document.getElementById('score-streak').textContent = `🔥 ${quizState.streak}`;
+}
+
+async function loadQuizQuestion() {
+  if (breedsList.length === 0) return;
+
+  quizState.answered = false;
+  quizState.questionNum++;
+
+  const skeleton = document.getElementById('quiz-skeleton');
+  const img = document.getElementById('quiz-img');
+  const prompt = document.getElementById('quiz-prompt');
+  const optionsWrap = document.getElementById('quiz-options');
+  const feedback = document.getElementById('quiz-feedback');
+  const actions = document.getElementById('quiz-actions');
+
+  skeleton.style.display = 'block';
+  img.style.opacity = '0';
+  feedback.classList.remove('show', 'correct', 'wrong');
+  actions.style.display = 'none';
+  optionsWrap.innerHTML = '';
+  prompt.textContent = 'Loading a dog photo…';
+  document.getElementById('quiz-count').textContent = `Q ${quizState.questionNum}`;
+
+  // pick random breed
+  const rand = breedsList[Math.floor(Math.random() * breedsList.length)];
+  const [breed, sub] = rand.split('|');
+  quizState.currentBreed = breed;
+  quizState.currentSub = sub || '';
+
+  try {
+    const imageUrl = await fetchBreedImage(breed, sub || '');
+
+    img.onload = () => {
+      skeleton.style.display = 'none';
+      img.style.opacity = '1';
+    };
+    img.onerror = () => {
+      skeleton.style.display = 'none';
+      img.style.opacity = '1';
+    };
+    img.src = imageUrl;
+
+    prompt.textContent = 'What breed is this dog?';
+
+    // build options
+    const correctLabel = sub ? `${capitalize(sub)} ${capitalize(breed)}` : capitalize(breed);
+    const distractors = pickDistractors(rand, breedsList, 3);
+    const options = shuffleArray([rand, ...distractors]);
+
+    options.forEach(opt => {
+      const [b, s] = opt.split('|');
+      const label = s ? `${capitalize(s)} ${capitalize(b)}` : capitalize(b);
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = label;
+      btn.setAttribute('aria-label', `Answer: ${label}`);
+      btn.addEventListener('click', () => handleAnswer(opt, rand, btn, optionsWrap, feedback, actions));
+      optionsWrap.appendChild(btn);
+    });
+
+  } catch (err) {
+    prompt.textContent = 'Failed to load photo. Try next question.';
+    skeleton.style.display = 'none';
+    actions.style.display = 'flex';
+    document.getElementById('view-breed-btn').style.display = 'none';
+    toast('Could not load dog photo — trying another', 'error');
+  }
+}
+
+function handleAnswer(chosen, correct, clickedBtn, optionsWrap, feedback, actions) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+
+  const isCorrect = chosen === correct;
+  const [correctBreed, correctSub] = correct.split('|');
+  const correctLabel = correctSub
+    ? `${capitalize(correctSub)} ${capitalize(correctBreed)}`
+    : capitalize(correctBreed);
+
+  // disable all buttons, mark correct/wrong
+  optionsWrap.querySelectorAll('.option-btn').forEach(btn => {
+    btn.disabled = true;
+    const [b, s] = (btn.dataset.val || btn.textContent).split('|');
+    const optLabel = btn.textContent.toLowerCase();
+    const corrLower = correctLabel.toLowerCase();
+    if (optLabel === corrLower) {
+      btn.classList.add('correct');
+    }
+  });
+
+  if (!isCorrect) {
+    clickedBtn.classList.add('wrong');
+    quizState.wrong++;
+    quizState.streak = 0;
+  } else {
+    quizState.correct++;
+    quizState.streak++;
+  }
+
+  updateScoreboard();
+
+  // feedback
+  feedback.classList.remove('correct', 'wrong');
+  const breedInfo = BREED_DATA[correctBreed] || BREED_DATA[correctBreed.replace(/\s/g, '')] || null;
+
+  if (isCorrect) {
+    feedback.classList.add('correct', 'show');
+    const streakMsg = quizState.streak >= 3 ? ` 🔥 ${quizState.streak} streak!` : '';
+    let html = `<strong>✅ Correct!</strong> That's a ${correctLabel}.${streakMsg}`;
+    if (breedInfo) {
+      html += `<div class="breed-info-mini">
+        <div class="breed-info-mini-item">
+          <span class="breed-info-mini-label">Group</span>
+          <span class="breed-info-mini-val">${capitalize(breedInfo.group)}</span>
+        </div>
+        <div class="breed-info-mini-item">
+          <span class="breed-info-mini-label">Weight</span>
+          <span class="breed-info-mini-val">${breedInfo.weight}</span>
+        </div>
+        <div class="breed-info-mini-item">
+          <span class="breed-info-mini-label">Life span</span>
+          <span class="breed-info-mini-val">${breedInfo.life}</span>
+        </div>
+      </div>`;
+    }
+    feedback.innerHTML = html;
+  } else {
+    feedback.classList.add('wrong', 'show');
+    feedback.innerHTML = `<strong>❌ Not quite!</strong> That was a <strong>${correctLabel}</strong>.`;
+  }
+
+  actions.style.display = 'flex';
+  const viewBtn = document.getElementById('view-breed-btn');
+  if (breedInfo) {
+    viewBtn.style.display = '';
+    viewBtn.onclick = () => openBreedModal(correctBreed, correctSub || '');
+  } else {
+    viewBtn.style.display = 'none';
+  }
+}
+
+function initQuiz() {
+  document.getElementById('next-btn').addEventListener('click', loadQuizQuestion);
+  document.getElementById('quiz-reset-btn').addEventListener('click', () => {
+    quizState.correct = 0;
+    quizState.wrong = 0;
+    quizState.streak = 0;
+    quizState.questionNum = 0;
+    updateScoreboard();
+    loadQuizQuestion();
+    toast('Score reset!', 'info');
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   BROWSE
+═══════════════════════════════════════════════ */
+function getBreedData(breed) {
+  const key = breed.toLowerCase().replace(/\s+/g, '');
+  return BREED_DATA[key] || BREED_DATA[breed.toLowerCase()] || null;
+}
+
+function sizeLabel(s) {
+  return { small: 'Small', medium: 'Medium', large: 'Large' }[s] || '';
+}
+
+let browseBreeds = [];
+let browseImages = {};
+
+function renderBreeds(breeds) {
+  const grid = document.getElementById('breeds-grid');
+  grid.innerHTML = '';
+
+  if (breeds.length === 0) {
+    grid.innerHTML = `<div class="breeds-empty" role="listitem">
+      <div class="breeds-empty-icon" aria-hidden="true">🐾</div>
+      <p>No breeds found. Try a different search.</p>
+    </div>`;
+    return;
+  }
+
+  breeds.forEach((entry, i) => {
+    const { breed, sub } = entry;
+    const displayName = sub ? `${capitalize(sub)} ${capitalize(breed)}` : capitalize(breed);
+    const info = getBreedData(sub ? `${sub}${breed}` : breed) || getBreedData(breed);
+
+    const card = document.createElement('div');
+    card.className = 'breed-card';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', `${displayName} breed details`);
+    card.style.animationDelay = `${Math.min(i * 0.03, 0.4)}s`;
+
+    const imgKey = `${breed}${sub ? `/${sub}` : ''}`;
+    const imgSrc = browseImages[imgKey] || '';
+
+    card.innerHTML = `
+      <div class="breed-card-img-wrap">
+        ${imgSrc
+          ? `<img src="${imgSrc}" alt="${displayName} dog" loading="lazy" />`
+          : `<div class="skeleton-img" aria-hidden="true"></div>`
+        }
+      </div>
+      <div class="breed-card-body">
+        <div class="breed-card-name">${displayName}</div>
+        <div class="breed-card-tags">
+          ${info ? `<span class="tag tag-group">${capitalize(info.group)}</span>` : ''}
+          ${info ? `<span class="tag tag-size">${sizeLabel(info.size)}</span>` : ''}
+          ${sub ? `<span class="tag tag-sub">sub-breed</span>` : ''}
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => openBreedModal(breed, sub || ''));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBreedModal(breed, sub || ''); }
+    });
+
+    // lazy-load image if missing
+    if (!imgSrc) {
+      fetchBreedImage(breed, sub || '').then(url => {
+        browseImages[imgKey] = url;
+        const wrap = card.querySelector('.breed-card-img-wrap');
+        wrap.innerHTML = `<img src="${url}" alt="${displayName} dog" loading="lazy" />`;
+      }).catch(() => {});
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+function filterBreeds() {
+  const query = document.getElementById('breed-search').value.toLowerCase().trim();
+  const group = document.getElementById('group-filter').value;
+  const size = document.getElementById('size-filter').value;
+
+  let filtered = browseBreeds.filter(({ breed, sub }) => {
+    const name = sub ? `${sub} ${breed}` : breed;
+    if (query && !name.includes(query)) return false;
+
+    const info = getBreedData(sub ? `${sub}${breed}` : breed) || getBreedData(breed);
+    if (group && (!info || info.group !== group)) return false;
+    if (size && (!info || info.size !== size)) return false;
+
+    return true;
+  });
+
+  renderBreeds(filtered.slice(0, 60));
+}
+
+function initBrowse(breedsMap) {
+  browseBreeds = [];
+  let total = 0;
+
+  Object.entries(breedsMap).forEach(([breed, subs]) => {
+    if (Array.isArray(subs) && subs.length > 0) {
+      subs.forEach(sub => browseBreeds.push({ breed, sub }));
+    } else {
+      browseBreeds.push({ breed, sub: '' });
+    }
+    total++;
+  });
+
+  document.getElementById('stat-total').textContent = total;
+  renderBreeds(browseBreeds.slice(0, 60));
+
+  document.getElementById('breed-search').addEventListener('input', filterBreeds);
+  document.getElementById('group-filter').addEventListener('change', filterBreeds);
+  document.getElementById('size-filter').addEventListener('change', filterBreeds);
+}
+
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
+async function openBreedModal(breed, sub) {
+  const overlay = document.getElementById('breed-modal');
+  const titleEl = document.getElementById('modal-title-text');
+  const body = document.getElementById('modal-body');
+
+  const displayName = sub ? `${capitalize(sub)} ${capitalize(breed)}` : capitalize(breed);
+  titleEl.textContent = displayName;
+
+  body.innerHTML = `<div class="loading-center"><div class="spinner" aria-hidden="true"></div><span>Loading breed info…</span></div>`;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const info = getBreedData(sub ? `${sub}${breed}` : breed) || getBreedData(breed);
+
+  try {
+    const images = await fetchBreedImages(breed, 6, sub);
+
+    let photoHtml = '';
+    if (images.length > 0) {
+      const pics = images.slice(0, 4);
+      photoHtml = `<div class="modal-photos" aria-label="${displayName} photos">`;
+      pics.forEach((src, i) => {
+        photoHtml += `<img src="${src}" alt="${displayName} photo ${i + 1}" loading="lazy" />`;
+      });
+      photoHtml += `</div>`;
+    }
+
+    let infoHtml = '';
+    if (info) {
+      infoHtml += `
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-card-label">🐾 Breed Group</div>
+            <div class="info-card-val">${capitalize(info.group)}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">📏 Size</div>
+            <div class="info-card-val">${sizeLabel(info.size)}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">⚖️ Avg Weight</div>
+            <div class="info-card-val">${info.weight}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">🕐 Life Expectancy</div>
+            <div class="info-card-val">${info.life}</div>
+          </div>
+        </div>
+
+        <div class="trait-pills" aria-label="Personality traits">
+          ${info.traits.map(t => `<span class="trait-pill">${t}</span>`).join('')}
+        </div>
+
+        <div class="grooming-bar-wrap">
+          <div class="grooming-label">Grooming requirements</div>
+          ${buildBar('Shedding', info.grooming.shedding)}
+          ${buildBar('Bathing', info.grooming.bathing)}
+          ${buildBar('Brushing', info.grooming.brushing)}
+        </div>
+
+        <div class="health-section">
+          <h4>Common Health Concerns</h4>
+          <ul class="health-list">
+            ${info.health.map(h => `<li>${h}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="product-section">
+          <h4>Recommended Products</h4>
+          <div class="product-chips">
+            ${info.products.map(p => `<span class="product-chip">✓ ${p}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      infoHtml = `<p style="color:var(--muted);font-size:0.9rem;margin-top:0.5rem;">
+        Detailed care profile for ${displayName} is not available. Please consult a veterinarian for breed-specific advice.
+      </p>`;
+    }
+
+    body.innerHTML = photoHtml + infoHtml;
+
+  } catch (err) {
+    body.innerHTML = `
+      <p style="color:var(--accent2);padding:1rem;">
+        ❌ Could not load breed photos. Please check your connection.
+      </p>
+      ${info ? `<p style="color:var(--muted);font-size:0.85rem;">Breed info still available below:</p>` : ''}
+    `;
+    toast('Failed to load breed images', 'error');
+  }
+}
+
+function buildBar(label, val) {
+  const pct = (val / 5) * 100;
+  const colorClass = val <= 2 ? 'green' : val <= 3 ? 'yellow' : 'red';
+  return `
+    <div class="bar-row">
+      <span class="bar-name">${label}</span>
+      <div class="bar-track" role="progressbar" aria-valuenow="${val}" aria-valuemin="0" aria-valuemax="5" aria-label="${label} level">
+        <div class="bar-fill ${colorClass}" style="width:${pct}%"></div>
+      </div>
+      <span class="bar-val">${val}/5</span>
+    </div>
+  `;
+}
+
+function closeModal() {
+  const overlay = document.getElementById('breed-modal');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function initModal() {
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+  document.getElementById('breed-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+async function boot() {
+  initTabs();
+  initModal();
+  initQuiz();
+
+  // show loading skeletons in browse
+  const grid = document.getElementById('breeds-grid');
+  grid.innerHTML = Array.from({ length: 12 }, () => `
+    <div class="skeleton-card" aria-hidden="true">
+      <div class="skeleton-img"></div>
+      <div class="skeleton-text">
+        <div class="skeleton-line" style="width:60%"></div>
+        <div class="skeleton-line" style="width:40%"></div>
+      </div>
+    </div>
+  `).join('');
+
+  try {
+    allBreedsMap = await fetchAllBreeds();
+
+    // flatten to array of "breed|sub" strings for quiz
+    breedsList = [];
+    Object.entries(allBreedsMap).forEach(([breed, subs]) => {
+      if (Array.isArray(subs) && subs.length > 0) {
+        subs.forEach(sub => breedsList.push(`${breed}|${sub}`));
+      }
+      breedsList.push(breed);
+    });
+
+    initBrowse(allBreedsMap);
+    await loadQuizQuestion();
+
+  } catch (err) {
+    toast('Could not reach the Dog CEO API. Some features may be unavailable.', 'error', 6000);
+
+    // fallback: use BREED_DATA keys
+    breedsList = Object.keys(BREED_DATA);
+    allBreedsMap = {};
+    breedsList.forEach(b => { allBreedsMap[b] = []; });
+    initBrowse(allBreedsMap);
+    loadQuizQuestion();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>

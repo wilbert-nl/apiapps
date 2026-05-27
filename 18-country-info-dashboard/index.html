@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Country Info Dashboard — Trade Intel</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --green: #43d9ad;
+      --yellow: #f7c948;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      color: #fff;
+      border-radius: 8px;
+      padding: 5px 11px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ── BUTTONS ── */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      transition: opacity 0.15s, transform 0.1s, background 0.15s;
+      font-family: inherit;
+    }
+
+    button:hover { opacity: 0.88; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); background: var(--surface2); }
+    .btn-sm { padding: 5px 11px; font-size: 0.78rem; }
+    .btn-danger { background: var(--accent2); color: #fff; }
+
+    /* ── MAIN LAYOUT ── */
+    main { max-width: 1280px; margin: 0 auto; padding: 24px 20px; }
+
+    /* ── SEARCH & FILTERS ── */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .search-input-wrap svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    input[type="text"], select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"] { padding-left: 38px; }
+
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    select {
+      cursor: pointer;
+      min-width: 160px;
+    }
+
+    select option { background: var(--surface); }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stat-chip strong { color: var(--text); }
+
+    /* ── VIEW TABS ── */
+    .view-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      width: fit-content;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      border-radius: 8px;
+      padding: 7px 16px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tab-btn:hover:not(.active) { background: var(--surface2); color: var(--text); transform: none; opacity: 1; }
+
+    /* ── COUNTRY GRID ── */
+    .country-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .country-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+      position: relative;
+    }
+
+    .country-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 8px 24px rgba(108, 99, 255, 0.15);
+    }
+
+    .country-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .card-flag {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .card-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .card-region {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-compare-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(15, 17, 23, 0.8);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s;
+    }
+
+    .country-card:hover .card-compare-btn { opacity: 1; }
+    .card-compare-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: none; opacity: 1 !important; }
+    .card-compare-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); opacity: 1; }
+
+    /* Region colors */
+    .region-africa { background: rgba(255, 101, 132, 0.15); color: #ff6584; }
+    .region-americas { background: rgba(67, 217, 173, 0.15); color: #43d9ad; }
+    .region-asia { background: rgba(247, 201, 72, 0.15); color: #f7c948; }
+    .region-europe { background: rgba(108, 99, 255, 0.15); color: #6c63ff; }
+    .region-oceania { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .region-antarctic { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+
+    /* ── DETAIL PANEL ── */
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .detail-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      width: min(560px, 100vw);
+      height: 100vh;
+      overflow-y: auto;
+      animation: slideIn 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .panel-flag {
+      width: 48px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .panel-title { font-size: 1.1rem; font-weight: 700; flex: 1; }
+    .panel-close { background: var(--surface2); color: var(--muted); font-size: 1.1rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); }
+    .panel-close:hover { color: var(--text); transform: none; opacity: 1; }
+
+    .panel-body { padding: 20px; flex: 1; }
+
+    .panel-flag-large {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .info-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      animation: slideUp 0.3s ease;
+    }
+
+    .info-card-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .info-card-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .info-card-value.accent { color: var(--accent); }
+    .info-card-value.green { color: var(--green); }
+    .info-card-value.yellow { color: var(--yellow); }
+
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      margin-top: 4px;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    .tag.clickable {
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .tag.clickable:hover {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.1);
+      color: var(--accent);
+    }
+
+    .tag.accent-tag { background: rgba(108, 99, 255, 0.12); border-color: rgba(108, 99, 255, 0.3); color: var(--accent); }
+    .tag.green-tag { background: rgba(67, 217, 173, 0.12); border-color: rgba(67, 217, 173, 0.3); color: var(--green); }
+
+    .map-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: border-color 0.15s, background 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .map-link:hover { border-color: var(--accent); background: rgba(108, 99, 255, 0.1); }
+
+    /* ── COMPARE VIEW ── */
+    .compare-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .compare-slots {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .compare-slot {
+      background: var(--surface2);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+    }
+
+    .compare-slot.filled { border-style: solid; border-color: var(--accent); color: var(--text); }
+    .compare-slot .remove-slot { color: var(--muted); cursor: pointer; font-size: 1rem; margin-left: auto; background: none; border: none; padding: 0; }
+    .compare-slot .remove-slot:hover { color: var(--accent2); transform: none; opacity: 1; }
+
+    .compare-table-wrap { overflow-x: auto; }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.87rem;
+    }
+
+    .compare-table th {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .compare-table td {
+      border: 1px solid var(--border);
+      padding: 11px 16px;
+      vertical-align: top;
+    }
+
+    .compare-table tr:nth-child(even) td { background: rgba(34, 38, 58, 0.4); }
+
+    .compare-table .row-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      background: var(--surface);
+      width: 140px;
+    }
+
+    .compare-flag {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── EMPTY / LOADING ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      animation: slideUp 0.3s ease;
+    }
+
+    .empty-state svg { margin-bottom: 16px; opacity: 0.4; }
+    .empty-state h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text); }
+    .empty-state p { font-size: 0.88rem; }
+
+    .loading-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .skeleton {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .skeleton-flag {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-body { padding: 14px; }
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-line.short { width: 60%; }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      color: var(--text);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      animation: slideUp 0.25s ease;
+      max-width: 320px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error { border-left: 3px solid var(--accent2); }
+    .toast.info { border-left: 3px solid var(--accent); }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .page-info { font-size: 0.82rem; color: var(--muted); padding: 0 8px; }
+
+    /* ── TRADE BLOC ── */
+    .bloc-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin: 2px;
+      background: rgba(108, 99, 255, 0.15);
+      border: 1px solid rgba(108, 99, 255, 0.3);
+      color: var(--accent);
+    }
+
+    /* ── PRINT / PDF ── */
+    @media print {
+      header, .search-bar, .stats-row, .view-tabs, .pagination,
+      .panel-overlay, .toast-container, .card-compare-btn { display: none !important; }
+      .country-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      main { padding: 16px 12px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 0.78rem; }
+      .country-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      .card-flag { height: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <span class="logo-badge">🌍 TRADE INTEL</span>
+    <h1>Country Info Dashboard</h1>
+  </div>
+  <div class="header-actions">
+    <button class="btn-secondary btn-sm" id="compareToggleBtn" onclick="toggleCompareMode()">⚖️ Compare</button>
+    <button class="btn-ghost btn-sm" onclick="printBrief()" title="Export visible country cards as PDF">⬇️ Export PDF</button>
+  </div>
+</header>
+
+<main>
+  <!-- Search & Filters -->
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search country name..."
+        oninput="onSearch()"
+        aria-label="Search countries"
+        autocomplete="off"
+      />
+    </div>
+    <select id="regionFilter" onchange="onFilter()" aria-label="Filter by region">
+      <option value="">All Regions</option>
+      <option value="Africa">Africa</option>
+      <option value="Americas">Americas</option>
+      <option value="Asia">Asia</option>
+      <option value="Europe">Europe</option>
+      <option value="Oceania">Oceania</option>
+      <option value="Antarctic">Antarctic</option>
+    </select>
+    <select id="langFilter" onchange="onFilter()" aria-label="Filter by language">
+      <option value="">All Languages</option>
+    </select>
+    <select id="sortSelect" onchange="onFilter()" aria-label="Sort countries">
+      <option value="name">Sort: Name A-Z</option>
+      <option value="name-desc">Sort: Name Z-A</option>
+      <option value="population-desc">Sort: Population ↓</option>
+      <option value="population-asc">Sort: Population ↑</option>
+      <option value="area-desc">Sort: Area ↓</option>
+    </select>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-chip"><strong id="statTotal">—</strong> countries</div>
+    <div class="stat-chip"><strong id="statShown">—</strong> shown</div>
+    <div class="stat-chip" id="statRegionChip" style="display:none"></div>
+  </div>
+
+  <!-- View Tabs -->
+  <div class="view-tabs" role="tablist">
+    <button class="tab-btn active" id="tabGrid" onclick="setView('grid')" role="tab" aria-selected="true">Grid</button>
+    <button class="tab-btn" id="tabList" onclick="setView('list')" role="tab" aria-selected="false">List</button>
+    <button class="tab-btn" id="tabCompare" onclick="setView('compare')" role="tab" aria-selected="false">Compare</button>
+  </div>
+
+  <!-- Compare bar (hidden by default) -->
+  <div class="compare-bar" id="compareBar" style="display:none">
+    <span style="font-size:0.82rem;color:var(--muted);font-weight:600;">Compare:</span>
+    <div class="compare-slots">
+      <div class="compare-slot" id="compareSlot1">
+        <span id="compareSlot1Label">Select a country...</span>
+        <button class="remove-slot" onclick="clearCompareSlot(0)" title="Remove" style="display:none" id="clearSlot1">✕</button>
+      </div>
+      <div class="compare-slot" id="compareSlot2">
+        <span id="compareSlot2Label">Select a country...</span>
+        <button class="remove-slot" onclick="clearCompareSlot(1)" title="Remove" style="display:none" id="clearSlot2">✕</button>
+      </div>
+    </div>
+    <button class="btn-primary btn-sm" onclick="setView('compare')" id="goCompareBtn" disabled>View Comparison</button>
+    <button class="btn-ghost btn-sm" onclick="clearCompare()">Clear</button>
+  </div>
+
+  <!-- Content area -->
+  <div id="contentArea"></div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination" style="display:none">
+    <button class="btn-ghost btn-sm" onclick="changePage(-1)" id="prevBtn">← Prev</button>
+    <span class="page-info" id="pageInfo"></span>
+    <button class="btn-ghost btn-sm" onclick="changePage(1)" id="nextBtn">Next →</button>
+  </div>
+</main>
+
+<!-- Detail Panel Overlay (injected dynamically) -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── STATE ──
+  const state = {
+    countries: [],
+    filtered: [],
+    currentView: 'grid',
+    currentPage: 1,
+    pageSize: 48,
+    compareMode: false,
+    compareSlots: [null, null],
+    activeDetail: null,
+    loading: false,
+  };
+
+  // ── TRADE BLOC MAPPING ──
+  const TRADE_BLOCS = {
+    EU: ['AUT','BEL','BGR','HRV','CYP','CZE','DNK','EST','FIN','FRA','DEU','GRC','HUN','IRL','ITA','LVA','LTU','LUX','MLT','NLD','POL','PRT','ROU','SVK','SVN','ESP','SWE'],
+    ASEAN: ['BRN','KHM','IDN','LAO','MYS','MMR','PHL','SGP','THA','VNM'],
+    MERCOSUR: ['ARG','BRA','PRY','URY','VEN','BOL'],
+    NAFTA: ['CAN','MEX','USA'],
+    AU: ['DZA','EGY','ETH','GHA','KEN','MAR','NGA','ZAF','TZA','UGA','SDN','LBY','AGO'],
+    GCC: ['BHR','KWT','OMN','QAT','SAU','ARE'],
+    SAARC: ['AFG','BGD','BTN','IND','MDV','NPL','PAK','LKA'],
+    CARICOM: ['ATG','BHS','BRB','BLZ','DMA','GRD','GUY','HTI','JAM','KNA','LCA','VCT','SUR','TTO'],
+    ECOWAS: ['BEN','BFA','CPV','CIV','GMB','GHA','GIN','GNB','LBR','MLI','MRT','NER','NGA','SEN','SLE','TGO'],
+    SADC: ['AGO','BWA','COM','COD','SWZ','LSO','MDG','MWI','MUS','MOZ','NAM','SYC','ZAF','TZA','ZMB','ZWE'],
+  };
+
+  const BLOC_INFO = {
+    EU: 'European Union',
+    ASEAN: 'Association of SE Asian Nations',
+    MERCOSUR: 'Southern Common Market',
+    NAFTA: 'North American Free Trade',
+    AU: 'African Union',
+    GCC: 'Gulf Cooperation Council',
+    SAARC: 'South Asian Assoc. for Regional Cooperation',
+    CARICOM: 'Caribbean Community',
+    ECOWAS: 'Economic Community of West African States',
+    SADC: 'Southern African Development Community',
+  };
+
+  // ── UTILS ──
+  function fmt(n) {
+    if (n == null) return 'N/A';
+    if (n >= 1e9) return `${(n/1e9).toFixed(2)}B`;
+    if (n >= 1e6) return `${(n/1e6).toFixed(1)}M`;
+    if (n >= 1e3) return `${(n/1e3).toFixed(0)}K`;
+    return String(n);
+  }
+
+  function regionClass(r) {
+    const map = { Africa:'africa', Americas:'americas', Asia:'asia', Europe:'europe', Oceania:'oceania', Antarctic:'antarctic' };
+    return `region-${map[r] || 'africa'}`;
+  }
+
+  function getBlocs(cca3) {
+    const blocs = [];
+    for (const [key, members] of Object.entries(TRADE_BLOCS)) {
+      if (members.includes(cca3)) blocs.push(key);
+    }
+    return blocs;
+  }
+
+  function getCurrencies(c) {
+    if (!c.currencies) return 'N/A';
+    return Object.values(c.currencies).map(cur => `${cur.name} (${cur.symbol || '?'})`).join(', ');
+  }
+
+  function getLanguages(c) {
+    if (!c.languages) return 'N/A';
+    return Object.values(c.languages).join(', ');
+  }
+
+  function getTimezones(c) {
+    if (!c.timezones || c.timezones.length === 0) return 'N/A';
+    return c.timezones.slice(0,3).join(', ') + (c.timezones.length > 3 ? ` +${c.timezones.length - 3} more` : '');
+  }
+
+  function getCapital(c) {
+    if (!c.capital || c.capital.length === 0) return 'N/A';
+    return c.capital[0];
+  }
+
+  function escHTML(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── TOAST ──
+  function toast(msg, type = 'info', duration = 3000) {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    document.getElementById('toastContainer').appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, duration);
+  }
+
+  // ── DATA LOADING ──
+  // Two separate requests to stay within the API field limit
+  const API_BASE = 'https://restcountries.com/v3.1/all';
+  const API_URL_A = `${API_BASE}?fields=name,flags,capital,population,area,region,subregion,currencies,languages,cca3`;
+  const API_URL_B = `${API_BASE}?fields=timezones,borders,cca3`;
+
+  async function loadData() {
+    state.loading = true;
+    renderSkeletons();
+
+    try {
+      const [resA, resB] = await Promise.all([fetch(API_URL_A), fetch(API_URL_B)]);
+      if (!resA.ok) throw new Error(`HTTP ${resA.status} (primary)`);
+      if (!resB.ok) throw new Error(`HTTP ${resB.status} (secondary)`);
+
+      const [dataA, dataB] = await Promise.all([resA.json(), resB.json()]);
+
+      // Merge by cca3
+      const mapB = {};
+      dataB.forEach(c => { if (c.cca3) mapB[c.cca3] = c; });
+
+      const merged = dataA.map(c => {
+        const extra = c.cca3 && mapB[c.cca3] ? mapB[c.cca3] : {};
+        return Object.assign({}, c, extra);
+      });
+
+      state.countries = merged.sort((a, b) => {
+        const na = a.name && a.name.common ? a.name.common : '';
+        const nb = b.name && b.name.common ? b.name.common : '';
+        return na.localeCompare(nb);
+      });
+      state.loading = false;
+      buildLanguageFilter();
+      updateStats();
+      applyFilters();
+      toast(`Loaded ${state.countries.length} countries`, 'success');
+    } catch (err) {
+      state.loading = false;
+      renderError(err.message);
+      toast(`Failed to load: ${err.message}`, 'error', 6000);
+    }
+  }
+
+  function buildLanguageFilter() {
+    const langs = new Set();
+    state.countries.forEach(c => {
+      if (c.languages) Object.values(c.languages).forEach(l => langs.add(l));
+    });
+    const sorted = [...langs].sort();
+    const sel = document.getElementById('langFilter');
+    sorted.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l;
+      opt.textContent = l;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ── FILTER & SORT ──
+  function applyFilters() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    const region = document.getElementById('regionFilter').value;
+    const lang = document.getElementById('langFilter').value;
+    const sort = document.getElementById('sortSelect').value;
+
+    state.filtered = state.countries.filter(c => {
+      const name = c.name && c.name.common ? c.name.common.toLowerCase() : '';
+      const official = c.name && c.name.official ? c.name.official.toLowerCase() : '';
+      if (q && !name.includes(q) && !official.includes(q)) return false;
+      if (region && c.region !== region) return false;
+      if (lang && !(c.languages && Object.values(c.languages).includes(lang))) return false;
+      return true;
+    });
+
+    // Sort
+    state.filtered.sort((a, b) => {
+      const na = a.name && a.name.common ? a.name.common : '';
+      const nb = b.name && b.name.common ? b.name.common : '';
+      if (sort === 'name') return na.localeCompare(nb);
+      if (sort === 'name-desc') return nb.localeCompare(na);
+      if (sort === 'population-desc') return (b.population || 0) - (a.population || 0);
+      if (sort === 'population-asc') return (a.population || 0) - (b.population || 0);
+      if (sort === 'area-desc') return (b.area || 0) - (a.area || 0);
+      return 0;
+    });
+
+    state.currentPage = 1;
+    updateStats();
+    renderView();
+  }
+
+  function onSearch() { applyFilters(); }
+  function onFilter() { applyFilters(); }
+
+  // ── STATS ──
+  function updateStats() {
+    document.getElementById('statTotal').textContent = state.countries.length;
+    document.getElementById('statShown').textContent = state.filtered.length;
+    const region = document.getElementById('regionFilter').value;
+    const chip = document.getElementById('statRegionChip');
+    if (region) {
+      chip.style.display = '';
+      chip.innerHTML = `Region: <strong>${escHTML(region)}</strong>`;
+    } else {
+      chip.style.display = 'none';
+    }
+  }
+
+  // ── VIEW ──
+  function setView(v) {
+    state.currentView = v;
+    ['grid','list','compare'].forEach(tab => {
+      const btn = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+      if (btn) {
+        btn.classList.toggle('active', tab === v);
+        btn.setAttribute('aria-selected', tab === v ? 'true' : 'false');
+      }
+    });
+    if (v === 'compare') {
+      renderCompare();
+    } else {
+      renderView();
+    }
+  }
+
+  function renderView() {
+    if (state.currentView === 'compare') { renderCompare(); return; }
+    if (state.loading) { renderSkeletons(); return; }
+    if (!state.countries.length) { renderError('Could not load country data.'); return; }
+
+    const start = (state.currentPage - 1) * state.pageSize;
+    const end = start + state.pageSize;
+    const page = state.filtered.slice(start, end);
+
+    if (state.filtered.length === 0) {
+      document.getElementById('contentArea').innerHTML = `
+        <div class="empty-state">
+          <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <h3>No countries found</h3>
+          <p>Try adjusting your search or filters.</p>
+        </div>`;
+      document.getElementById('pagination').style.display = 'none';
+      return;
+    }
+
+    const isList = state.currentView === 'list';
+    const gridClass = isList ? 'country-grid' : 'country-grid';
+    const style = isList ? 'grid-template-columns:1fr;' : '';
+
+    const html = `<div class="${gridClass}" style="${style}" role="list">
+      ${page.map(c => renderCard(c, isList)).join('')}
+    </div>`;
+
+    document.getElementById('contentArea').innerHTML = html;
+
+    // Pagination
+    const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+    if (totalPages > 1) {
+      document.getElementById('pagination').style.display = 'flex';
+      document.getElementById('pageInfo').textContent = `Page ${state.currentPage} of ${totalPages}`;
+      document.getElementById('prevBtn').disabled = state.currentPage === 1;
+      document.getElementById('nextBtn').disabled = state.currentPage === totalPages;
+    } else {
+      document.getElementById('pagination').style.display = 'none';
+    }
+
+    // Update compare button states
+    updateCompareButtonStates();
+  }
+
+  function renderCard(c, isList) {
+    const name = c.name && c.name.common ? c.name.common : 'Unknown';
+    const flag = c.flags && c.flags.png ? c.flags.png : '';
+    const capital = getCapital(c);
+    const pop = fmt(c.population);
+    const rClass = regionClass(c.region);
+    const cca3 = c.cca3 || '';
+
+    const compareIdx = state.compareSlots.indexOf(c);
+    const isSelected = compareIdx !== -1;
+
+    return `<div
+      class="country-card"
+      role="listitem"
+      tabindex="0"
+      data-cca3="${escHTML(cca3)}"
+      onclick="openDetail('${escHTML(cca3)}')"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDetail('${escHTML(cca3)}')}"
+      aria-label="${escHTML(name)}"
+    >
+      ${flag ? `<img class="card-flag" src="${escHTML(flag)}" alt="${escHTML(name)} flag" loading="lazy" onerror="this.style.display='none'" />` : `<div class="card-flag" style="background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:2rem;">🏳️</div>`}
+      <div class="card-body">
+        <span class="card-region ${rClass}">${escHTML(c.region || 'Unknown')}</span>
+        <div class="card-name">${escHTML(name)}</div>
+        <div class="card-meta">
+          <span>🏛️ ${escHTML(capital)}</span>
+          <span>👥 ${pop}</span>
+          ${isList ? `<span>💬 ${escHTML(getLanguages(c).slice(0,40))}</span>` : ''}
+        </div>
+      </div>
+      ${state.compareMode ? `<button
+        class="card-compare-btn${isSelected ? ' selected' : ''}"
+        onclick="event.stopPropagation();toggleCompareSlot('${escHTML(cca3)}')"
+        aria-label="Compare ${escHTML(name)}"
+        title="${isSelected ? 'Remove from compare' : 'Add to compare'}"
+      >${isSelected ? '✓ Added' : '+ Compare'}</button>` : ''}
+    </div>`;
+  }
+
+  // ── COMPARE ──
+  function toggleCompareMode() {
+    state.compareMode = !state.compareMode;
+    const btn = document.getElementById('compareToggleBtn');
+    const bar = document.getElementById('compareBar');
+    if (state.compareMode) {
+      btn.textContent = '✕ Exit Compare';
+      btn.className = 'btn-danger btn-sm';
+      bar.style.display = 'flex';
+      toast('Click "+ Compare" on two countries, then click "View Comparison"', 'info', 4000);
+    } else {
+      btn.textContent = '⚖️ Compare';
+      btn.className = 'btn-secondary btn-sm';
+      bar.style.display = 'none';
+    }
+    renderView();
+  }
+
+  function toggleCompareSlot(cca3) {
+    const c = state.countries.find(x => x.cca3 === cca3);
+    if (!c) return;
+
+    const idx = state.compareSlots.indexOf(c);
+    if (idx !== -1) {
+      state.compareSlots[idx] = null;
+    } else {
+      const emptyIdx = state.compareSlots.indexOf(null);
+      if (emptyIdx === -1) {
+        toast('Only 2 countries can be compared at once. Remove one first.', 'error');
+        return;
+      }
+      state.compareSlots[emptyIdx] = c;
+    }
+
+    updateCompareUI();
+    renderView();
+  }
+
+  function updateCompareUI() {
+    [0, 1].forEach(i => {
+      const c = state.compareSlots[i];
+      const label = document.getElementById(`compareSlot${i+1}Label`);
+      const slot = document.getElementById(`compareSlot${i+1}`);
+      const clearBtn = document.getElementById(`clearSlot${i+1}`);
+      if (c) {
+        label.textContent = c.name && c.name.common ? c.name.common : 'Unknown';
+        slot.classList.add('filled');
+        clearBtn.style.display = '';
+      } else {
+        label.textContent = 'Select a country...';
+        slot.classList.remove('filled');
+        clearBtn.style.display = 'none';
+      }
+    });
+    const goBtn = document.getElementById('goCompareBtn');
+    const bothFilled = state.compareSlots[0] && state.compareSlots[1];
+    goBtn.disabled = !bothFilled;
+    if (bothFilled) goBtn.removeAttribute('disabled');
+  }
+
+  function clearCompareSlot(i) {
+    state.compareSlots[i] = null;
+    updateCompareUI();
+    renderView();
+  }
+
+  function clearCompare() {
+    state.compareSlots = [null, null];
+    updateCompareUI();
+    if (state.currentView === 'compare') setView('grid');
+    else renderView();
+  }
+
+  function updateCompareButtonStates() {
+    if (!state.compareMode) return;
+    document.querySelectorAll('.card-compare-btn').forEach(btn => {
+      const card = btn.closest('.country-card');
+      if (!card) return;
+      const cca3 = card.dataset.cca3;
+      const c = state.countries.find(x => x.cca3 === cca3);
+      const isSelected = c && state.compareSlots.includes(c);
+      btn.classList.toggle('selected', !!isSelected);
+      btn.textContent = isSelected ? '✓ Added' : '+ Compare';
+    });
+  }
+
+  function renderCompare() {
+    document.getElementById('pagination').style.display = 'none';
+    const [c1, c2] = state.compareSlots;
+
+    if (!c1 && !c2) {
+      document.getElementById('contentArea').innerHTML = `
+        <div class="empty-state">
+          <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><line x1="12" y1="3" x2="12" y2="21"/>
+          </svg>
+          <h3>No countries selected</h3>
+          <p>Enable compare mode and select two countries, then return here.</p>
+          <br/>
+          <button class="btn-primary" onclick="setView('grid');if(!state.compareMode)toggleCompareMode()">Start Comparing</button>
+        </div>`;
+      return;
+    }
+
+    if (!c1 || !c2) {
+      document.getElementById('contentArea').innerHTML = `
+        <div class="empty-state">
+          <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <h3>Select one more country</h3>
+          <p>Go back to the grid, click "+ Compare" on a second country.</p>
+          <br/>
+          <button class="btn-secondary" onclick="setView('grid')">← Back to Grid</button>
+        </div>`;
+      return;
+    }
+
+    const rows = [
+      { label: 'Flag', fn: c => `<img class="compare-flag" src="${escHTML(c.flags && c.flags.png ? c.flags.png : '')}" alt="${escHTML(c.name && c.name.common ? c.name.common : '')} flag" loading="lazy" />` },
+      { label: 'Country', fn: c => `<strong>${escHTML(c.name && c.name.common ? c.name.common : 'N/A')}</strong>` },
+      { label: 'Official Name', fn: c => escHTML(c.name && c.name.official ? c.name.official : 'N/A') },
+      { label: 'Region', fn: c => escHTML(c.region || 'N/A') },
+      { label: 'Subregion', fn: c => escHTML(c.subregion || 'N/A') },
+      { label: 'Capital', fn: c => escHTML(getCapital(c)) },
+      { label: 'Population', fn: c => escHTML(fmt(c.population)) },
+      { label: 'Area (km²)', fn: c => escHTML(c.area ? c.area.toLocaleString() : 'N/A') },
+      { label: 'Currency', fn: c => escHTML(getCurrencies(c)) },
+      { label: 'Languages', fn: c => escHTML(getLanguages(c)) },
+      { label: 'Timezones', fn: c => escHTML(getTimezones(c)) },
+      { label: 'Borders', fn: c => (c.borders && c.borders.length ? c.borders.slice(0,8).map(b => `<span class="tag" style="font-size:0.7rem;padding:2px 6px">${escHTML(b)}</span>`).join(' ') : '<span style="color:var(--muted)">Island nation</span>') },
+      { label: 'Trade Blocs', fn: c => { const blocs = getBlocs(c.cca3 || ''); return blocs.length ? blocs.map(b => `<span class="bloc-badge">${escHTML(b)}</span>`).join('') : '<span style="color:var(--muted)">None identified</span>'; } },
+    ];
+
+    const html = `<div class="compare-table-wrap">
+      <table class="compare-table" role="table" aria-label="Country comparison">
+        <thead>
+          <tr>
+            <th class="row-label">Attribute</th>
+            <th>${escHTML(c1.name && c1.name.common ? c1.name.common : 'Country 1')}</th>
+            <th>${escHTML(c2.name && c2.name.common ? c2.name.common : 'Country 2')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `<tr>
+            <td class="row-label">${escHTML(row.label)}</td>
+            <td>${row.fn(c1)}</td>
+            <td>${row.fn(c2)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+    document.getElementById('contentArea').innerHTML = html;
+  }
+
+  // ── DETAIL PANEL ──
+  function openDetail(cca3) {
+    const c = state.countries.find(x => x.cca3 === cca3);
+    if (!c) return;
+    state.activeDetail = c;
+
+    // Remove existing overlay
+    const existing = document.getElementById('detailOverlay');
+    if (existing) existing.remove();
+
+    const name = c.name && c.name.common ? c.name.common : 'Unknown';
+    const official = c.name && c.name.official ? c.name.official : '';
+    const flag = c.flags && c.flags.png ? c.flags.png : '';
+    const capital = getCapital(c);
+    const pop = c.population ? c.population.toLocaleString() : 'N/A';
+    const area = c.area ? `${c.area.toLocaleString()} km²` : 'N/A';
+    const blocs = getBlocs(c.cca3 || '');
+    const borders = c.borders || [];
+    const mapUrl = `https://www.openstreetmap.org/search?query=${encodeURIComponent(name)}`;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'panel-overlay';
+    overlay.id = 'detailOverlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', `${name} details`);
+
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) closeDetail();
+    });
+
+    overlay.innerHTML = `
+      <div class="detail-panel" id="detailPanel">
+        <div class="panel-header">
+          ${flag ? `<img class="panel-flag" src="${escHTML(flag)}" alt="${escHTML(name)} flag" />` : ''}
+          <div>
+            <div class="panel-title">${escHTML(name)}</div>
+            ${official && official !== name ? `<div style="font-size:0.75rem;color:var(--muted)">${escHTML(official)}</div>` : ''}
+          </div>
+          <button class="panel-close" onclick="closeDetail()" aria-label="Close panel" title="Close">✕</button>
+        </div>
+        <div class="panel-body">
+          ${flag ? `<img class="panel-flag-large" src="${escHTML(flag)}" alt="${escHTML(name)} flag" />` : ''}
+
+          <div class="info-grid">
+            <div class="info-card">
+              <div class="info-card-label">🏛️ Capital</div>
+              <div class="info-card-value accent">${escHTML(capital)}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">🌍 Region</div>
+              <div class="info-card-value">${escHTML(c.region || 'N/A')}${c.subregion ? `<br/><span style="font-size:0.78rem;color:var(--muted)">${escHTML(c.subregion)}</span>` : ''}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">👥 Population</div>
+              <div class="info-card-value green">${escHTML(pop)}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">📐 Area</div>
+              <div class="info-card-value yellow">${escHTML(area)}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">💰 Currency</div>
+              <div class="info-card-value" style="font-size:0.84rem">${escHTML(getCurrencies(c))}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">🕐 Timezone(s)</div>
+              <div class="info-card-value" style="font-size:0.82rem">${escHTML(getTimezones(c))}</div>
+            </div>
+          </div>
+
+          <div class="section-title">💬 Languages</div>
+          <div class="tag-list">
+            ${getLanguages(c) !== 'N/A'
+              ? Object.values(c.languages || {}).map(l => `<span class="tag green-tag">${escHTML(l)}</span>`).join('')
+              : '<span class="tag">N/A</span>'}
+          </div>
+
+          ${blocs.length > 0 ? `
+          <div class="section-title">🤝 Trade Blocs & Organizations</div>
+          <div class="tag-list">
+            ${blocs.map(b => `<span class="bloc-badge" title="${escHTML(BLOC_INFO[b] || b)}">${escHTML(b)}</span>`).join('')}
+          </div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:16px">
+            ${blocs.map(b => `<strong>${escHTML(b)}</strong>: ${escHTML(BLOC_INFO[b] || '')}`).join(' &nbsp;·&nbsp; ')}
+          </div>` : ''}
+
+          <a class="map-link" href="${escHTML(mapUrl)}" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+              <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
+            </svg>
+            View on OpenStreetMap
+          </a>
+
+          ${borders.length > 0 ? `
+          <div class="section-title">🗺️ Bordering Countries (${borders.length})</div>
+          <div class="tag-list">
+            ${borders.map(b => {
+              const bc = state.countries.find(x => x.cca3 === b);
+              const bname = bc && bc.name && bc.name.common ? bc.name.common : b;
+              return `<button
+                class="tag clickable"
+                onclick="closeDetail();openDetail('${escHTML(b)}')"
+                title="View ${escHTML(bname)}"
+              >${escHTML(bname)}</button>`;
+            }).join('')}
+          </div>` : `<div class="section-title" style="color:var(--muted)">🏝️ No land borders (island nation)</div>`}
+
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-secondary btn-sm" onclick="closeDetail();toggleCompareMode();if(state.compareMode)toggleCompareSlot('${escHTML(c.cca3 || '')}')">⚖️ Add to Compare</button>
+            <button class="btn-ghost btn-sm" onclick="window.print()">🖨️ Print Brief</button>
+          </div>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+
+    // Trap focus in panel
+    const panel = overlay.querySelector('#detailPanel');
+    const focusables = panel.querySelectorAll('button, a, [tabindex="0"]');
+    if (focusables.length) focusables[0].focus();
+
+    // Keyboard close
+    overlay._keyHandler = e => {
+      if (e.key === 'Escape') closeDetail();
+    };
+    document.addEventListener('keydown', overlay._keyHandler);
+  }
+
+  function closeDetail() {
+    const overlay = document.getElementById('detailOverlay');
+    if (overlay) {
+      document.removeEventListener('keydown', overlay._keyHandler);
+      overlay.remove();
+    }
+    state.activeDetail = null;
+  }
+
+  // ── SKELETONS & ERROR ──
+  function renderSkeletons() {
+    const html = `<div class="loading-grid">
+      ${Array.from({length: 12}).map(() => `
+        <div class="skeleton">
+          <div class="skeleton-flag"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+    document.getElementById('contentArea').innerHTML = html;
+    document.getElementById('pagination').style.display = 'none';
+  }
+
+  function renderError(msg) {
+    document.getElementById('contentArea').innerHTML = `
+      <div class="empty-state">
+        <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/>
+        </svg>
+        <h3>Failed to load countries</h3>
+        <p>${escHTML(msg)}</p>
+        <br/>
+        <button class="btn-primary" onclick="loadData()">Retry</button>
+      </div>`;
+    document.getElementById('pagination').style.display = 'none';
+  }
+
+  // ── PAGINATION ──
+  function changePage(delta) {
+    const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+    const next = state.currentPage + delta;
+    if (next < 1 || next > totalPages) return;
+    state.currentPage = next;
+    renderView();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── PRINT/PDF ──
+  function printBrief() {
+    window.print();
+  }
+
+  // ── INIT ──
+  document.addEventListener('DOMContentLoaded', () => {
+    // Expose state for inline onclick handlers
+    window.state = state;
+    window.openDetail = openDetail;
+    window.closeDetail = closeDetail;
+    window.toggleCompareMode = toggleCompareMode;
+    window.toggleCompareSlot = toggleCompareSlot;
+    window.clearCompareSlot = clearCompareSlot;
+    window.clearCompare = clearCompare;
+    window.setView = setView;
+    window.onSearch = onSearch;
+    window.onFilter = onFilter;
+    window.changePage = changePage;
+    window.printBrief = printBrief;
+    window.loadData = loadData;
+    window.toggleCompareMode = toggleCompareMode;
+
+    loadData();
+  });
+
+})();
+</script>
+</body>
+</html>

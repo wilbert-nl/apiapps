@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Recommendation Engine — Dark Factory</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --green: #43d9ad;
+      --yellow: #f7c948;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    header h1 small {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ─── MAIN ─── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ─── SEARCH / BROWSE PANEL ─── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Search bar */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search-input-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 11px 14px 11px 42px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    }
+
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    .search-type-toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .toggle-btn.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .btn-search {
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-search:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-search:active { transform: translateY(0); }
+    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ─── GENRE GRID ─── */
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 14px;
+    }
+
+    .genre-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .genre-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .genre-chip:hover {
+      border-color: var(--accent);
+      background: var(--surface2);
+      transform: translateY(-2px);
+    }
+
+    .genre-chip.active {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.12);
+    }
+
+    .genre-chip .genre-icon { font-size: 1.4rem; }
+    .genre-chip .genre-name { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+
+    /* ─── BOOK GRID ─── */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .results-count {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .results-count strong { color: var(--green); }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 18px;
+    }
+
+    /* ─── BOOK CARD ─── */
+    .book-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      animation: fadeUp 0.35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .book-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+      border-color: var(--accent);
+    }
+
+    .book-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .book-cover {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      background: var(--surface2);
+      display: block;
+    }
+
+    .book-cover-placeholder {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: linear-gradient(145deg, var(--surface2), var(--bg));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 2rem;
+    }
+
+    .book-cover-placeholder span {
+      font-size: 0.7rem;
+      text-align: center;
+      padding: 0 8px;
+      line-height: 1.3;
+    }
+
+    .book-meta {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .book-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .book-author {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .book-year {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .book-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .stars {
+      font-size: 0.7rem;
+      color: var(--yellow);
+      letter-spacing: 1px;
+    }
+
+    .rating-num {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ─── SKELETON CARDS ─── */
+    .skeleton-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-cover {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: var(--surface2);
+    }
+
+    .skeleton-meta {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .skeleton-line {
+      height: 10px;
+      background: var(--surface2);
+      border-radius: 6px;
+    }
+
+    .skeleton-line.short { width: 60%; }
+    .skeleton-line.xshort { width: 40%; }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ─── EMPTY STATE ─── */
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--muted);
+      animation: fadeUp 0.3s ease;
+    }
+
+    .empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+    .empty-state p { font-size: 0.85rem; max-width: 360px; margin: 0 auto; }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.95);
+      transition: transform 0.22s;
+    }
+
+    .modal-overlay.open .modal { transform: scale(1); }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-cover {
+      width: 90px;
+      min-height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: var(--surface2);
+      flex-shrink: 0;
+    }
+
+    .modal-cover-placeholder {
+      width: 90px;
+      min-height: 130px;
+      border-radius: 8px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .modal-info { flex: 1; min-width: 0; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; line-height: 1.35; margin-bottom: 6px; }
+    .modal-author { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+
+    .modal-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .badge-accent { background: rgba(108,99,255,0.2); color: var(--accent); }
+    .badge-green  { background: rgba(67,217,173,0.15); color: var(--green); }
+    .badge-yellow { background: rgba(247,201,72,0.15); color: var(--yellow); }
+    .badge-pink   { background: rgba(255,101,132,0.2); color: var(--accent2); }
+
+    .modal-rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+    }
+
+    .modal-body { padding: 24px; }
+
+    .modal-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 10px;
+    }
+
+    .subject-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .subject-tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .subject-tag:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn-recommend {
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-recommend:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-openlibrary {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-openlibrary:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .btn-close {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-close:hover {
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .recommend-section { margin-top: 20px; }
+
+    /* ─── TOAST ─── */
+    .toast-area {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 300;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 0.82rem;
+      color: var(--text);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: slideIn 0.25s ease, fadeOut 0.4s ease 2.6s forwards;
+      max-width: 320px;
+    }
+
+    .toast.success { border-color: var(--green); }
+    .toast.error   { border-color: var(--accent2); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(30px); }
+    }
+
+    /* ─── RECOMMENDATIONS TAB ─── */
+    .recs-empty {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--muted);
+    }
+
+    .recs-empty .recs-empty-icon { font-size: 3.5rem; margin-bottom: 16px; }
+    .recs-empty h3 { font-size: 1rem; color: var(--text); margin-bottom: 8px; }
+    .recs-empty p  { font-size: 0.83rem; }
+
+    .recs-intro {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .recs-intro-text { flex: 1; }
+    .recs-intro-text h2 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .recs-intro-text p  { font-size: 0.82rem; color: var(--muted); }
+
+    .seed-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .seed-chip {
+      background: rgba(108,99,255,0.15);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .seed-remove {
+      background: none;
+      border: none;
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 0.9rem;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-find-recs {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px 22px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-find-recs:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-find-recs:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      main { padding: 20px 16px 48px; }
+      .book-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+      header { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon" aria-hidden="true">📚</div>
+    <h1>Book Recommender
+      <small>Powered by Open Library</small>
+    </h1>
+  </div>
+  <nav class="tab-bar" role="tablist" aria-label="Main navigation">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-search" id="tab-search" onclick="switchTab('search')">Search</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-browse" id="tab-browse" onclick="switchTab('browse')">Browse Genres</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-recs" id="tab-recs" onclick="switchTab('recs')">Recommendations</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- SEARCH PANEL -->
+  <section id="panel-search" class="panel active" role="tabpanel" aria-labelledby="tab-search">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search by title or author..."
+          aria-label="Search books by title or author"
+          autocomplete="off"
+          onkeydown="handleSearchKey(event)"
+        />
+      </div>
+      <div class="search-type-toggle" role="group" aria-label="Search type">
+        <button class="toggle-btn active" id="toggle-title" onclick="setSearchType('title')" aria-pressed="true">Title</button>
+        <button class="toggle-btn" id="toggle-author" onclick="setSearchType('author')" aria-pressed="false">Author</button>
+      </div>
+      <button class="btn-search" id="search-btn" onclick="doSearch()" aria-label="Search">Search</button>
+    </div>
+
+    <div id="search-results-wrap">
+      <div class="empty-state" aria-live="polite">
+        <div class="empty-icon" aria-hidden="true">🔍</div>
+        <h3>Discover your next read</h3>
+        <p>Search for a book by title or author — we will pull covers, ratings, and subjects from Open Library.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BROWSE PANEL -->
+  <section id="panel-browse" class="panel" role="tabpanel" aria-labelledby="tab-browse">
+    <p class="section-title">Pick a genre</p>
+    <div class="genre-grid" role="list" aria-label="Genre list">
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('fantasy')" onkeydown="chipKey(event,'fantasy')" aria-label="Fantasy genre">
+        <span class="genre-icon" aria-hidden="true">🧙</span>
+        <span class="genre-name">Fantasy</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('science_fiction')" onkeydown="chipKey(event,'science_fiction')" aria-label="Sci-Fi genre">
+        <span class="genre-icon" aria-hidden="true">🚀</span>
+        <span class="genre-name">Sci-Fi</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('mystery')" onkeydown="chipKey(event,'mystery')" aria-label="Mystery genre">
+        <span class="genre-icon" aria-hidden="true">🔎</span>
+        <span class="genre-name">Mystery</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('romance')" onkeydown="chipKey(event,'romance')" aria-label="Romance genre">
+        <span class="genre-icon" aria-hidden="true">💌</span>
+        <span class="genre-name">Romance</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('thriller')" onkeydown="chipKey(event,'thriller')" aria-label="Thriller genre">
+        <span class="genre-icon" aria-hidden="true">🔪</span>
+        <span class="genre-name">Thriller</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('biography')" onkeydown="chipKey(event,'biography')" aria-label="Biography genre">
+        <span class="genre-icon" aria-hidden="true">👤</span>
+        <span class="genre-name">Biography</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('history')" onkeydown="chipKey(event,'history')" aria-label="History genre">
+        <span class="genre-icon" aria-hidden="true">🏛️</span>
+        <span class="genre-name">History</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('horror')" onkeydown="chipKey(event,'horror')" aria-label="Horror genre">
+        <span class="genre-icon" aria-hidden="true">👻</span>
+        <span class="genre-name">Horror</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('poetry')" onkeydown="chipKey(event,'poetry')" aria-label="Poetry genre">
+        <span class="genre-icon" aria-hidden="true">🖊️</span>
+        <span class="genre-name">Poetry</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('philosophy')" onkeydown="chipKey(event,'philosophy')" aria-label="Philosophy genre">
+        <span class="genre-icon" aria-hidden="true">🧠</span>
+        <span class="genre-name">Philosophy</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('cooking')" onkeydown="chipKey(event,'cooking')" aria-label="Cooking genre">
+        <span class="genre-icon" aria-hidden="true">🍳</span>
+        <span class="genre-name">Cooking</span>
+      </div>
+      <div class="genre-chip" role="listitem" tabindex="0" onclick="browseGenre('travel')" onkeydown="chipKey(event,'travel')" aria-label="Travel genre">
+        <span class="genre-icon" aria-hidden="true">✈️</span>
+        <span class="genre-name">Travel</span>
+      </div>
+    </div>
+
+    <div id="browse-results-wrap" aria-live="polite"></div>
+  </section>
+
+  <!-- RECOMMENDATIONS PANEL -->
+  <section id="panel-recs" class="panel" role="tabpanel" aria-labelledby="tab-recs">
+    <div id="recs-intro-wrap">
+      <div class="recs-intro" id="recs-intro" style="display:none">
+        <div class="recs-intro-text">
+          <h2>Find similar books</h2>
+          <p>Based on your seed books, we will search for titles with matching subjects.</p>
+          <div class="seed-list" id="seed-list"></div>
+        </div>
+        <button class="btn-find-recs" id="find-recs-btn" onclick="findRecommendations()">Find Recommendations</button>
+      </div>
+    </div>
+    <div id="recs-results-wrap" aria-live="polite">
+      <div class="recs-empty">
+        <div class="recs-empty-icon" aria-hidden="true">💡</div>
+        <h3>No seed books yet</h3>
+        <p>Open any book card and click <strong>"Add to Recommendations"</strong> to get started.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-text" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div id="modal-cover-wrap"></div>
+      <div class="modal-info">
+        <h2 class="modal-title" id="modal-title-text"></h2>
+        <p class="modal-author" id="modal-author"></p>
+        <div class="modal-badges" id="modal-badges"></div>
+        <div class="modal-rating" id="modal-rating"></div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p class="modal-section-title">Subjects</p>
+      <div class="subject-tags" id="modal-subjects"></div>
+      <div class="modal-actions">
+        <button class="btn-recommend" id="btn-add-rec" onclick="addToRecs()">+ Add to Recommendations</button>
+        <a class="btn-openlibrary" id="btn-openlibrary" href="#" target="_blank" rel="noopener noreferrer">
+          Open Library ↗
+        </a>
+        <button class="btn-close" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST AREA -->
+<div class="toast-area" id="toast-area" aria-live="assertive" aria-atomic="true"></div>
+
+<script>
+  'use strict';
+
+  // ─── STATE ───────────────────────────────────────────────────────────────
+  let searchType = 'title';
+  let currentBook = null;
+  let seedBooks = [];
+  let activeGenre = null;
+
+  // ─── TAB SWITCHING ───────────────────────────────────────────────────────
+  function switchTab(tab) {
+    ['search','browse','recs'].forEach(t => {
+      const panel = document.getElementById(`panel-${t}`);
+      const btn   = document.getElementById(`tab-${t}`);
+      const active = t === tab;
+      panel.classList.toggle('active', active);
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  // ─── SEARCH TYPE ─────────────────────────────────────────────────────────
+  function setSearchType(type) {
+    searchType = type;
+    document.getElementById('toggle-title').classList.toggle('active', type === 'title');
+    document.getElementById('toggle-author').classList.toggle('active', type === 'author');
+    document.getElementById('toggle-title').setAttribute('aria-pressed', type === 'title' ? 'true' : 'false');
+    document.getElementById('toggle-author').setAttribute('aria-pressed', type === 'author' ? 'true' : 'false');
+    const ph = type === 'author' ? 'Search by author name...' : 'Search by title or keywords...';
+    document.getElementById('search-input').placeholder = ph;
+  }
+
+  function handleSearchKey(e) {
+    if (e.key === 'Enter') doSearch();
+  }
+
+  // ─── SEARCH ──────────────────────────────────────────────────────────────
+  async function doSearch() {
+    const raw = document.getElementById('search-input').value.trim();
+    if (!raw) { toast('Please enter a search term', 'error'); return; }
+
+    const wrap = document.getElementById('search-results-wrap');
+    wrap.innerHTML = skeletonGrid(12);
+
+    const btn = document.getElementById('search-btn');
+    btn.disabled = true;
+    btn.textContent = 'Searching...';
+
+    try {
+      let url;
+      if (searchType === 'author') {
+        url = `https://openlibrary.org/search.json?author=${encodeURIComponent(raw)}&limit=12`;
+      } else {
+        url = `https://openlibrary.org/search.json?q=${encodeURIComponent(raw)}&limit=12`;
+      }
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const docs = (data.docs || []).filter(d => d.title);
+
+      wrap.innerHTML = '';
+
+      if (!docs.length) {
+        wrap.innerHTML = emptyState('No books found', `We couldn't find anything for "${raw}". Try different keywords.`);
+        return;
+      }
+
+      const header = document.createElement('div');
+      header.className = 'results-header';
+      header.innerHTML = `<p class="results-count">Found <strong>${docs.length}</strong> results for "${escHtml(raw)}"</p>`;
+      wrap.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'book-grid';
+      docs.forEach((doc, i) => {
+        grid.appendChild(buildCard(doc, i));
+      });
+      wrap.appendChild(grid);
+
+    } catch (err) {
+      wrap.innerHTML = emptyState('Search failed', `Could not reach Open Library. Please check your connection and try again.`);
+      toast(`Search error: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Search';
+    }
+  }
+
+  // ─── GENRE BROWSE ────────────────────────────────────────────────────────
+  async function browseGenre(subject) {
+    if (activeGenre === subject) return;
+    activeGenre = subject;
+
+    document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+    const chips = document.querySelectorAll('.genre-chip');
+    chips.forEach(c => {
+      if (c.getAttribute('onclick') && c.getAttribute('onclick').includes(subject)) {
+        c.classList.add('active');
+      }
+    });
+
+    const wrap = document.getElementById('browse-results-wrap');
+    wrap.innerHTML = skeletonGrid(12);
+
+    try {
+      const url = `https://openlibrary.org/subjects/${encodeURIComponent(subject)}.json?limit=12`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const works = data.works || [];
+
+      wrap.innerHTML = '';
+
+      const label = data.name || subject;
+      const header = document.createElement('div');
+      header.className = 'results-header';
+      header.innerHTML = `<p class="results-count"><strong>${works.length}</strong> books in <strong style="color:var(--accent)">${escHtml(label)}</strong></p>`;
+      wrap.appendChild(header);
+
+      if (!works.length) {
+        wrap.innerHTML += emptyState('No books found', `No books listed for this genre yet.`);
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'book-grid';
+      works.forEach((work, i) => {
+        const doc = subjectWorkToDoc(work);
+        grid.appendChild(buildCard(doc, i));
+      });
+      wrap.appendChild(grid);
+
+    } catch (err) {
+      wrap.innerHTML = emptyState('Browse failed', `Could not reach Open Library. Please try again.`);
+      toast(`Browse error: ${err.message}`, 'error');
+    }
+  }
+
+  function subjectWorkToDoc(work) {
+    const authors = work.authors ? work.authors.map(a => a.name) : [];
+    return {
+      key: work.key,
+      title: work.title,
+      author_name: authors,
+      first_publish_year: work.first_publish_year,
+      cover_id: work.cover_id,
+      subject: work.subject,
+      ratings_average: null,
+      ratings_count: null,
+    };
+  }
+
+  // ─── CARD BUILDER ────────────────────────────────────────────────────────
+  function buildCard(doc, index) {
+    const card = document.createElement('article');
+    card.className = 'book-card';
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.style.animationDelay = `${index * 40}ms`;
+
+    const coverId = doc.cover_id || doc.cover_i;
+    const coverHTML = coverId
+      ? `<img class="book-cover" src="https://covers.openlibrary.org/b/id/${coverId}-M.jpg" alt="Cover of ${escHtml(doc.title)}" loading="lazy" onerror="this.replaceWith(noCoverEl())">`
+      : `<div class="book-cover-placeholder" aria-hidden="true"><span>📖</span><span>${escHtml(doc.title).slice(0,30)}</span></div>`;
+
+    const author = doc.author_name && doc.author_name.length ? doc.author_name[0] : 'Unknown Author';
+    const year = doc.first_publish_year || '';
+    const ratingHTML = buildRatingHTML(doc.ratings_average, doc.ratings_count);
+
+    card.innerHTML = `
+      ${coverHTML}
+      <div class="book-meta">
+        <p class="book-title">${escHtml(doc.title)}</p>
+        <p class="book-author">${escHtml(author)}</p>
+        ${year ? `<p class="book-year">${year}</p>` : ''}
+        ${ratingHTML}
+      </div>
+    `;
+
+    const openFn = () => openModal(doc);
+    card.addEventListener('click', openFn);
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFn(); } });
+
+    return card;
+  }
+
+  function noCoverEl() {
+    const div = document.createElement('div');
+    div.className = 'book-cover-placeholder';
+    div.setAttribute('aria-hidden', 'true');
+    div.innerHTML = '<span>📖</span>';
+    return div;
+  }
+
+  function buildRatingHTML(avg, count) {
+    if (!avg) return '';
+    const stars = ratingToStars(avg);
+    return `<div class="book-rating"><span class="stars" aria-hidden="true">${stars}</span><span class="rating-num">${avg.toFixed(1)}${count ? ` (${count})` : ''}</span></div>`;
+  }
+
+  function ratingToStars(avg) {
+    const full  = Math.round(avg);
+    let out = '';
+    for (let i = 0; i < 5; i++) out += i < full ? '★' : '☆';
+    return out;
+  }
+
+  // ─── MODAL ───────────────────────────────────────────────────────────────
+  function openModal(doc) {
+    currentBook = doc;
+
+    const coverId = doc.cover_id || doc.cover_i;
+    const coverWrap = document.getElementById('modal-cover-wrap');
+    if (coverId) {
+      coverWrap.innerHTML = `<img class="modal-cover" src="https://covers.openlibrary.org/b/id/${coverId}-M.jpg" alt="Cover of ${escHtml(doc.title)}" onerror="this.replaceWith(modalNoCoverEl())">`;
+    } else {
+      coverWrap.innerHTML = `<div class="modal-cover-placeholder" aria-hidden="true">📖</div>`;
+    }
+
+    document.getElementById('modal-title-text').textContent = doc.title || 'Unknown Title';
+    const author = doc.author_name && doc.author_name.length ? doc.author_name.join(', ') : 'Unknown Author';
+    document.getElementById('modal-author').textContent = `by ${author}`;
+
+    const badges = document.getElementById('modal-badges');
+    badges.innerHTML = '';
+    if (doc.first_publish_year) badges.innerHTML += `<span class="badge badge-green">${doc.first_publish_year}</span>`;
+    if (doc.number_of_pages_median) badges.innerHTML += `<span class="badge badge-accent">${doc.number_of_pages_median} pages</span>`;
+    if (doc.language && doc.language.length) badges.innerHTML += `<span class="badge badge-yellow">${doc.language[0].toUpperCase()}</span>`;
+
+    const ratingEl = document.getElementById('modal-rating');
+    if (doc.ratings_average) {
+      ratingEl.innerHTML = `<span class="stars">${ratingToStars(doc.ratings_average)}</span><span style="font-size:0.82rem;color:var(--muted)">${doc.ratings_average.toFixed(1)} avg${doc.ratings_count ? ` · ${doc.ratings_count} ratings` : ''}</span>`;
+    } else {
+      ratingEl.innerHTML = `<span style="font-size:0.8rem;color:var(--muted)">No rating data</span>`;
+    }
+
+    const subjects = doc.subject || [];
+    const subWrap = document.getElementById('modal-subjects');
+    if (subjects.length) {
+      subWrap.innerHTML = subjects.slice(0, 20).map(s =>
+        `<button class="subject-tag" onclick="searchSubject('${escAttr(s)}')">${escHtml(s)}</button>`
+      ).join('');
+    } else {
+      subWrap.innerHTML = `<span style="font-size:0.8rem;color:var(--muted)">No subject data available</span>`;
+    }
+
+    const key = doc.key || '';
+    const olId = key.replace('/works/', '');
+    const olUrl = `https://openlibrary.org${key}`;
+    document.getElementById('btn-openlibrary').href = olUrl;
+
+    const inSeeds = seedBooks.some(b => b.key === doc.key || b.title === doc.title);
+    const addBtn = document.getElementById('btn-add-rec');
+    addBtn.textContent = inSeeds ? 'Already Added' : '+ Add to Recommendations';
+    addBtn.disabled = inSeeds;
+
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    setTimeout(() => {
+      const firstFocusable = document.getElementById('btn-add-rec');
+      if (firstFocusable) firstFocusable.focus();
+    }, 100);
+  }
+
+  function modalNoCoverEl() {
+    const div = document.createElement('div');
+    div.className = 'modal-cover-placeholder';
+    div.setAttribute('aria-hidden', 'true');
+    div.textContent = '📖';
+    return div;
+  }
+
+  function closeModal() {
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    currentBook = null;
+  }
+
+  function closeModalOnOverlay(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ─── SEARCH BY SUBJECT TAG ───────────────────────────────────────────────
+  function searchSubject(subject) {
+    closeModal();
+    switchTab('search');
+    document.getElementById('search-input').value = subject;
+    setSearchType('title');
+    doSearch();
+  }
+
+  // ─── ADD TO RECS ─────────────────────────────────────────────────────────
+  function addToRecs() {
+    if (!currentBook) return;
+    const alreadyIn = seedBooks.some(b => b.key === currentBook.key || b.title === currentBook.title);
+    if (alreadyIn) {
+      toast('Already in your recommendation seeds', 'error');
+      return;
+    }
+    seedBooks.push(currentBook);
+    toast(`Added "${currentBook.title}" to seeds`, 'success');
+    updateRecsIntro();
+    const btn = document.getElementById('btn-add-rec');
+    btn.textContent = 'Already Added';
+    btn.disabled = true;
+  }
+
+  function removeSeed(idx) {
+    seedBooks.splice(idx, 1);
+    updateRecsIntro();
+    if (seedBooks.length === 0) {
+      document.getElementById('recs-results-wrap').innerHTML = `
+        <div class="recs-empty">
+          <div class="recs-empty-icon">💡</div>
+          <h3>No seed books yet</h3>
+          <p>Open any book card and click <strong>"Add to Recommendations"</strong> to get started.</p>
+        </div>`;
+    }
+  }
+
+  function updateRecsIntro() {
+    const intro = document.getElementById('recs-intro');
+    const seedList = document.getElementById('seed-list');
+    if (seedBooks.length === 0) {
+      intro.style.display = 'none';
+      return;
+    }
+    intro.style.display = 'flex';
+    seedList.innerHTML = seedBooks.map((b, i) =>
+      `<span class="seed-chip">${escHtml(b.title.length > 30 ? b.title.slice(0,30) + '…' : b.title)}<button class="seed-remove" onclick="removeSeed(${i})" aria-label="Remove ${escAttr(b.title)}">✕</button></span>`
+    ).join('');
+  }
+
+  // ─── FIND RECOMMENDATIONS ────────────────────────────────────────────────
+  async function findRecommendations() {
+    if (!seedBooks.length) { toast('Add at least one seed book first', 'error'); return; }
+
+    const wrap = document.getElementById('recs-results-wrap');
+    wrap.innerHTML = skeletonGrid(12);
+
+    const btn = document.getElementById('find-recs-btn');
+    btn.disabled = true;
+    btn.textContent = 'Searching...';
+
+    try {
+      // Collect subjects from seed books
+      const allSubjects = [];
+      seedBooks.forEach(b => {
+        if (b.subject) allSubjects.push(...b.subject.slice(0, 5));
+      });
+
+      // Deduplicate and pick top subjects
+      const subjectCounts = {};
+      allSubjects.forEach(s => { subjectCounts[s] = (subjectCounts[s] || 0) + 1; });
+      const ranked = Object.entries(subjectCounts).sort((a, b) => b[1] - a[1]);
+      const topSubjects = ranked.slice(0, 3).map(([s]) => s);
+
+      if (!topSubjects.length) {
+        // Fall back to title-based search
+        const fallbackTitle = seedBooks[0].title;
+        const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(fallbackTitle)}&limit=12`);
+        const data = await res.json();
+        const docs = (data.docs || []).filter(d => d.title && !seedBooks.some(s => s.title === d.title));
+        renderRecResults(docs, wrap, 'Based on your seed book');
+        return;
+      }
+
+      // Fetch books for top subject
+      const subject = topSubjects[0].toLowerCase().replace(/\s+/g, '_');
+      const res = await fetch(`https://openlibrary.org/subjects/${encodeURIComponent(subject)}.json?limit=20`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const works = (data.works || []).filter(w =>
+        !seedBooks.some(s => s.title.toLowerCase() === w.title.toLowerCase())
+      );
+
+      const docs = works.map(subjectWorkToDoc);
+      renderRecResults(docs, wrap, `Based on subject: "${topSubjects[0]}"`);
+
+    } catch (err) {
+      wrap.innerHTML = emptyState('Recommendation failed', `Could not fetch recommendations. Please try again.`);
+      toast(`Error: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Find Recommendations';
+    }
+  }
+
+  function renderRecResults(docs, wrap, label) {
+    wrap.innerHTML = '';
+    if (!docs.length) {
+      wrap.innerHTML = emptyState('No recommendations found', 'Try adding different seed books with richer subject data.');
+      return;
+    }
+    const header = document.createElement('div');
+    header.className = 'results-header';
+    header.innerHTML = `<p class="results-count"><strong>${docs.length}</strong> recommendations <span style="color:var(--muted)">— ${escHtml(label)}</span></p>`;
+    wrap.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'book-grid';
+    docs.slice(0, 12).forEach((doc, i) => grid.appendChild(buildCard(doc, i)));
+    wrap.appendChild(grid);
+  }
+
+  // ─── CHIP KEYBOARD ───────────────────────────────────────────────────────
+  function chipKey(e, subject) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); browseGenre(subject); }
+  }
+
+  // ─── HELPERS ─────────────────────────────────────────────────────────────
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function skeletonGrid(n) {
+    let html = '<div class="book-grid">';
+    for (let i = 0; i < n; i++) {
+      html += `<div class="skeleton-card" aria-hidden="true"><div class="skeleton-cover"></div><div class="skeleton-meta"><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line xshort"></div></div></div>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function emptyState(title, msg) {
+    return `<div class="empty-state"><div class="empty-icon" aria-hidden="true">📭</div><h3>${escHtml(title)}</h3><p>${escHtml(msg)}</p></div>`;
+  }
+
+  function toast(msg, type) {
+    const area = document.getElementById('toast-area');
+    const el = document.createElement('div');
+    el.className = `toast ${type || ''}`;
+    el.textContent = msg;
+    el.setAttribute('role', 'status');
+    area.appendChild(el);
+    setTimeout(() => el.remove(), 3200);
+  }
+</script>
+
+</body>
+</html>
