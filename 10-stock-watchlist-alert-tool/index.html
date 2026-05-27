@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Watchlist Alert Tool</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --text: #e2e8f0;
+    --muted: #8892b0;
+    --green: #43d9ad;
+    --yellow: #f7c948;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  header h1 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  header span {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .toolbar input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    font-size: 0.9rem;
+    outline: none;
+    width: 140px;
+  }
+  .toolbar input:focus { border-color: var(--accent); }
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 9px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .18s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.danger { background: var(--accent2); }
+  .btn.sm { padding: 5px 11px; font-size: 0.78rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card.alerted { border-color: var(--accent2); box-shadow: 0 0 0 2px rgba(255,101,132,.18); }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .ticker { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+  .company { font-size: 0.78rem; color: var(--muted); }
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color .15s, background .15s;
+  }
+  .remove-btn:hover { color: var(--accent2); background: rgba(255,101,132,.1); }
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .price { font-size: 1.6rem; font-weight: 700; }
+  .change { font-size: 0.9rem; font-weight: 600; }
+  .up { color: var(--green); }
+  .down { color: var(--accent2); }
+  .sparkline-wrap { margin-bottom: 10px; }
+  svg.sparkline { width: 100%; height: 50px; }
+  .alert-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .alert-row label { font-size: 0.78rem; color: var(--muted); }
+  .alert-row input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    width: 80px;
+    outline: none;
+  }
+  .alert-row input:focus { border-color: var(--accent); }
+  .alert-tag {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .alert-tag.active { background: rgba(255,101,132,.18); color: var(--accent2); }
+  .alert-tag.inactive { background: rgba(108,99,255,.13); color: var(--accent); }
+  #alert-panel {
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    width: 320px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .alert-banner {
+    background: var(--surface);
+    border: 1px solid var(--accent2);
+    border-left: 4px solid var(--accent2);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text);
+    pointer-events: all;
+    animation: slideIn .3s ease;
+    box-shadow: 0 4px 24px rgba(0,0,0,.4);
+    cursor: pointer;
+  }
+  .alert-banner .ab-title { font-weight: 700; color: var(--accent2); margin-bottom: 3px; }
+  .alert-banner .ab-body { color: var(--muted); font-size: 0.8rem; }
+  @keyframes slideIn {
+    from { transform: translateX(40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat-value { font-size: 1.05rem; font-weight: 700; }
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    margin-top: 4px;
+  }
+  .volume { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .stats-bar { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="dot"></div>
+  <h1>Stock Watchlist</h1>
+  <span>Live simulation &mdash; updates every 5s</span>
+</header>
+<div id="alert-panel"></div>
+<div class="container">
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><span class="stat-label">Watching</span><span class="stat-value" id="s-watching">0</span></div>
+    <div class="stat"><span class="stat-label">Gainers</span><span class="stat-value up" id="s-gainers">0</span></div>
+    <div class="stat"><span class="stat-label">Losers</span><span class="stat-value down" id="s-losers">0</span></div>
+    <div class="stat"><span class="stat-label">Active Alerts</span><span class="stat-value" style="color:var(--yellow)" id="s-alerts">0</span></div>
+    <div class="stat"><span class="stat-label">Last Update</span><span class="stat-value" id="s-time" style="font-size:.85rem;font-weight:500">--:--:--</span></div>
+  </div>
+  <div class="toolbar">
+    <input id="add-ticker" type="text" placeholder="Ticker (e.g. AAPL)" maxlength="10">
+    <button class="btn" onclick="addTicker()">+ Add</button>
+  </div>
+  <div class="section-title">Your Watchlist</div>
+  <div class="grid" id="watchlist-grid"></div>
+</div>
+
+<script>
+const COMPANIES = {
+  AAPL:  'Apple Inc.',
+  MSFT:  'Microsoft Corp.',
+  GOOGL: 'Alphabet Inc.',
+  AMZN:  'Amazon.com Inc.',
+  TSLA:  'Tesla Inc.',
+  NVDA:  'NVIDIA Corp.',
+  META:  'Meta Platforms',
+  'BRK-B':'Berkshire Hathaway',
+  AMD:   'Advanced Micro Devices',
+  NFLX:  'Netflix Inc.',
+  INTC:  'Intel Corp.',
+  DIS:   'Walt Disney Co.'
+};
+
+const BASE_PRICES = {
+  AAPL: 189.3, MSFT: 415.2, GOOGL: 171.8, AMZN: 185.4,
+  TSLA: 248.6, NVDA: 887.5, META: 498.1, 'BRK-B': 392.0,
+  AMD: 165.4, NFLX: 628.3, INTC: 31.2, DIS: 92.7
+};
+
+const DEFAULT_TICKERS = ['AAPL','MSFT','GOOGL','AMZN','TSLA','NVDA','META','BRK-B'];
+const HISTORY_LEN = 30;
+const ALERT_DISMISS_MS = 6000;
+const triggeredAlerts = new Set();
+
+let watchlist = [];
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('sw-watchlist');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  return null;
+}
+
+function saveState() {
+  const toSave = watchlist.map(s => ({
+    ticker: s.ticker,
+    alertAbove: s.alertAbove,
+    alertBelow: s.alertBelow
+  }));
+  localStorage.setItem('sw-watchlist', JSON.stringify(toSave));
+}
+
+function makeStock(ticker, alertAbove, alertBelow) {
+  const base = BASE_PRICES[ticker] || 100;
+  const history = [];
+  let cur = base * (0.95 + Math.random() * 0.1);
+  for (let i = 0; i < HISTORY_LEN; i++) {
+    cur = cur * (1 + (Math.random() - 0.5) * 0.012);
+    history.push(parseFloat(cur.toFixed(2)));
+  }
+  const price = history[history.length - 1];
+  const open = history[0];
+  return {
+    ticker,
+    name: COMPANIES[ticker] || ticker,
+    price,
+    open,
+    history,
+    volume: Math.floor(Math.random() * 50e6 + 5e6),
+    alertAbove: alertAbove || '',
+    alertBelow: alertBelow || ''
+  };
+}
+
+function initWatchlist() {
+  const saved = loadState();
+  if (saved) {
+    watchlist = saved.map(s => makeStock(s.ticker, s.alertAbove, s.alertBelow));
+  } else {
+    watchlist = DEFAULT_TICKERS.map(t => makeStock(t));
+  }
+}
+
+function updatePrices() {
+  watchlist.forEach(s => {
+    const move = (Math.random() - 0.49) * 0.008;
+    s.price = parseFloat((s.price * (1 + move)).toFixed(2));
+    s.history.push(s.price);
+    if (s.history.length > HISTORY_LEN) s.history.shift();
+    s.volume += Math.floor(Math.random() * 200000);
+    checkAlerts(s);
+  });
+  renderAll();
+  saveState();
+}
+
+function checkAlerts(s) {
+  if (s.alertAbove && s.price > parseFloat(s.alertAbove)) {
+    const key = `${s.ticker}-above-${s.alertAbove}`;
+    if (!triggeredAlerts.has(key)) {
+      triggeredAlerts.add(key);
+      showAlert(s.ticker, `Price crossed ABOVE $${parseFloat(s.alertAbove).toFixed(2)}`, `Current price: $${s.price.toFixed(2)}`);
+    }
+  } else if (s.alertAbove) {
+    triggeredAlerts.delete(`${s.ticker}-above-${s.alertAbove}`);
+  }
+  if (s.alertBelow && s.price < parseFloat(s.alertBelow)) {
+    const key = `${s.ticker}-below-${s.alertBelow}`;
+    if (!triggeredAlerts.has(key)) {
+      triggeredAlerts.add(key);
+      showAlert(s.ticker, `Price dropped BELOW $${parseFloat(s.alertBelow).toFixed(2)}`, `Current price: $${s.price.toFixed(2)}`);
+    }
+  } else if (s.alertBelow) {
+    triggeredAlerts.delete(`${s.ticker}-below-${s.alertBelow}`);
+  }
+}
+
+function showAlert(ticker, title, body) {
+  const panel = document.getElementById('alert-panel');
+  const el = document.createElement('div');
+  el.className = 'alert-banner';
+  el.innerHTML = `<div class="ab-title">${ticker}: ${title}</div><div class="ab-body">${body}</div>`;
+  el.onclick = () => el.remove();
+  panel.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, ALERT_DISMISS_MS);
+}
+
+function sparklinePath(history, w, h, pad) {
+  const mn = Math.min(...history);
+  const mx = Math.max(...history);
+  const range = mx - mn || 1;
+  const pts = history.map((v, i) => {
+    const x = pad + (i / (history.length - 1)) * (w - pad * 2);
+    const y = pad + (1 - (v - mn) / range) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  return pts.join(' ');
+}
+
+function renderSparkline(history, isUp) {
+  const w = 260, h = 50, pad = 4;
+  const pts = sparklinePath(history, w, h, pad);
+  const color = isUp ? 'var(--green)' : 'var(--accent2)';
+  const first = pts.split(' ')[0];
+  const last = pts.split(' ').slice(-1)[0];
+  const [lx, ly] = last.split(',');
+  const fillPts = `${pts} ${lx},${h - pad} ${pad},${h - pad} ${first}`;
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="fg-${isUp ? 'u' : 'd'}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${fillPts}" fill="url(#fg-${isUp ? 'u' : 'd'})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${lx}" cy="${ly}" r="3" fill="${color}"/>
+  </svg>`;
+}
+
+function fmtNum(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function renderCard(s) {
+  const change = s.price - s.open;
+  const changePct = (change / s.open) * 100;
+  const isUp = change >= 0;
+  const sign = isUp ? '+' : '';
+  const hasAlertAbove = s.alertAbove && s.price > parseFloat(s.alertAbove);
+  const hasAlertBelow = s.alertBelow && s.price < parseFloat(s.alertBelow);
+  const alerted = hasAlertAbove || hasAlertBelow;
+  const alertTagAbove = s.alertAbove
+    ? `<span class="alert-tag ${hasAlertAbove ? 'active' : 'inactive'}">Above $${parseFloat(s.alertAbove).toFixed(2)}</span>`
+    : '';
+  const alertTagBelow = s.alertBelow
+    ? `<span class="alert-tag ${hasAlertBelow ? 'active' : 'inactive'}">Below $${parseFloat(s.alertBelow).toFixed(2)}</span>`
+    : '';
+  return `<div class="card ${alerted ? 'alerted' : ''}" id="card-${s.ticker}">
+    <div class="card-header">
+      <div>
+        <div class="ticker">${s.ticker}</div>
+        <div class="company">${s.name}</div>
+      </div>
+      <button class="remove-btn" onclick="removeTicker('${s.ticker}')" title="Remove">&#x2715;</button>
+    </div>
+    <div class="price-row">
+      <span class="price">$${s.price.toFixed(2)}</span>
+      <span class="change ${isUp ? 'up' : 'down'}">${sign}${change.toFixed(2)} (${sign}${changePct.toFixed(2)}%)</span>
+    </div>
+    <div class="sparkline-wrap">${renderSparkline(s.history, isUp)}</div>
+    <div class="volume">Vol: ${fmtNum(s.volume)}</div>
+    <div class="alert-row">
+      <label>Alert above $</label>
+      <input type="number" placeholder="e.g. 200" value="${s.alertAbove}" onchange="setAlert('${s.ticker}', 'above', this.value)">
+      <label>below $</label>
+      <input type="number" placeholder="e.g. 150" value="${s.alertBelow}" onchange="setAlert('${s.ticker}', 'below', this.value)">
+    </div>
+    ${(alertTagAbove || alertTagBelow) ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${alertTagAbove}${alertTagBelow}</div>` : ''}
+  </div>`;
+}
+
+function renderAll() {
+  const grid = document.getElementById('watchlist-grid');
+  grid.innerHTML = watchlist.map(renderCard).join('');
+  const gainers = watchlist.filter(s => s.price >= s.open).length;
+  const losers = watchlist.length - gainers;
+  const activeAlerts = watchlist.filter(s =>
+    (s.alertAbove && s.price > parseFloat(s.alertAbove)) ||
+    (s.alertBelow && s.price < parseFloat(s.alertBelow))
+  ).length;
+  document.getElementById('s-watching').textContent = watchlist.length;
+  document.getElementById('s-gainers').textContent = gainers;
+  document.getElementById('s-losers').textContent = losers;
+  document.getElementById('s-alerts').textContent = activeAlerts;
+  const now = new Date();
+  document.getElementById('s-time').textContent =
+    now.toLocaleTimeString('en-US', { hour12: false });
+}
+
+function addTicker() {
+  const input = document.getElementById('add-ticker');
+  const ticker = input.value.trim().toUpperCase();
+  if (!ticker) return;
+  if (watchlist.find(s => s.ticker === ticker)) {
+    alert(`${ticker} is already in your watchlist.`);
+    return;
+  }
+  if (watchlist.length >= 20) {
+    alert('Maximum 20 tickers allowed.');
+    return;
+  }
+  watchlist.push(makeStock(ticker));
+  input.value = '';
+  saveState();
+  renderAll();
+}
+
+function removeTicker(ticker) {
+  watchlist = watchlist.filter(s => s.ticker !== ticker);
+  saveState();
+  renderAll();
+}
+
+function setAlert(ticker, direction, value) {
+  const s = watchlist.find(s => s.ticker === ticker);
+  if (!s) return;
+  if (direction === 'above') {
+    s.alertAbove = value;
+    triggeredAlerts.delete(`${ticker}-above-${value}`);
+  } else {
+    s.alertBelow = value;
+    triggeredAlerts.delete(`${ticker}-below-${value}`);
+  }
+  saveState();
+  renderAll();
+}
+
+document.getElementById('add-ticker').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addTicker();
+});
+
+initWatchlist();
+renderAll();
+setInterval(updatePrices, 5000);
+</script>
+</body>
+</html>

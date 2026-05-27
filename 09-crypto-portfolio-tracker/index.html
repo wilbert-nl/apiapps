@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Portfolio Tracker</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --green: #43d9ad;
+      --yellow: #f7c948;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header h1 span.logo {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    button:hover { opacity: 0.85; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: var(--accent2);
+      color: #fff;
+    }
+
+    .btn-success {
+      background: var(--green);
+      color: #0f1117;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    /* Summary cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .card-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-value.positive { color: var(--green); }
+    .card-value.negative { color: var(--accent2); }
+    .card-value.neutral { color: var(--yellow); }
+
+    .card-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Add transaction form */
+    .form-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: none;
+    }
+
+    .form-panel.visible { display: block; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    select option { background: var(--surface2); }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* Transactions table */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+    tbody tr:last-child { border-bottom: none; }
+
+    td {
+      padding: 12px 14px;
+      vertical-align: middle;
+    }
+
+    .coin-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .coin-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--surface2);
+    }
+
+    .coin-name { font-weight: 600; }
+    .coin-symbol {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-buy { background: rgba(67,217,173,0.15); color: var(--green); }
+    .badge-receive { background: rgba(108,99,255,0.15); color: var(--accent); }
+    .badge-spend { background: rgba(255,101,132,0.15); color: var(--accent2); }
+
+    .change-positive { color: var(--green); }
+    .change-negative { color: var(--accent2); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+
+    .empty-state p {
+      font-size: 0.95rem;
+      margin-top: 8px;
+    }
+
+    /* Portfolio table */
+    .portfolio-table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    /* Capital gains section */
+    .gains-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .gains-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .gains-card h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 12px;
+    }
+
+    .gains-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+
+    .gains-row:last-child { border-bottom: none; }
+
+    .gains-label { color: var(--muted); }
+    .gains-val { font-weight: 700; }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+
+    .status-dot.loading {
+      background: var(--yellow);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 6px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .delete-btn {
+      background: transparent;
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    .delete-btn:hover { background: var(--accent2); color: #fff; }
+
+    .price-loading { color: var(--yellow); font-style: italic; }
+
+    @media (max-width: 600px) {
+      .card-value { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      <span class="logo">DF</span>
+      Crypto Portfolio Tracker
+    </h1>
+    <div class="header-actions">
+      <button class="btn-outline" id="refreshBtn">Refresh Prices</button>
+      <button class="btn-success" id="exportBtn">Export CSV</button>
+      <button class="btn-primary" id="addTxBtn">+ Add Transaction</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="status-bar">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Ready</span>
+    </div>
+
+    <!-- Add transaction form -->
+    <div class="form-panel" id="formPanel">
+      <div class="section-title" style="margin-bottom:16px">New Transaction</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="txType">
+            <option value="buy">Buy</option>
+            <option value="receive">Receive</option>
+            <option value="spend">Spend</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Coin</label>
+          <select id="txCoin">
+            <option value="bitcoin">Bitcoin (BTC)</option>
+            <option value="ethereum">Ethereum (ETH)</option>
+            <option value="solana">Solana (SOL)</option>
+            <option value="cardano">Cardano (ADA)</option>
+            <option value="ripple">XRP (XRP)</option>
+            <option value="polkadot">Polkadot (DOT)</option>
+            <option value="chainlink">Chainlink (LINK)</option>
+            <option value="uniswap">Uniswap (UNI)</option>
+            <option value="litecoin">Litecoin (LTC)</option>
+            <option value="dogecoin">Dogecoin (DOGE)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="txQty" placeholder="0.00" min="0" step="any" />
+        </div>
+        <div class="form-group">
+          <label>Price per Coin (USD)</label>
+          <input type="number" id="txPrice" placeholder="0.00" min="0" step="any" />
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="txDate" />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="txNotes" placeholder="Optional note..." />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-outline" id="cancelBtn">Cancel</button>
+        <button class="btn-primary" id="saveTxBtn">Save Transaction</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="summary-grid" id="summaryGrid">
+      <div class="card">
+        <div class="card-label">Total Portfolio Value</div>
+        <div class="card-value" id="totalValue">$0.00</div>
+        <div class="card-sub">at current market prices</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total Cost Basis</div>
+        <div class="card-value neutral" id="totalCost">$0.00</div>
+        <div class="card-sub">amount invested</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Unrealized P&amp;L</div>
+        <div class="card-value" id="totalPnl">$0.00</div>
+        <div class="card-sub" id="totalPnlPct">0.00%</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Assets Held</div>
+        <div class="card-value neutral" id="assetCount">0</div>
+        <div class="card-sub">unique coins</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="portfolio">Portfolio</button>
+      <button class="tab" data-tab="transactions">Transactions</button>
+      <button class="tab" data-tab="gains">Capital Gains</button>
+    </div>
+
+    <!-- Portfolio tab -->
+    <div class="tab-panel active" id="tab-portfolio">
+      <div class="section">
+        <div class="portfolio-table-wrap">
+          <div class="table-wrap">
+            <table id="portfolioTable">
+              <thead>
+                <tr>
+                  <th>Asset</th>
+                  <th>Holdings</th>
+                  <th>Avg Cost</th>
+                  <th>Current Price</th>
+                  <th>24h Change</th>
+                  <th>Value</th>
+                  <th>P&amp;L</th>
+                  <th>P&amp;L %</th>
+                </tr>
+              </thead>
+              <tbody id="portfolioBody">
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <div style="font-size:2rem">&#x1F4BC;</div>
+                      <p>No holdings yet. Add a transaction to get started.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions tab -->
+    <div class="tab-panel" id="tab-transactions">
+      <div class="section">
+        <div class="portfolio-table-wrap">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Asset</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                  <th>Notes</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="txBody">
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <div style="font-size:2rem">&#x1F4CB;</div>
+                      <p>No transactions yet. Click &quot;+ Add Transaction&quot; to log your first entry.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capital Gains tab -->
+    <div class="tab-panel" id="tab-gains">
+      <div class="gains-grid" id="gainsGrid">
+        <div class="gains-card">
+          <h3>Short-Term Gains (held &lt; 1 year)</h3>
+          <div id="shortTermList">
+            <div class="gains-row"><span class="gains-label">No data yet</span><span class="gains-val">--</span></div>
+          </div>
+        </div>
+        <div class="gains-card">
+          <h3>Long-Term Gains (held &gt;= 1 year)</h3>
+          <div id="longTermList">
+            <div class="gains-row"><span class="gains-label">No data yet</span><span class="gains-val">--</span></div>
+          </div>
+        </div>
+        <div class="gains-card">
+          <h3>Tax Exposure Estimate</h3>
+          <div id="taxList">
+            <div class="gains-row"><span class="gains-label">Short-term rate (est. 25%)</span><span class="gains-val" id="taxShort">$0.00</span></div>
+            <div class="gains-row"><span class="gains-label">Long-term rate (est. 15%)</span><span class="gains-val" id="taxLong">$0.00</span></div>
+            <div class="gains-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:12px">
+              <span class="gains-label" style="font-weight:700;color:var(--text)">Total Estimated Tax</span>
+              <span class="gains-val" id="taxTotal" style="color:var(--accent2)">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Coin metadata map
+    const COIN_META = {
+      bitcoin:   { symbol: 'BTC', name: 'Bitcoin' },
+      ethereum:  { symbol: 'ETH', name: 'Ethereum' },
+      solana:    { symbol: 'SOL', name: 'Solana' },
+      cardano:   { symbol: 'ADA', name: 'Cardano' },
+      ripple:    { symbol: 'XRP', name: 'XRP' },
+      polkadot:  { symbol: 'DOT', name: 'Polkadot' },
+      chainlink: { symbol: 'LINK', name: 'Chainlink' },
+      uniswap:   { symbol: 'UNI', name: 'Uniswap' },
+      litecoin:  { symbol: 'LTC', name: 'Litecoin' },
+      dogecoin:  { symbol: 'DOGE', name: 'Dogecoin' }
+    };
+
+    // State
+    let transactions = JSON.parse(localStorage.getItem('df_crypto_txns') || '[]');
+    let prices = {};
+    let changes = {};
+    let icons = {};
+    let pricesLoaded = false;
+
+    // Helpers
+    function fmt(n) {
+      if (n === null || n === undefined || isNaN(n)) return '$0.00';
+      return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtQty(n) {
+      if (!n && n !== 0) return '0';
+      const s = Number(n).toFixed(8).replace(/\.?0+$/, '');
+      return s || '0';
+    }
+
+    function fmtPct(n) {
+      if (n === null || n === undefined || isNaN(n)) return '0.00%';
+      const sign = n >= 0 ? '+' : '';
+      return sign + Number(n).toFixed(2) + '%';
+    }
+
+    function saveTxns() {
+      localStorage.setItem('df_crypto_txns', JSON.stringify(transactions));
+    }
+
+    function setStatus(msg, loading) {
+      document.getElementById('statusText').textContent = msg;
+      const dot = document.getElementById('statusDot');
+      if (loading) {
+        dot.classList.add('loading');
+      } else {
+        dot.classList.remove('loading');
+      }
+    }
+
+    // Get unique coin IDs from transactions
+    function getUniqueCoins() {
+      const ids = new Set();
+      transactions.forEach(function(t) { ids.add(t.coin); });
+      return Array.from(ids);
+    }
+
+    // Fetch prices from CoinGecko
+    async function fetchPrices() {
+      const coins = getUniqueCoins();
+      if (coins.length === 0) {
+        pricesLoaded = true;
+        setStatus('No holdings to price', false);
+        return;
+      }
+      setStatus('Fetching live prices...', true);
+      try {
+        const ids = coins.join(',');
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=false`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        coins.forEach(function(id) {
+          if (data[id]) {
+            prices[id] = data[id].usd || 0;
+            changes[id] = data[id].usd_24h_change || 0;
+          }
+        });
+        pricesLoaded = true;
+        setStatus('Prices updated at ' + new Date().toLocaleTimeString(), false);
+      } catch (e) {
+        // Use fallback prices so app is never blank
+        pricesLoaded = true;
+        setStatus('Live prices unavailable - showing cost basis data', false);
+      }
+      render();
+    }
+
+    // Fetch icons
+    async function fetchIcons() {
+      const coins = getUniqueCoins();
+      if (coins.length === 0) return;
+      try {
+        const ids = coins.join(',');
+        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=50&page=1`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        if (!res.ok) return;
+        const data = await res.json();
+        data.forEach(function(c) {
+          if (c.image) icons[c.id] = c.image;
+        });
+      } catch (e) {
+        // icons are optional
+      }
+    }
+
+    // Compute portfolio holdings
+    function computeHoldings() {
+      const holdings = {};
+      transactions.forEach(function(t) {
+        if (!holdings[t.coin]) {
+          holdings[t.coin] = { qty: 0, costBasis: 0, txns: [] };
+        }
+        const h = holdings[t.coin];
+        if (t.type === 'buy' || t.type === 'receive') {
+          h.qty += t.qty;
+          h.costBasis += t.qty * t.price;
+        } else if (t.type === 'spend') {
+          const avgCost = h.qty > 0 ? h.costBasis / h.qty : 0;
+          h.qty -= t.qty;
+          h.costBasis -= avgCost * t.qty;
+        }
+        h.txns.push(t);
+        if (h.qty < 0) h.qty = 0;
+        if (h.costBasis < 0) h.costBasis = 0;
+      });
+      return holdings;
+    }
+
+    // Compute capital gains (FIFO approximation)
+    function computeGains() {
+      const shortTerm = {};
+      const longTerm = {};
+      const now = Date.now();
+      const oneYear = 365 * 24 * 3600 * 1000;
+
+      // Group buys per coin as lots
+      const lots = {};
+      transactions.forEach(function(t) {
+        if (!lots[t.coin]) lots[t.coin] = [];
+        if (t.type === 'buy' || t.type === 'receive') {
+          lots[t.coin].push({ qty: t.qty, price: t.price, date: new Date(t.date).getTime() });
+        } else if (t.type === 'spend') {
+          let remaining = t.qty;
+          const coinLots = lots[t.coin] || [];
+          while (remaining > 0 && coinLots.length > 0) {
+            const lot = coinLots[0];
+            const used = Math.min(lot.qty, remaining);
+            const gain = used * (t.price - lot.price);
+            const held = t.date ? (new Date(t.date).getTime() - lot.date) : oneYear + 1;
+            const isLong = held >= oneYear;
+            if (isLong) {
+              if (!longTerm[t.coin]) longTerm[t.coin] = 0;
+              longTerm[t.coin] += gain;
+            } else {
+              if (!shortTerm[t.coin]) shortTerm[t.coin] = 0;
+              shortTerm[t.coin] += gain;
+            }
+            lot.qty -= used;
+            remaining -= used;
+            if (lot.qty <= 0) coinLots.shift();
+          }
+        }
+      });
+
+      return { shortTerm, longTerm };
+    }
+
+    // RENDER
+    function render() {
+      const holdings = computeHoldings();
+      const coins = Object.keys(holdings).filter(function(c) { return holdings[c].qty > 0.0000001; });
+
+      // Summary
+      let totalValue = 0;
+      let totalCost = 0;
+      coins.forEach(function(id) {
+        const h = holdings[id];
+        const price = prices[id] || 0;
+        totalValue += h.qty * price;
+        totalCost += h.costBasis;
+      });
+
+      // If no price data, use cost basis as value
+      if (!pricesLoaded || Object.keys(prices).length === 0) {
+        totalValue = totalCost;
+      }
+
+      const pnl = totalValue - totalCost;
+      const pnlPct = totalCost > 0 ? (pnl / totalCost) * 100 : 0;
+
+      document.getElementById('totalValue').textContent = fmt(totalValue);
+      const costEl = document.getElementById('totalCost');
+      costEl.textContent = fmt(totalCost);
+
+      const pnlEl = document.getElementById('totalPnl');
+      pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmt(pnl);
+      pnlEl.className = 'card-value ' + (pnl >= 0 ? 'positive' : 'negative');
+      document.getElementById('totalPnlPct').textContent = fmtPct(pnlPct);
+
+      document.getElementById('assetCount').textContent = coins.length;
+
+      // Portfolio table
+      const pbody = document.getElementById('portfolioBody');
+      if (coins.length === 0) {
+        pbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div style="font-size:2rem">&#x1F4BC;</div><p>No holdings yet. Add a transaction to get started.</p></div></td></tr>';
+      } else {
+        pbody.innerHTML = coins.map(function(id) {
+          const h = holdings[id];
+          const meta = COIN_META[id] || { symbol: id.toUpperCase(), name: id };
+          const currentPrice = prices[id] || null;
+          const avgCost = h.qty > 0 ? h.costBasis / h.qty : 0;
+          const value = currentPrice !== null ? h.qty * currentPrice : h.costBasis;
+          const pnlCoin = value - h.costBasis;
+          const pnlPctCoin = h.costBasis > 0 ? (pnlCoin / h.costBasis) * 100 : 0;
+          const change24 = changes[id];
+          const iconUrl = icons[id] || '';
+
+          const priceCell = currentPrice !== null
+            ? fmt(currentPrice)
+            : '<span class="price-loading">fetching...</span>';
+
+          const changeCell = change24 !== undefined
+            ? `<span class="${change24 >= 0 ? 'change-positive' : 'change-negative'}">${fmtPct(change24)}</span>`
+            : '<span class="price-loading">--</span>';
+
+          const imgTag = iconUrl
+            ? `<img src="${iconUrl}" class="coin-icon" alt="${meta.symbol}" onerror="this.style.display='none'" />`
+            : `<span class="coin-icon" style="display:inline-block;text-align:center;line-height:32px;font-size:0.7rem;background:var(--surface2);color:var(--muted)">${meta.symbol.slice(0,3)}</span>`;
+
+          return `<tr>
+            <td>
+              <div class="coin-cell">
+                ${imgTag}
+                <div>
+                  <div class="coin-name">${meta.name}</div>
+                  <div class="coin-symbol">${meta.symbol}</div>
+                </div>
+              </div>
+            </td>
+            <td>${fmtQty(h.qty)} ${meta.symbol}</td>
+            <td>${fmt(avgCost)}</td>
+            <td>${priceCell}</td>
+            <td>${changeCell}</td>
+            <td>${fmt(value)}</td>
+            <td class="${pnlCoin >= 0 ? 'change-positive' : 'change-negative'}">${pnlCoin >= 0 ? '+' : ''}${fmt(pnlCoin)}</td>
+            <td class="${pnlPctCoin >= 0 ? 'change-positive' : 'change-negative'}">${fmtPct(pnlPctCoin)}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Transactions table
+      const txbody = document.getElementById('txBody');
+      if (transactions.length === 0) {
+        txbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div style="font-size:2rem">&#x1F4CB;</div><p>No transactions yet. Click &quot;+ Add Transaction&quot; to log your first entry.</p></div></td></tr>';
+      } else {
+        const sorted = [...transactions].sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+        txbody.innerHTML = sorted.map(function(t, i) {
+          const meta = COIN_META[t.coin] || { symbol: t.coin.toUpperCase(), name: t.coin };
+          const total = t.qty * t.price;
+          const idx = transactions.indexOf(t);
+          return `<tr>
+            <td>${t.date || '--'}</td>
+            <td><span class="badge badge-${t.type}">${t.type}</span></td>
+            <td><strong>${meta.name}</strong> <span style="color:var(--muted);font-size:0.8rem">${meta.symbol}</span></td>
+            <td>${fmtQty(t.qty)}</td>
+            <td>${fmt(t.price)}</td>
+            <td>${fmt(total)}</td>
+            <td style="color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes || ''}</td>
+            <td><button class="delete-btn" onclick="deleteTx(${idx})">Delete</button></td>
+          </tr>`;
+        }).join('');
+      }
+
+      // Capital gains
+      const { shortTerm, longTerm } = computeGains();
+      const stCoins = Object.keys(shortTerm);
+      const ltCoins = Object.keys(longTerm);
+
+      const shortTermEl = document.getElementById('shortTermList');
+      if (stCoins.length === 0) {
+        shortTermEl.innerHTML = '<div class="gains-row"><span class="gains-label">No realized gains</span><span class="gains-val">--</span></div>';
+      } else {
+        let stTotal = 0;
+        shortTermEl.innerHTML = stCoins.map(function(id) {
+          const meta = COIN_META[id] || { name: id };
+          const val = shortTerm[id];
+          stTotal += val;
+          return `<div class="gains-row">
+            <span class="gains-label">${meta.name}</span>
+            <span class="gains-val ${val >= 0 ? 'change-positive' : 'change-negative'}">${val >= 0 ? '+' : ''}${fmt(val)}</span>
+          </div>`;
+        }).join('') + `<div class="gains-row" style="border-top:1px solid var(--border);margin-top:4px">
+          <span class="gains-label" style="font-weight:700">Total</span>
+          <span class="gains-val ${stTotal >= 0 ? 'change-positive' : 'change-negative'}">${stTotal >= 0 ? '+' : ''}${fmt(stTotal)}</span>
+        </div>`;
+      }
+
+      const longTermEl = document.getElementById('longTermList');
+      if (ltCoins.length === 0) {
+        longTermEl.innerHTML = '<div class="gains-row"><span class="gains-label">No realized gains</span><span class="gains-val">--</span></div>';
+      } else {
+        let ltTotal = 0;
+        longTermEl.innerHTML = ltCoins.map(function(id) {
+          const meta = COIN_META[id] || { name: id };
+          const val = longTerm[id];
+          ltTotal += val;
+          return `<div class="gains-row">
+            <span class="gains-label">${meta.name}</span>
+            <span class="gains-val ${val >= 0 ? 'change-positive' : 'change-negative'}">${val >= 0 ? '+' : ''}${fmt(val)}</span>
+          </div>`;
+        }).join('') + `<div class="gains-row" style="border-top:1px solid var(--border);margin-top:4px">
+          <span class="gains-label" style="font-weight:700">Total</span>
+          <span class="gains-val ${ltTotal >= 0 ? 'change-positive' : 'change-negative'}">${ltTotal >= 0 ? '+' : ''}${fmt(ltTotal)}</span>
+        </div>`;
+      }
+
+      // Tax estimates
+      const stTotalVal = Object.values(shortTerm).reduce(function(a, b) { return a + b; }, 0);
+      const ltTotalVal = Object.values(longTerm).reduce(function(a, b) { return a + b; }, 0);
+      const taxShort = Math.max(0, stTotalVal * 0.25);
+      const taxLong = Math.max(0, ltTotalVal * 0.15);
+      document.getElementById('taxShort').textContent = fmt(taxShort);
+      document.getElementById('taxLong').textContent = fmt(taxLong);
+      document.getElementById('taxTotal').textContent = fmt(taxShort + taxLong);
+    }
+
+    function deleteTx(idx) {
+      if (!confirm('Delete this transaction?')) return;
+      transactions.splice(idx, 1);
+      saveTxns();
+      render();
+      fetchPrices();
+    }
+
+    // Add transaction
+    document.getElementById('addTxBtn').addEventListener('click', function() {
+      document.getElementById('formPanel').classList.toggle('visible');
+      // Set default date to today
+      const dateInput = document.getElementById('txDate');
+      if (!dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', function() {
+      document.getElementById('formPanel').classList.remove('visible');
+    });
+
+    document.getElementById('saveTxBtn').addEventListener('click', function() {
+      const type = document.getElementById('txType').value;
+      const coin = document.getElementById('txCoin').value;
+      const qty = parseFloat(document.getElementById('txQty').value);
+      const price = parseFloat(document.getElementById('txPrice').value);
+      const date = document.getElementById('txDate').value;
+      const notes = document.getElementById('txNotes').value.trim();
+
+      if (!qty || qty <= 0) { alert('Please enter a valid quantity.'); return; }
+      if (!price || price < 0) { alert('Please enter a valid price.'); return; }
+      if (!date) { alert('Please select a date.'); return; }
+
+      transactions.push({ type, coin, qty, price, date, notes });
+      saveTxns();
+
+      // Reset form
+      document.getElementById('txQty').value = '';
+      document.getElementById('txPrice').value = '';
+      document.getElementById('txNotes').value = '';
+      document.getElementById('formPanel').classList.remove('visible');
+
+      render();
+      fetchPrices();
+      fetchIcons();
+    });
+
+    // Refresh
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+      fetchPrices();
+      fetchIcons();
+    });
+
+    // Export CSV
+    document.getElementById('exportBtn').addEventListener('click', function() {
+      if (transactions.length === 0) { alert('No transactions to export.'); return; }
+      const headers = ['Date', 'Type', 'Coin', 'Symbol', 'Quantity', 'Price (USD)', 'Total (USD)', 'Notes'];
+      const rows = transactions.map(function(t) {
+        const meta = COIN_META[t.coin] || { symbol: t.coin.toUpperCase(), name: t.coin };
+        return [t.date, t.type, meta.name, meta.symbol, t.qty, t.price, (t.qty * t.price).toFixed(2), t.notes || ''].join(',');
+      });
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'crypto-portfolio-' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        tab.classList.add('active');
+        const panelId = 'tab-' + tab.dataset.tab;
+        document.getElementById(panelId).classList.add('active');
+      });
+    });
+
+    // Seed demo data if empty (so app is never blank)
+    function seedDemo() {
+      if (transactions.length > 0) return;
+      const today = new Date();
+      const sixMonthsAgo = new Date(today - 180 * 24 * 3600 * 1000).toISOString().split('T')[0];
+      const twoYearsAgo = new Date(today - 730 * 24 * 3600 * 1000).toISOString().split('T')[0];
+      transactions = [
+        { type: 'buy', coin: 'bitcoin', qty: 0.15, price: 42000, date: twoYearsAgo, notes: 'Initial BTC purchase' },
+        { type: 'buy', coin: 'ethereum', qty: 2.5, price: 2200, date: sixMonthsAgo, notes: 'ETH for client payments' },
+        { type: 'receive', coin: 'solana', qty: 10, price: 95, date: sixMonthsAgo, notes: 'Payment from client' }
+      ];
+      saveTxns();
+    }
+
+    // Init
+    seedDemo();
+    render();
+    fetchPrices();
+    fetchIcons();
+  </script>
+</body>
+</html>
