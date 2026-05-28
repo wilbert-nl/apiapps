@@ -5,18 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barcode Product Lookup — Dark Factory</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
     :root {
-      --bg: #020509;
-      --surface: #080f18;
-      --surface2: #0d1a28;
-      --border: #1a3050;
-      --accent: #00e5ff;
-      --accent2: #7c3aed;
-      --text: #cdd9e5;
-      --muted: #3d6b8c;
-      --green: #00ff9f;
-      --yellow: #ffbe0b;
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --accent: #ffffff;
+      --accent2: #3b82f6;
+      --text: #ededed;
+      --muted: #6b7280;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
       --radius: 6px;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-body: 'Inter', system-ui, sans-serif;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -519,60 +524,120 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* Tools / Terminal theme animations */
-@keyframes termFadeIn {
-  from { opacity:0; transform:translateX(-10px); }
-  to   { opacity:1; transform:translateX(0); }
+/* === Dev Tools v2 Design System === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  line-height: 1.6;
+  background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
-@keyframes blinkCursor {
-  0%,100% { opacity:1; }
-  50%     { opacity:0; }
+
+h1, h2, .title, .app-title { font-family: var(--font-body); font-weight: 700; letter-spacing: -0.03em; }
+h1 { font-size: clamp(1.5rem, 3.5vw, 2rem); color: var(--text); }
+h2 { font-size: 1.1rem; color: var(--muted); font-weight: 500; }
+
+.container, main, .wrapper, .app { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.card, .result, .item, .output, .barcode-result, .vin-result, .isbn-result, .rhyme, .synonym,
+[class*="card"], [class*="result"], [class*="item"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  animation: toolsFade 0.25s ease both;
 }
-@keyframes pulseRing {
-  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
-  100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+
+.code, .value, pre, code, .mono, .barcode, .isbn, .vin, .word {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  color: var(--text);
+  word-break: break-all;
 }
-body::before {
-  content:'';
-  position:fixed;
-  inset:0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px, transparent 3px,
-    rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
-  );
-  pointer-events:none;
-  z-index:0;
+
+input, select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.65rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  width: 100%;
+  transition: border-color 0.15s;
 }
-h1::after {
-  content:'_';
-  animation: blinkCursor 1s step-end infinite;
-  color: var(--accent);
-  margin-left: 2px;
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.3);
 }
-.card,[class*="card"],[class*="result"],[class*="item"],[class*="word"],[class*="rhyme"],[class*="synonym"] {
-  animation: termFadeIn .3s ease both;
+
+button, .btn, input[type="submit"], input[type="button"] {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.65rem 1.5rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
 }
-.card:nth-child(2) { animation-delay:.04s }
-.card:nth-child(3) { animation-delay:.08s }
-.card:nth-child(4) { animation-delay:.12s }
-.card:hover,[class*="card"]:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 16px rgba(0,229,255,.15);
+button:hover { opacity: 0.9; }
+button:active { transform: scale(0.97); }
+
+.tag, .badge, .status, .label, .part-of-speech, .section-header {
+  display: inline-block;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
 }
-button,[class*="btn"] { transition: all .2s; }
-button:hover,[class*="btn"]:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 0 0 12px rgba(0,229,255,.25);
+
+.valid, .found, .success { color: var(--green); }
+.invalid, .not-found, .error { color: var(--red); }
+.warning { color: var(--yellow); }
+
+/* Word list / rhyme list */
+.word-list, .rhyme-list, .synonym-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
 }
-input:focus,select:focus,textarea:focus {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+.word-list li, .rhyme-list li, .synonym-list li {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
-[class*="tag"],[class*="chip"],[class*="badge"] {
-  font-family: 'JetBrains Mono','Fira Code',monospace;
-  font-size: .8em;
+.word-list li:hover, .rhyme-list li:hover, .synonym-list li:hover { border-color: rgba(255,255,255,0.3); }
+
+table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.82rem; }
+th { padding: 0.5rem 0.75rem; color: var(--muted); text-align: left; font-weight: 600; font-family: var(--font-body); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border); }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+@keyframes toolsFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
 }
   </style>
 </head>

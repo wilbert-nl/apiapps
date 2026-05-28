@@ -5,20 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Email List Validator</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
     :root {
-      --bg: #020509;
-      --surface: #080f18;
-      --surface2: #0d1a28;
-      --border: #1a3050;
-      --accent: #00e5ff;
-      --accent2: #7c3aed;
-      --text: #cdd9e5;
-      --muted: #3d6b8c;
-      --green: #00ff9f;
-      --yellow: #ffbe0b;
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --accent: #ffffff;
+      --accent2: #3b82f6;
+      --text: #ededed;
+      --muted: #6b7280;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
       --radius: 6px;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-body: 'Inter', system-ui, sans-serif;
       --font: 'Inter', system-ui, sans-serif;
     }
 
@@ -507,62 +510,60 @@
       .bounce-tip { text-align: left; margin-left: 0; }
     }
 
-    /* Tools / Terminal theme animations */
-    @keyframes termFadeIn {
-      from { opacity:0; transform:translateX(-10px); }
-      to   { opacity:1; transform:translateX(0); }
+    /* === Dev Tools v2 Design System === */
+    body {
+      background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24px 24px;
     }
-    @keyframes blinkCursor {
-      0%,100% { opacity:1; }
-      50%     { opacity:0; }
+
+    h1, h2, .title, .app-title { font-family: var(--font-body); font-weight: 700; letter-spacing: -0.03em; }
+    h3 { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: var(--font-body); }
+
+    .code, .value, .data, pre, code, .mono, .hash, .short-url, .slug {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      color: var(--text);
+      word-break: break-all;
     }
-    @keyframes pulseRing {
-      0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
-      100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+
+    .tag, .badge, .status, .label, .definition-type, .part-of-speech {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-family: var(--font-mono);
     }
-    body::before {
-      content:'';
-      position:fixed;
-      inset:0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent 0px, transparent 3px,
-        rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
-      );
-      pointer-events:none;
-      z-index:0;
+
+    .valid, .success, .ok, .pass, .active { color: var(--green); }
+    .invalid, .error, .fail, .danger { color: var(--red); }
+    .warning, .pending { color: var(--yellow); }
+    .info, .note { color: var(--accent2); }
+
+    .stat, .metric, .count { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+
+    @keyframes toolsFade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: none; }
     }
-    h1::after {
-      content:'_';
-      animation: blinkCursor 1s step-end infinite;
-      color: var(--accent);
-      margin-left: 2px;
+
+    @keyframes copyPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.93); }
+      100% { transform: scale(1); }
     }
-    .card,[class*="card"],[class*="result"],[class*="item"],[class*="definition"] {
-      animation: termFadeIn .3s ease both;
-    }
-    .card:nth-child(2) { animation-delay:.04s }
-    .card:nth-child(3) { animation-delay:.08s }
-    .card:nth-child(4) { animation-delay:.12s }
-    .card:hover,[class*="card"]:hover {
-      border-color: var(--accent);
-      box-shadow: 0 0 16px rgba(0,229,255,.15);
-    }
-    button,[class*="btn"] { transition: all .2s; }
-    button:hover,[class*="btn"]:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 12px rgba(0,229,255,.25);
-    }
-    button:focus,[class*="btn"]:focus {
-      animation: pulseRing .6s ease-out forwards;
-    }
-    input:focus,select:focus,textarea:focus {
-      border-color: var(--accent) !important;
-      box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
-    }
-    [class*="valid"],[class*="success"] { color: var(--green); }
-    [class*="invalid"],[class*="error"] { color: #ff4560; }
+
+    .copied { animation: copyPop 0.2s ease; }
   </style>
 </head>
 <body>
