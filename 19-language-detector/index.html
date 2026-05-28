@@ -6,18 +6,18 @@
 <title>Language Detector — Dark Factory</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3350;
-    --accent: #6c63ff;
-    --accent2: #ff6584;
-    --text: #e2e8f0;
-    --muted: #8892b0;
-    --green: #43d9ad;
-    --yellow: #f7c948;
-    --radius: 12px;
-  }
+  --bg: #020509;
+  --surface: #080f18;
+  --surface2: #0d1a28;
+  --border: #1a3050;
+  --accent: #00e5ff;
+  --accent2: #7c3aed;
+  --text: #cdd9e5;
+  --muted: #3d6b8c;
+  --green: #00ff9f;
+  --yellow: #ffbe0b;
+  --radius: 6px;
+}
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -35,8 +35,8 @@
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse 800px 600px at 20% 10%, rgba(108,99,255,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 600px 400px at 80% 80%, rgba(255,101,132,0.05) 0%, transparent 60%);
+      radial-gradient(ellipse 800px 600px at 20% 10%, rgba(0,229,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 600px 400px at 80% 80%, rgba(124,58,237,0.05) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -80,7 +80,7 @@
     justify-content: center;
     font-size: 22px;
     flex-shrink: 0;
-    box-shadow: 0 0 20px rgba(108,99,255,0.35);
+    box-shadow: 0 0 20px rgba(0,229,255,0.35);
   }
 
   h1 {
@@ -145,7 +145,7 @@
     transition: border-color 0.2s;
   }
 
-  .card:hover { border-color: rgba(108,99,255,0.3); }
+  .card:hover { border-color: rgba(0,229,255,0.3); }
 
   .card-title {
     font-size: 0.8rem;
@@ -162,7 +162,7 @@
   .card-title-icon {
     width: 20px;
     height: 20px;
-    background: rgba(108,99,255,0.15);
+    background: rgba(0,229,255,0.15);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -195,7 +195,7 @@
 
   textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.15);
   }
 
   .char-counter {
@@ -230,17 +230,17 @@
     font-family: inherit;
   }
 
-  .btn:focus-visible { box-shadow: 0 0 0 3px rgba(108,99,255,0.4); }
+  .btn:focus-visible { box-shadow: 0 0 0 3px rgba(0,229,255,0.4); }
 
   .btn-primary {
     background: linear-gradient(135deg, var(--accent), #8b5cf6);
     color: #fff;
-    box-shadow: 0 2px 12px rgba(108,99,255,0.35);
+    box-shadow: 0 2px 12px rgba(0,229,255,0.35);
   }
 
   .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(108,99,255,0.5);
+    box-shadow: 0 4px 20px rgba(0,229,255,0.5);
   }
 
   .btn-primary:active { transform: translateY(0); }
@@ -253,8 +253,8 @@
 
   .btn-secondary:hover {
     color: var(--text);
-    border-color: rgba(108,99,255,0.3);
-    background: rgba(108,99,255,0.08);
+    border-color: rgba(0,229,255,0.3);
+    background: rgba(0,229,255,0.08);
   }
 
   .btn:disabled {
@@ -285,8 +285,8 @@
   }
 
   .sample-btn:hover {
-    background: rgba(108,99,255,0.1);
-    border-color: rgba(108,99,255,0.4);
+    background: rgba(0,229,255,0.1);
+    border-color: rgba(0,229,255,0.4);
     color: var(--text);
   }
 
@@ -320,7 +320,7 @@
   }
 
   .stat-item:last-child { border-right: none; }
-  .stat-item:hover { background: rgba(108,99,255,0.06); }
+  .stat-item:hover { background: rgba(0,229,255,0.06); }
 
   .stat-value {
     font-size: 1.25rem;
@@ -356,13 +356,13 @@
   }
 
   .result-main.has-result {
-    border-color: rgba(108,99,255,0.4);
-    box-shadow: 0 0 0 1px rgba(108,99,255,0.1);
+    border-color: rgba(0,229,255,0.4);
+    box-shadow: 0 0 0 1px rgba(0,229,255,0.1);
   }
 
   .result-hero {
     padding: 24px;
-    background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(255,101,132,0.04));
+    background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(124,58,237,0.04));
     border-bottom: 1px solid var(--border);
     min-height: 130px;
     display: flex;
@@ -406,8 +406,8 @@
 
   .lang-iso {
     display: inline-block;
-    background: rgba(108,99,255,0.18);
-    border: 1px solid rgba(108,99,255,0.3);
+    background: rgba(0,229,255,0.18);
+    border: 1px solid rgba(0,229,255,0.3);
     color: var(--accent);
     font-size: 0.72rem;
     font-weight: 700;
@@ -481,9 +481,9 @@
     border: 1px solid;
   }
 
-  .script-latin   { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.3); color: var(--accent); }
+  .script-latin   { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: var(--accent); }
   .script-cyrillic{ background: rgba(247,201,72,0.1); border-color: rgba(247,201,72,0.3); color: var(--yellow); }
-  .script-arabic  { background: rgba(255,101,132,0.1); border-color: rgba(255,101,132,0.3); color: var(--accent2); }
+  .script-arabic  { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3); color: var(--accent2); }
   .script-cjk    { background: rgba(67,217,173,0.1); border-color: rgba(67,217,173,0.3); color: var(--green); }
   .script-devanagari { background: rgba(255,150,80,0.1); border-color: rgba(255,150,80,0.3); color: #ff9650; }
   .script-hangul  { background: rgba(100,200,255,0.1); border-color: rgba(100,200,255,0.3); color: #64c8ff; }
@@ -501,7 +501,7 @@
     transition: border-color 0.2s;
   }
 
-  .candidates-card:hover { border-color: rgba(108,99,255,0.25); }
+  .candidates-card:hover { border-color: rgba(0,229,255,0.25); }
 
   .candidate-row {
     display: flex;
@@ -529,7 +529,7 @@
     flex-shrink: 0;
   }
 
-  .candidate-rank.top { background: rgba(108,99,255,0.2); color: var(--accent); }
+  .candidate-rank.top { background: rgba(0,229,255,0.2); color: var(--accent); }
 
   .candidate-flag { font-size: 1.1rem; flex-shrink: 0; }
 
@@ -655,7 +655,7 @@
 
   .toast.show { transform: translateY(0); opacity: 1; }
   .toast.success { border-color: rgba(67,217,173,0.4); }
-  .toast.error   { border-color: rgba(255,101,132,0.4); }
+  .toast.error   { border-color: rgba(124,58,237,0.4); }
 
   /* Footer */
   footer {
@@ -721,8 +721,8 @@
   }
 
   .history-item:hover {
-    border-color: rgba(108,99,255,0.35);
-    background: rgba(108,99,255,0.05);
+    border-color: rgba(0,229,255,0.35);
+    background: rgba(0,229,255,0.05);
   }
 
   .history-flag { font-size: 1rem; }
@@ -749,6 +749,73 @@
     font-size: 0.82rem;
     padding: 20px;
   }
+
+/* Tools / Terminal theme animations */
+@keyframes termFadeIn {
+  from { opacity:0; transform:translateX(-10px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes blinkCursor {
+  0%,100% { opacity:1; }
+  50%     { opacity:0; }
+}
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+  100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+}
+@keyframes scanIn {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+h1::after {
+  content:'_';
+  animation: blinkCursor 1s step-end infinite;
+  color: var(--accent);
+  margin-left: 2px;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="row"] {
+  animation: termFadeIn .3s ease both;
+}
+.card:nth-child(2) { animation-delay:.04s }
+.card:nth-child(3) { animation-delay:.08s }
+.card:nth-child(4) { animation-delay:.12s }
+.card:nth-child(5) { animation-delay:.16s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,229,255,.15);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0,229,255,.25);
+}
+button:focus,[class*="btn"]:focus {
+  animation: pulseRing .6s ease-out forwards;
+}
+input:focus,select:focus,textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+  color: var(--text);
+}
+[class*="valid"],[class*="success"] { color: var(--green); }
+[class*="invalid"],[class*="error"] { color: #ff4560; }
+[class*="tag"],[class*="badge"],[class*="chip"] {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: .75em;
+}
 </style>
 </head>
 <body>

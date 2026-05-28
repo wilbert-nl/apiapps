@@ -6,19 +6,19 @@
   <title>Airport Delay Notifier — Logistics Intelligence Dashboard</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
+      --bg: #020a02;
+      --surface: #071407;
+      --surface2: #0c1e0c;
+      --border: #163516;
+      --accent: #4ade80;
+      --accent2: #38bdf8;
+      --text: #f0fdf4;
+      --muted: #4d7a52;
+      --green: #22c55e;
+      --yellow: #fbbf24;
       --orange: #f79548;
       --red: #ff6584;
-      --radius: 12px;
+      --radius: 10px;
       --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
@@ -155,7 +155,7 @@
     .stat-icon.green { background: rgba(67, 217, 173, 0.15); }
     .stat-icon.yellow { background: rgba(247, 201, 72, 0.15); }
     .stat-icon.orange { background: rgba(247, 149, 72, 0.15); }
-    .stat-icon.red { background: rgba(255, 101, 132, 0.15); }
+    .stat-icon.red { background: rgba(56, 189, 248, 0.15); }
 
     .stat-info label {
       font-size: 0.7rem;
@@ -266,7 +266,7 @@
     }
 
     .airport-item.active {
-      background: rgba(108, 99, 255, 0.1);
+      background: rgba(74, 222, 128, 0.1);
       border-left-color: var(--accent);
     }
 
@@ -522,10 +522,10 @@
       letter-spacing: 0.04em;
     }
 
-    .pill.all { background: rgba(108, 99, 255, 0.15); color: var(--accent); border-color: rgba(108, 99, 255, 0.3); }
+    .pill.all { background: rgba(74, 222, 128, 0.15); color: var(--accent); border-color: rgba(74, 222, 128, 0.3); }
     .pill.on-time { background: rgba(67, 217, 173, 0.1); color: var(--green); border-color: rgba(67, 217, 173, 0.25); }
     .pill.delayed { background: rgba(247, 201, 72, 0.1); color: var(--yellow); border-color: rgba(247, 201, 72, 0.25); }
-    .pill.cancelled { background: rgba(255, 101, 132, 0.1); color: var(--red); border-color: rgba(255, 101, 132, 0.25); }
+    .pill.cancelled { background: rgba(56, 189, 248, 0.1); color: var(--red); border-color: rgba(56, 189, 248, 0.25); }
     .pill.active { opacity: 1; }
     .pill:not(.active) { opacity: 0.45; }
 
@@ -634,9 +634,9 @@
     }
 
     .status-badge.cancelled {
-      background: rgba(255, 101, 132, 0.12);
+      background: rgba(56, 189, 248, 0.12);
       color: var(--red);
-      border: 1px solid rgba(255, 101, 132, 0.25);
+      border: 1px solid rgba(56, 189, 248, 0.25);
     }
 
     .delay-minutes {
@@ -646,7 +646,7 @@
 
     /* ── Row animation on update ── */
     @keyframes row-flash {
-      0% { background: rgba(108, 99, 255, 0.15); }
+      0% { background: rgba(74, 222, 128, 0.15); }
       100% { background: transparent; }
     }
 
@@ -805,7 +805,7 @@
       letter-spacing: 0.04em;
     }
 
-    .impact-high { background: rgba(255, 101, 132, 0.15); color: var(--red); }
+    .impact-high { background: rgba(56, 189, 248, 0.15); color: var(--red); }
     .impact-med { background: rgba(247, 201, 72, 0.15); color: var(--yellow); }
     .impact-low { background: rgba(67, 217, 173, 0.15); color: var(--green); }
 
@@ -939,6 +939,76 @@
       .flight-table { font-size: 0.78rem; }
       .flight-table th, .flight-table td { padding: 0.55rem 0.65rem; }
     }
+
+    /* Travel & Geo theme animations */
+    @keyframes mapFadeIn {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes locationPing {
+      0%   { transform:scale(1); opacity:1; }
+      70%  { transform:scale(2.2); opacity:0; }
+      100% { transform:scale(2.2); opacity:0; }
+    }
+    @keyframes routeDraw {
+      from { stroke-dashoffset: 1000; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes compassSpin {
+      from { transform:rotate(0deg); }
+      to   { transform:rotate(360deg); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px),
+        repeating-linear-gradient(0deg,  transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="route"],[class*="station"],[class*="park"] {
+      animation: mapFadeIn .45s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.07s }
+    .card:nth-child(3) { animation-delay:.14s }
+    .card:nth-child(4) { animation-delay:.21s }
+    .card:nth-child(5) { animation-delay:.28s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(74,222,128,.15);
+      transform: translateY(-2px);
+    }
+    [class*="status"],[class*="live"],[class*="ping"] {
+      position:relative;
+    }
+    [class*="status"]::before,[class*="live"]::before {
+      content:'';
+      position:absolute;
+      inset:-3px;
+      border-radius:50%;
+      background: rgba(74,222,128,.3);
+      animation: locationPing 1.8s ease-out infinite;
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(74,222,128,.25);
+      transform: translateY(-1px);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(74,222,128,.2);
+    }
+    [class*="delay"],[class*="alert"],[class*="warning"] { color: var(--yellow); }
+    [class*="on-time"],[class*="clear"],[class*="available"] { color: var(--green); }
   </style>
 </head>
 <body>

@@ -6,9 +6,17 @@
 <title>Recipe Cost Calculator</title>
 <style>
   :root {
-    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3350;
-    --accent:#6c63ff; --accent2:#ff6584; --text:#e2e8f0; --muted:#8892b0;
-    --green:#43d9ad; --yellow:#f7c948; --radius:12px;
+    --bg: #0c0800;
+    --surface: #1a1200;
+    --surface2: #251a00;
+    --border: #3d2800;
+    --accent: #f97316;
+    --accent2: #84cc16;
+    --text: #fef9ee;
+    --muted: #92680a;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --radius: 14px;
     --red: #ff4757;
   }
 
@@ -103,7 +111,7 @@
     background: linear-gradient(135deg, var(--accent), #5a52e0);
     color: #fff;
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(108,99,255,0.35); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(249,115,22,0.35); }
   .btn-primary:active { transform: translateY(0); }
 
   .btn-ghost {
@@ -139,7 +147,7 @@
   }
   input:focus, select:focus, textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.18);
   }
   input::placeholder { color: var(--muted); }
   select option { background: var(--surface2); }
@@ -161,8 +169,8 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .recipe-card:hover { border-color: var(--accent); background: rgba(108,99,255,0.06); }
-  .recipe-card.active { border-color: var(--accent); background: rgba(108,99,255,0.1); }
+  .recipe-card:hover { border-color: var(--accent); background: rgba(249,115,22,0.06); }
+  .recipe-card.active { border-color: var(--accent); background: rgba(249,115,22,0.1); }
 
   .recipe-card-info { flex: 1; min-width: 0; }
   .recipe-card-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -218,7 +226,7 @@
     border-bottom: 1px solid rgba(46,51,80,0.5);
   }
   .ingredient-table tr:last-child td { border-bottom: none; }
-  .ingredient-table tr:hover td { background: rgba(108,99,255,0.04); }
+  .ingredient-table tr:hover td { background: rgba(249,115,22,0.04); }
 
   .ingredient-table input[type="number"] {
     width: 80px; padding: 4px 8px; font-size: 0.82rem;
@@ -328,7 +336,7 @@
     position: sticky; top: 0; background: var(--surface);
   }
   .db-table td { padding: 7px 10px; font-size: 0.83rem; border-bottom: 1px solid rgba(46,51,80,0.4); }
-  .db-table tr:hover td { background: rgba(108,99,255,0.05); }
+  .db-table tr:hover td { background: rgba(249,115,22,0.05); }
   .db-table input[type="number"] { width: 80px; }
 
   /* ── Toast ── */
@@ -376,6 +384,75 @@
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Food & Health theme animations */
+@keyframes warmFade {
+  from { opacity:0; transform:translateY(14px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes warmGlow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(249,115,22,.0); }
+  50%     { box-shadow: 0 0 24px 6px rgba(249,115,22,.18); }
+}
+@keyframes ingredientIn {
+  from { opacity:0; transform:translateX(-10px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes bounceIn {
+  0%   { opacity:0; transform:scale(.8); }
+  60%  { transform:scale(1.05); }
+  100% { opacity:1; transform:scale(1); }
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse 55% 45% at 25% 85%, rgba(249,115,22,.07) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 35% at 80% 15%, rgba(132,204,22,.05) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+h1,h2 {
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.card,[class*="card"],[class*="result"],[class*="recipe"],[class*="panel"] {
+  animation: warmFade .45s ease both;
+}
+.card:nth-child(2) { animation-delay:.06s }
+.card:nth-child(3) { animation-delay:.12s }
+.card:nth-child(4) { animation-delay:.18s }
+li,[class*="ingredient"],[class*="item"]:not([class*="menu"]) {
+  animation: ingredientIn .3s ease both;
+}
+li:nth-child(2) { animation-delay:.04s }
+li:nth-child(3) { animation-delay:.08s }
+li:nth-child(4) { animation-delay:.12s }
+li:nth-child(5) { animation-delay:.16s }
+li:nth-child(6) { animation-delay:.20s }
+button[type="submit"],button[class*="generate"],[class*="btn-primary"] {
+  animation: warmGlow 2.5s ease-in-out infinite;
+}
+button,[class*="btn"] {
+  transition: all .2s;
+}
+button:hover,[class*="btn"]:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(249,115,22,.3);
+}
+input:focus,select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(249,115,22,.2);
+}
+[class*="tag"],[class*="badge"],[class*="label"] {
+  background: rgba(249,115,22,.15);
+  border: 1px solid rgba(249,115,22,.3);
+  color: var(--accent);
+}
 </style>
 </head>
 <body>

@@ -8,17 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020509;
+      --surface: #080f18;
+      --surface2: #0d1a28;
+      --border: #1a3050;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #cdd9e5;
+      --muted: #3d6b8c;
+      --green: #00ff9f;
+      --yellow: #ffbe0b;
+      --radius: 6px;
     }
 
     html { scroll-behavior: smooth; }
@@ -166,7 +166,7 @@
 
     .search-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+      box-shadow: 0 0 0 3px rgba(0,229,255,0.15);
     }
 
     .search-input::placeholder { color: var(--muted); }
@@ -336,7 +336,7 @@
 
     .job-card:hover {
       border-color: var(--accent);
-      box-shadow: 0 4px 24px rgba(108,99,255,0.12);
+      box-shadow: 0 4px 24px rgba(0,229,255,0.12);
       transform: translateY(-2px);
     }
 
@@ -404,9 +404,9 @@
 
     .badge-remote { background: rgba(67,217,173,0.15); color: var(--green); border: 1px solid rgba(67,217,173,0.3); }
     .badge-onsite { background: rgba(247,201,72,0.15); color: var(--yellow); border: 1px solid rgba(247,201,72,0.3); }
-    .badge-hybrid { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
-    .badge-fulltime { background: rgba(108,99,255,0.1); color: var(--accent); border: 1px solid rgba(108,99,255,0.2); }
-    .badge-contract { background: rgba(255,101,132,0.1); color: var(--accent2); border: 1px solid rgba(255,101,132,0.2); }
+    .badge-hybrid { background: rgba(0,229,255,0.15); color: var(--accent); border: 1px solid rgba(0,229,255,0.3); }
+    .badge-fulltime { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+    .badge-contract { background: rgba(124,58,237,0.1); color: var(--accent2); border: 1px solid rgba(124,58,237,0.2); }
     .badge-parttime { background: rgba(136,146,176,0.1); color: var(--muted); border: 1px solid var(--border); }
     .badge-tech { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); font-size: 11px; }
 
@@ -702,6 +702,63 @@
       .search-bar { flex-direction: column; }
       .filter-select, .reload-btn { width: 100%; }
     }
+
+/* Tools / Terminal theme animations */
+@keyframes termFadeIn {
+  from { opacity:0; transform:translateX(-10px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes blinkCursor {
+  0%,100% { opacity:1; }
+  50%     { opacity:0; }
+}
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+  100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+h1::after {
+  content:'_';
+  animation: blinkCursor 1s step-end infinite;
+  color: var(--accent);
+  margin-left: 2px;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="job"],[class*="repo"],[class*="user"],[class*="avatar"] {
+  animation: termFadeIn .3s ease both;
+}
+.card:nth-child(2) { animation-delay:.04s }
+.card:nth-child(3) { animation-delay:.08s }
+.card:nth-child(4) { animation-delay:.12s }
+.card:nth-child(5) { animation-delay:.16s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,229,255,.15);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0,229,255,.25);
+}
+input:focus,select:focus,textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+}
+[class*="lang"],[class*="tag"],[class*="badge"],[class*="chip"] {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: .78em;
+}
   </style>
 </head>
 <body>

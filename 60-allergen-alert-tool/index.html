@@ -8,17 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #0c0800;
+      --surface: #1a1200;
+      --surface2: #251a00;
+      --border: #3d2800;
+      --accent: #f97316;
+      --accent2: #84cc16;
+      --text: #fef9ee;
+      --muted: #92680a;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --radius: 14px;
     }
 
     html, body { height: 100%; }
@@ -166,7 +166,7 @@
     input[type="text"]:focus,
     textarea:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(249,115,22, 0.15);
     }
 
     textarea { resize: vertical; min-height: 120px; }
@@ -193,7 +193,7 @@
       color: #fff;
     }
 
-    .btn-primary:hover { background: #7b73ff; box-shadow: 0 4px 16px rgba(108,99,255,0.35); }
+    .btn-primary:hover { background: #ea6b10; box-shadow: 0 4px 16px rgba(249,115,22,0.35); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     .btn-secondary {
@@ -238,7 +238,7 @@
     }
 
     .allergen-chip:hover { border-color: var(--accent); }
-    .allergen-chip.selected { border-color: var(--accent2); background: rgba(255,101,132,0.1); }
+    .allergen-chip.selected { border-color: var(--accent2); background: rgba(132,204,22,0.1); }
 
     .allergen-chip input[type="checkbox"] { display: none; }
 
@@ -316,7 +316,7 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    .status-danger { background: rgba(255,101,132,0.15); color: var(--accent2); border: 1px solid rgba(255,101,132,0.3); }
+    .status-danger { background: rgba(132,204,22,0.15); color: var(--accent2); border: 1px solid rgba(132,204,22,0.3); }
     .status-warning { background: rgba(247,201,72,0.12); color: var(--yellow); border: 1px solid rgba(247,201,72,0.3); }
     .status-safe { background: rgba(67,217,173,0.1); color: var(--green); border: 1px solid rgba(67,217,173,0.25); }
     .status-unknown { background: rgba(136,146,176,0.12); color: var(--muted); border: 1px solid var(--border); }
@@ -331,7 +331,7 @@
       letter-spacing: 0.4px;
     }
 
-    .tag-danger { background: rgba(255,101,132,0.2); color: var(--accent2); }
+    .tag-danger { background: rgba(132,204,22,0.2); color: var(--accent2); }
     .tag-warning { background: rgba(247,201,72,0.15); color: var(--yellow); }
     .tag-safe { background: rgba(67,217,173,0.12); color: var(--green); }
 
@@ -378,7 +378,7 @@
 
     .matrix-table td:first-child { text-align: left; font-weight: 600; }
 
-    .matrix-table tr:hover td { background: rgba(108,99,255,0.05); }
+    .matrix-table tr:hover td { background: rgba(249,115,22,0.05); }
 
     .cell-danger { font-size: 16px; }
     .cell-safe { color: var(--green); font-size: 15px; }
@@ -429,7 +429,7 @@
       border-radius: var(--radius);
     }
 
-    .highlight-danger { background: rgba(255,101,132,0.25); color: var(--accent2); font-weight: 700; border-radius: 3px; padding: 0 2px; }
+    .highlight-danger { background: rgba(132,204,22,0.25); color: var(--accent2); font-weight: 700; border-radius: 3px; padding: 0 2px; }
     .highlight-warning { background: rgba(247,201,72,0.2); color: var(--yellow); font-weight: 600; border-radius: 3px; padding: 0 2px; }
 
     /* ── Loading ── */
@@ -437,7 +437,7 @@
       display: inline-block;
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(108,99,255,0.3);
+      border: 2px solid rgba(249,115,22,0.3);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
@@ -548,6 +548,68 @@
     /* ── Compliance Table ── */
     .compliance-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(46,51,80,0.4); }
     .compliance-row:last-child { border-bottom: none; }
+
+    /* Food & Health theme animations */
+    @keyframes warmFade {
+      from { opacity:0; transform:translateY(14px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes warmGlow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(249,115,22,.0); }
+      50%     { box-shadow: 0 0 24px 6px rgba(249,115,22,.18); }
+    }
+    @keyframes ingredientIn {
+      from { opacity:0; transform:translateX(-10px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background: radial-gradient(ellipse 55% 45% at 25% 85%, rgba(249,115,22,.07) 0%, transparent 60%),
+                  radial-gradient(ellipse 40% 35% at 80% 15%, rgba(132,204,22,.05) 0%, transparent 60%);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card,[class*="card"],[class*="result"],[class*="recipe"],[class*="panel"] {
+      animation: warmFade .45s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.06s }
+    .card:nth-child(3) { animation-delay:.12s }
+    .card:nth-child(4) { animation-delay:.18s }
+    li,[class*="ingredient"],[class*="item"]:not([class*="menu"]) {
+      animation: ingredientIn .3s ease both;
+    }
+    li:nth-child(2) { animation-delay:.04s }
+    li:nth-child(3) { animation-delay:.08s }
+    li:nth-child(4) { animation-delay:.12s }
+    li:nth-child(5) { animation-delay:.16s }
+    li:nth-child(6) { animation-delay:.20s }
+    button[type="submit"],button[class*="generate"],[class*="btn-primary"] {
+      animation: warmGlow 2.5s ease-in-out infinite;
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(249,115,22,.3);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(249,115,22,.2);
+    }
+    [class*="tag"],[class*="badge"],[class*="label"] {
+      background: rgba(249,115,22,.15);
+      border: 1px solid rgba(249,115,22,.3);
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>

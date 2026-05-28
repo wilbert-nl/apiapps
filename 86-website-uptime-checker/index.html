@@ -8,17 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020509;
+      --surface: #080f18;
+      --surface2: #0d1a28;
+      --border: #1a3050;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #cdd9e5;
+      --muted: #3d6b8c;
+      --green: #00ff9f;
+      --yellow: #ffbe0b;
+      --radius: 6px;
       --red: #ff4757;
       --font: 'Inter', system-ui, -apple-system, sans-serif;
     }
@@ -291,7 +291,7 @@
 
     .form-input:focus, .form-select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+      box-shadow: 0 0 0 3px rgba(0,229,255,0.15);
     }
 
     .form-input::placeholder { color: var(--muted); }
@@ -592,7 +592,7 @@
 
     /* ── Notification permission banner ── */
     .notif-banner {
-      background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(255,101,132,0.1));
+      background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(124,58,237,0.1));
       border: 1px solid var(--accent);
       border-radius: var(--radius);
       padding: 14px 20px;
@@ -658,6 +658,68 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* Tools / Terminal theme animations */
+    @keyframes termFadeIn {
+      from { opacity:0; transform:translateX(-10px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    @keyframes blinkCursor {
+      0%,100% { opacity:1; }
+      50%     { opacity:0; }
+    }
+    @keyframes pulseRing {
+      0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+      100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+    }
+    @keyframes dangerBlink {
+      0%,100% { border-color: #ff4560; }
+      50%     { border-color: rgba(255,69,96,.3); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 3px,
+        rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+      );
+      pointer-events:none;
+      z-index:0;
+    }
+    h1::after {
+      content:'_';
+      animation: blinkCursor 1s step-end infinite;
+      color: var(--accent);
+      margin-left: 2px;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="domain"],[class*="cert"],[class*="uptime"] {
+      animation: termFadeIn .3s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.04s }
+    .card:nth-child(3) { animation-delay:.08s }
+    .card:nth-child(4) { animation-delay:.12s }
+    .card:nth-child(5) { animation-delay:.16s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(0,229,255,.15);
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(0,229,255,.25);
+    }
+    input:focus,select:focus,textarea:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+    }
+    [class*="danger"],[class*="breach"],[class*="expired"],[class*="down"] {
+      animation: dangerBlink 1.2s ease-in-out infinite;
+    }
+    [class*="safe"],[class*="valid"],[class*="up"],[class*="available"] { color: var(--green); }
+    [class*="warning"],[class*="expiring"] { color: var(--yellow); }
   </style>
 </head>
 <body>

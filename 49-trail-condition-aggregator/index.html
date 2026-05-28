@@ -6,17 +6,17 @@
   <title>TrailWatch — Trail Condition Aggregator</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020a02;
+      --surface: #071407;
+      --surface2: #0c1e0c;
+      --border: #163516;
+      --accent: #4ade80;
+      --accent2: #38bdf8;
+      --text: #f0fdf4;
+      --muted: #4d7a52;
+      --green: #22c55e;
+      --yellow: #fbbf24;
+      --radius: 10px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -217,7 +217,7 @@
     .filter-chip.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: #000;
     }
 
     .filter-sep {
@@ -283,7 +283,7 @@
     .trail-card:hover {
       transform: translateY(-2px);
       border-color: var(--accent);
-      box-shadow: 0 8px 32px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(74, 222, 128, 0.15);
     }
 
     .trail-card:focus-within {
@@ -311,7 +311,7 @@
 
     .trail-icon.good { background: rgba(67, 217, 173, 0.15); }
     .trail-icon.muddy { background: rgba(247, 201, 72, 0.15); }
-    .trail-icon.icy { background: rgba(108, 99, 255, 0.15); }
+    .trail-icon.icy { background: rgba(74, 222, 128, 0.15); }
     .trail-icon.closed { background: rgba(255, 101, 132, 0.15); }
     .trail-icon.loading { background: rgba(136, 146, 176, 0.15); }
 
@@ -373,7 +373,7 @@
     .tag.easy { background: rgba(67, 217, 173, 0.15); color: var(--green); }
     .tag.moderate { background: rgba(247, 201, 72, 0.15); color: var(--yellow); }
     .tag.hard { background: rgba(255, 101, 132, 0.15); color: var(--accent2); }
-    .tag.region { background: rgba(108, 99, 255, 0.12); color: var(--accent); }
+    .tag.region { background: rgba(74, 222, 128, 0.12); color: var(--accent); }
 
     .trail-stats {
       display: flex;
@@ -618,7 +618,7 @@
 
     .condition-alert.good { background: rgba(67, 217, 173, 0.1); border: 1px solid rgba(67, 217, 173, 0.3); color: var(--green); }
     .condition-alert.muddy { background: rgba(247, 201, 72, 0.1); border: 1px solid rgba(247, 201, 72, 0.3); color: var(--yellow); }
-    .condition-alert.icy { background: rgba(108, 99, 255, 0.1); border: 1px solid rgba(108, 99, 255, 0.3); color: var(--accent); }
+    .condition-alert.icy { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: var(--accent); }
     .condition-alert.closed { background: rgba(255, 101, 132, 0.1); border: 1px solid rgba(255, 101, 132, 0.3); color: var(--accent2); }
 
     /* Toast */
@@ -801,6 +801,76 @@
       background: currentColor;
       animation: pulse 2s infinite;
     }
+
+    /* Travel & Geo theme animations */
+    @keyframes mapFadeIn {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes locationPing {
+      0%   { transform:scale(1); opacity:1; }
+      70%  { transform:scale(2.2); opacity:0; }
+      100% { transform:scale(2.2); opacity:0; }
+    }
+    @keyframes routeDraw {
+      from { stroke-dashoffset: 1000; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes compassSpin {
+      from { transform:rotate(0deg); }
+      to   { transform:rotate(360deg); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px),
+        repeating-linear-gradient(0deg,  transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="route"],[class*="station"],[class*="park"] {
+      animation: mapFadeIn .45s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.07s }
+    .card:nth-child(3) { animation-delay:.14s }
+    .card:nth-child(4) { animation-delay:.21s }
+    .card:nth-child(5) { animation-delay:.28s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(74,222,128,.15);
+      transform: translateY(-2px);
+    }
+    [class*="status"],[class*="live"],[class*="ping"] {
+      position:relative;
+    }
+    [class*="status"]::before,[class*="live"]::before {
+      content:'';
+      position:absolute;
+      inset:-3px;
+      border-radius:50%;
+      background: rgba(74,222,128,.3);
+      animation: locationPing 1.8s ease-out infinite;
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(74,222,128,.25);
+      transform: translateY(-1px);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(74,222,128,.2);
+    }
+    [class*="delay"],[class*="alert"],[class*="warning"] { color: var(--yellow); }
+    [class*="on-time"],[class*="clear"],[class*="available"] { color: var(--green); }
   </style>
 </head>
 <body>

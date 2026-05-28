@@ -8,17 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #02091a;
+      --surface: #081428;
+      --surface2: #0d1f3c;
+      --border: #153050;
+      --accent: #38bdf8;
+      --accent2: #fb923c;
+      --text: #e0f2fe;
+      --muted: #5b8db8;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --radius: 16px;
     }
 
     html { scroll-behavior: smooth; }
@@ -74,8 +74,8 @@
     }
 
     @keyframes pulse-logo {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(108, 99, 255, 0); }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(56,189,248, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(56,189,248, 0); }
     }
 
     .header-tagline {
@@ -142,7 +142,7 @@
 
     .search-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(56,189,248, 0.15);
     }
 
     .search-input::placeholder { color: var(--muted); }
@@ -174,7 +174,7 @@
 
     .autocomplete-item:last-child { border-bottom: none; }
     .autocomplete-item:hover, .autocomplete-item.focused {
-      background: rgba(108, 99, 255, 0.15);
+      background: rgba(56,189,248, 0.15);
       color: var(--accent);
     }
 
@@ -202,7 +202,7 @@
     .btn-primary:hover {
       background: linear-gradient(135deg, #7d75ff, var(--accent));
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(108, 99, 255, 0.35);
+      box-shadow: 0 4px 16px rgba(56,189,248, 0.35);
     }
 
     .btn-primary:active { transform: translateY(0); }
@@ -243,15 +243,15 @@
     }
 
     .status-msg.show { opacity: 1; }
-    .status-msg.info { background: rgba(108, 99, 255, 0.15); color: var(--accent); }
-    .status-msg.error { background: rgba(255, 101, 132, 0.15); color: var(--accent2); }
+    .status-msg.info { background: rgba(56,189,248, 0.15); color: var(--accent); }
+    .status-msg.error { background: rgba(251,146,60, 0.15); color: var(--accent2); }
     .status-msg.success { background: rgba(67, 217, 173, 0.15); color: var(--green); }
 
     /* ── Loading spinner ── */
     .spinner {
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(108, 99, 255, 0.3);
+      border: 2px solid rgba(56,189,248, 0.3);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
@@ -404,9 +404,9 @@
     }
 
     .suit-excellent { background: rgba(67, 217, 173, 0.15); color: var(--green); border: 1px solid rgba(67, 217, 173, 0.3); }
-    .suit-good { background: rgba(108, 99, 255, 0.15); color: var(--accent); border: 1px solid rgba(108, 99, 255, 0.3); }
+    .suit-good { background: rgba(56,189,248, 0.15); color: var(--accent); border: 1px solid rgba(56,189,248, 0.3); }
     .suit-fair { background: rgba(247, 201, 72, 0.15); color: var(--yellow); border: 1px solid rgba(247, 201, 72, 0.3); }
-    .suit-cold { background: rgba(255, 101, 132, 0.15); color: var(--accent2); border: 1px solid rgba(255, 101, 132, 0.3); }
+    .suit-cold { background: rgba(251,146,60, 0.15); color: var(--accent2); border: 1px solid rgba(251,146,60, 0.3); }
 
     /* ── Wetsuit rec ── */
     .wetsuit-rec {
@@ -488,7 +488,7 @@
     }
 
     .fav-chip:hover {
-      background: rgba(108, 99, 255, 0.15);
+      background: rgba(56,189,248, 0.15);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -665,7 +665,7 @@
 
     .forecast-table tr:last-child td { border-bottom: none; }
 
-    .forecast-table tr:hover td { background: rgba(108, 99, 255, 0.05); }
+    .forecast-table tr:hover td { background: rgba(56,189,248, 0.05); }
 
     .temp-pill {
       display: inline-flex;
@@ -739,6 +739,70 @@
     }
 
     .close-btn:hover { background: var(--border); color: var(--text); }
+  
+    /* Weather theme animations */
+    @keyframes floatOrb {
+      0%,100% { transform:translateY(0) scale(1); opacity:.5; }
+      50%     { transform:translateY(-24px) scale(1.05); opacity:.8; }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes glowPulse {
+      0%,100% { text-shadow: 0 0 10px rgba(56,189,248,.4); }
+      50%     { text-shadow: 0 0 24px rgba(56,189,248,.9), 0 0 48px rgba(56,189,248,.3); }
+    }
+    @keyframes alertBlink {
+      0%,100% { border-color: var(--accent2); }
+      50%     { border-color: transparent; }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      width:400px; height:400px;
+      border-radius:50%;
+      background: radial-gradient(circle, rgba(56,189,248,.09) 0%, transparent 70%);
+      top:-120px; right:-100px;
+      animation: floatOrb 9s ease-in-out infinite;
+      pointer-events:none;
+      z-index:0;
+    }
+    body::after {
+      content:'';
+      position:fixed;
+      width:250px; height:250px;
+      border-radius:50%;
+      background: radial-gradient(circle, rgba(251,146,60,.07) 0%, transparent 70%);
+      bottom:5%; left:-60px;
+      animation: floatOrb 13s ease-in-out infinite reverse;
+      pointer-events:none;
+      z-index:0;
+    }
+    h1 { animation: glowPulse 4s ease-in-out infinite; }
+    .card,[class*="card"],[class*="widget"],[class*="panel"],[class*="result"] {
+      animation: fadeUp .5s ease both;
+      backdrop-filter: blur(4px);
+    }
+    .card:nth-child(2) { animation-delay:.08s }
+    .card:nth-child(3) { animation-delay:.16s }
+    .card:nth-child(4) { animation-delay:.24s }
+    [class*="alert"],[class*="warning"],[class*="danger"] {
+      animation: alertBlink 1.5s ease-in-out infinite;
+    }
+    button,[class*="btn"] {
+      transition: all .25s;
+      border-radius: var(--radius);
+    }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(56,189,248,.3);
+      transform: translateY(-1px);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(56,189,248,.2);
+    }
   </style>
 </head>
 <body>

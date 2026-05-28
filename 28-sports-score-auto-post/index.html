@@ -8,16 +8,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
+      --bg: #05021a;
+      --surface: #0d0828;
+      --surface2: #150d3a;
+      --border: #2a1a60;
+      --accent: #a855f7;
+      --accent2: #f43f5e;
+      --text: #faf5ff;
+      --muted: #7c6fcd;
+      --green: #34d399;
+      --yellow: #fbbf24;
       --radius: 12px;
     }
 
@@ -155,12 +155,12 @@
     .match-card:hover {
       border-color: var(--accent);
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 4px 16px rgba(168,85,247, 0.15);
     }
 
     .match-card:hover::before { background: var(--accent); }
 
-    .match-card.followed { border-color: rgba(108, 99, 255, 0.5); }
+    .match-card.followed { border-color: rgba(168,85,247, 0.5); }
     .match-card.followed::before { background: var(--accent); }
 
     .match-card.updated {
@@ -169,7 +169,7 @@
 
     @keyframes flash-update {
       0% { background: var(--surface2); }
-      30% { background: rgba(108, 99, 255, 0.15); }
+      30% { background: rgba(168,85,247, 0.15); }
       100% { background: var(--surface2); }
     }
 
@@ -185,7 +185,7 @@
     }
 
     .sport-tag {
-      background: rgba(108, 99, 255, 0.15);
+      background: rgba(168,85,247, 0.15);
       color: var(--accent);
       border-radius: 4px;
       padding: 2px 6px;
@@ -331,7 +331,7 @@
 
     input[type="text"]:focus, textarea:focus, select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(168,85,247, 0.15);
     }
 
     textarea { min-height: 80px; line-height: 1.5; }
@@ -348,8 +348,8 @@
     .var-chip {
       font-size: 10px;
       font-weight: 600;
-      background: rgba(108, 99, 255, 0.1);
-      border: 1px solid rgba(108, 99, 255, 0.3);
+      background: rgba(168,85,247, 0.1);
+      border: 1px solid rgba(168,85,247, 0.3);
       color: var(--accent);
       border-radius: 4px;
       padding: 2px 7px;
@@ -358,7 +358,7 @@
       user-select: none;
     }
 
-    .var-chip:hover { background: rgba(108, 99, 255, 0.2); }
+    .var-chip:hover { background: rgba(168,85,247, 0.2); }
 
     .trigger-grid {
       display: grid;
@@ -380,7 +380,7 @@
     }
 
     .trigger-check:hover { border-color: var(--accent); }
-    .trigger-check.checked { border-color: var(--accent); background: rgba(108, 99, 255, 0.08); }
+    .trigger-check.checked { border-color: var(--accent); background: rgba(168,85,247, 0.08); }
 
     .trigger-check input { display: none; }
 
@@ -434,7 +434,7 @@
       color: white;
     }
 
-    .btn-primary:hover { background: #5a52d5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3); }
+    .btn-primary:hover { background: #5a52d5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(168,85,247, 0.3); }
     .btn-primary:active { transform: translateY(0); }
 
     .btn-sm { font-size: 11px; padding: 5px 10px; border-radius: 6px; }
@@ -461,8 +461,8 @@
     }
 
     .preview-box.has-post {
-      border-color: rgba(108, 99, 255, 0.4);
-      box-shadow: 0 0 20px rgba(108, 99, 255, 0.08);
+      border-color: rgba(168,85,247, 0.4);
+      box-shadow: 0 0 20px rgba(168,85,247, 0.08);
     }
 
     .preview-empty {
@@ -546,8 +546,8 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(108, 99, 255, 0.05);
-      border: 1px solid rgba(108, 99, 255, 0.15);
+      background: rgba(168,85,247, 0.05);
+      border: 1px solid rgba(168,85,247, 0.15);
       border-radius: 8px;
       padding: 8px 12px;
       margin-bottom: 12px;
@@ -673,7 +673,7 @@
     }
 
     .toast.toast-success { border-color: rgba(67, 217, 173, 0.4); }
-    .toast.toast-info { border-color: rgba(108, 99, 255, 0.4); }
+    .toast.toast-info { border-color: rgba(168,85,247, 0.4); }
 
     @keyframes toast-in {
       from { opacity: 0; transform: translateX(20px); }
@@ -745,7 +745,66 @@
       main { grid-template-columns: 1fr; grid-template-rows: auto; overflow: auto; height: auto; }
       .panel { max-height: 500px; }
     }
-  </style>
+  /* Media & Entertainment theme animations */
+ popIn {
+  0%   { opacity:0; transform:scale(.88) translateY(12px); }
+  70%  { transform:scale(1.03) translateY(-2px); }
+  100% { opacity:1; transform:scale(1) translateY(0); }
+}
+ neonPulse {
+  0%,100% { text-shadow: 0 0 8px rgba(168,85,247,.6); }
+  50%     { text-shadow: 0 0 22px rgba(168,85,247,1), 0 0 44px rgba(244,63,94,.4); }
+}
+ shimmerMove {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+ borderGlow {
+  0%,100% { border-color: var(--border); }
+  50%     { border-color: var(--accent); box-shadow: 0 0 16px rgba(168,85,247,.3); }
+}
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse 80% 55% at 20% 10%, rgba(168,85,247,.09) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 45% at 80% 85%, rgba(244,63,94,.07) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+h1 { animation: neonPulse 3.5s ease-in-out infinite; }
+h2 {
+  background: linear-gradient(90deg, var(--text) 0%, var(--accent) 50%, var(--accent2) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerMove 4s linear infinite;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="book"],[class*="show"] {
+  animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.card:nth-child(2) { animation-delay:.07s }
+.card:nth-child(3) { animation-delay:.14s }
+.card:nth-child(4) { animation-delay:.21s }
+.card:nth-child(5) { animation-delay:.28s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(168,85,247,.2), 0 8px 32px rgba(0,0,0,.4);
+  transform: translateY(-3px);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(168,85,247,.4);
+}
+input:focus,select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(168,85,247,.2);
+}
+</style>
 </head>
 <body>
 <div class="app">

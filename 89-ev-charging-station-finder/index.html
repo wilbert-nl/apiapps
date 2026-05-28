@@ -6,9 +6,9 @@
   <title>EV Fleet Charging Finder</title>
   <style>
     :root {
-      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3350;
-      --accent:#6c63ff; --accent2:#ff6584; --text:#e2e8f0; --muted:#8892b0;
-      --green:#43d9ad; --yellow:#f7c948; --radius:12px;
+      --bg:#020a02; --surface:#071407; --surface2:#0c1e0c; --border:#163516;
+      --accent:#4ade80; --accent2:#38bdf8; --text:#f0fdf4; --muted:#4d7a52;
+      --green:#22c55e; --yellow:#fbbf24; --radius:10px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -169,10 +169,10 @@
       letter-spacing: 0.4px;
     }
 
-    .tag-ccs    { background: rgba(108,99,255,0.25); color: var(--accent); }
+    .tag-ccs    { background: rgba(74,222,128,0.25); color: var(--accent); }
     .tag-chademo { background: rgba(247,201,72,0.25); color: var(--yellow); }
     .tag-type2  { background: rgba(67,217,173,0.25); color: var(--green); }
-    .tag-tesla  { background: rgba(255,101,132,0.25); color: var(--accent2); }
+    .tag-tesla  { background: rgba(56,189,248,0.25); color: var(--accent2); }
     .tag-other  { background: rgba(136,146,176,0.2); color: var(--muted); }
     .tag-fast   { background: rgba(67,217,173,0.2); color: var(--green); }
     .tag-slow   { background: rgba(136,146,176,0.15); color: var(--muted); }
@@ -290,7 +290,7 @@
 
     .check-pill:has(input:checked) {
       border-color: var(--accent);
-      background: rgba(108,99,255,0.18);
+      background: rgba(74,222,128,0.18);
       color: var(--text);
     }
 
@@ -319,7 +319,7 @@
     }
 
     .station-card:hover { border-color: var(--accent); transform: translateX(2px); }
-    .station-card.selected { border-color: var(--accent); background: rgba(108,99,255,0.08); }
+    .station-card.selected { border-color: var(--accent); background: rgba(74,222,128,0.08); }
 
     .station-card .sc-name {
       font-size: 0.88rem;
@@ -635,12 +635,12 @@
       color: var(--accent);
       text-decoration: none;
       padding: 4px 10px;
-      border: 1px solid rgba(108,99,255,0.4);
+      border: 1px solid rgba(74,222,128,0.4);
       border-radius: 20px;
       transition: all 0.15s;
     }
 
-    .maps-btn:hover { background: rgba(108,99,255,0.15); }
+    .maps-btn:hover { background: rgba(74,222,128,0.15); }
 
     .empty-state {
       text-align: center;
@@ -735,6 +735,76 @@
       gap: 5px;
       margin-top: 8px;
     }
+
+    /* Travel & Geo theme animations */
+    @keyframes mapFadeIn {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes locationPing {
+      0%   { transform:scale(1); opacity:1; }
+      70%  { transform:scale(2.2); opacity:0; }
+      100% { transform:scale(2.2); opacity:0; }
+    }
+    @keyframes routeDraw {
+      from { stroke-dashoffset: 1000; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes compassSpin {
+      from { transform:rotate(0deg); }
+      to   { transform:rotate(360deg); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px),
+        repeating-linear-gradient(0deg,  transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="route"],[class*="station"],[class*="park"] {
+      animation: mapFadeIn .45s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.07s }
+    .card:nth-child(3) { animation-delay:.14s }
+    .card:nth-child(4) { animation-delay:.21s }
+    .card:nth-child(5) { animation-delay:.28s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(74,222,128,.15);
+      transform: translateY(-2px);
+    }
+    [class*="status"],[class*="live"],[class*="ping"] {
+      position:relative;
+    }
+    [class*="status"]::before,[class*="live"]::before {
+      content:'';
+      position:absolute;
+      inset:-3px;
+      border-radius:50%;
+      background: rgba(74,222,128,.3);
+      animation: locationPing 1.8s ease-out infinite;
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(74,222,128,.25);
+      transform: translateY(-1px);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(74,222,128,.2);
+    }
+    [class*="delay"],[class*="alert"],[class*="warning"] { color: var(--yellow); }
+    [class*="on-time"],[class*="clear"],[class*="available"] { color: var(--green); }
   </style>
 </head>
 <body>

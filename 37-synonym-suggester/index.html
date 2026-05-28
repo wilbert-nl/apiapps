@@ -8,17 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020509;
+      --surface: #080f18;
+      --surface2: #0d1a28;
+      --border: #1a3050;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #cdd9e5;
+      --muted: #3d6b8c;
+      --green: #00ff9f;
+      --yellow: #ffbe0b;
+      --radius: 6px;
     }
 
     html, body {
@@ -116,7 +116,7 @@
 
     .mode-btn:hover:not(.active) {
       color: var(--text);
-      background: rgba(108, 99, 255, 0.12);
+      background: rgba(0,229,255, 0.12);
     }
 
     /* ── main content ── */
@@ -175,7 +175,7 @@
 
     input[type="text"]:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(0,229,255, 0.15);
     }
 
     input[type="text"]::placeholder { color: var(--muted); }
@@ -202,7 +202,7 @@
     .btn-primary:hover:not(:disabled) {
       background: #7c74ff;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+      box-shadow: 0 4px 12px rgba(0,229,255, 0.4);
     }
 
     .btn-primary:disabled {
@@ -433,17 +433,17 @@
 
     .word-chip:hover {
       border-color: var(--accent);
-      background: rgba(108, 99, 255, 0.1);
+      background: rgba(0,229,255, 0.1);
       transform: translateY(-1px);
     }
 
     .word-chip.ant {
-      border-color: rgba(255, 101, 132, 0.3);
+      border-color: rgba(124,58,237, 0.3);
     }
 
     .word-chip.ant:hover {
       border-color: var(--accent2);
-      background: rgba(255, 101, 132, 0.1);
+      background: rgba(124,58,237, 0.1);
     }
 
     .word-chip .score-dot {
@@ -559,7 +559,7 @@
     }
 
     .editable-text .clickable-word:hover {
-      background: rgba(108, 99, 255, 0.2);
+      background: rgba(0,229,255, 0.2);
       color: #fff;
     }
 
@@ -629,7 +629,7 @@
 
     .recent-item:hover {
       border-color: var(--accent);
-      background: rgba(108, 99, 255, 0.08);
+      background: rgba(0,229,255, 0.08);
     }
 
     .recent-word {
@@ -679,7 +679,7 @@
       margin-right: 6px;
     }
 
-    .badge-formal { background: rgba(108, 99, 255, 0.2); color: var(--accent); }
+    .badge-formal { background: rgba(0,229,255, 0.2); color: var(--accent); }
     .badge-casual { background: rgba(67, 217, 173, 0.15); color: var(--green); }
     .badge-neutral { background: rgba(247, 201, 72, 0.15); color: var(--yellow); }
 
@@ -689,8 +689,8 @@
       align-items: center;
       gap: 4px;
       padding: 3px 10px;
-      background: rgba(108, 99, 255, 0.15);
-      border: 1px solid rgba(108, 99, 255, 0.3);
+      background: rgba(0,229,255, 0.15);
+      border: 1px solid rgba(0,229,255, 0.3);
       border-radius: 5px;
       color: var(--accent);
       font-size: 0.75rem;
@@ -741,8 +741,8 @@
 
     /* ── error state ── */
     .error-msg {
-      background: rgba(255, 101, 132, 0.1);
-      border: 1px solid rgba(255, 101, 132, 0.3);
+      background: rgba(124,58,237, 0.1);
+      border: 1px solid rgba(124,58,237, 0.3);
       border-radius: 8px;
       padding: 12px 16px;
       font-size: 0.85rem;
@@ -762,6 +762,62 @@
       main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
       .right-panel { border-right: none; border-top: 1px solid var(--border); max-height: 280px; }
     }
+
+/* Tools / Terminal theme animations */
+@keyframes termFadeIn {
+  from { opacity:0; transform:translateX(-10px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes blinkCursor {
+  0%,100% { opacity:1; }
+  50%     { opacity:0; }
+}
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+  100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+h1::after {
+  content:'_';
+  animation: blinkCursor 1s step-end infinite;
+  color: var(--accent);
+  margin-left: 2px;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="word"],[class*="rhyme"],[class*="synonym"] {
+  animation: termFadeIn .3s ease both;
+}
+.card:nth-child(2) { animation-delay:.04s }
+.card:nth-child(3) { animation-delay:.08s }
+.card:nth-child(4) { animation-delay:.12s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,229,255,.15);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0,229,255,.25);
+}
+input:focus,select:focus,textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+}
+[class*="tag"],[class*="chip"],[class*="badge"] {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: .8em;
+}
   </style>
 </head>
 <body>

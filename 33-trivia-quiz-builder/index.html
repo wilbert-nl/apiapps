@@ -6,16 +6,16 @@
 <title>Trivia Quiz Builder</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3350;
-    --accent: #6c63ff;
-    --accent2: #ff6584;
-    --text: #e2e8f0;
-    --muted: #8892b0;
-    --green: #43d9ad;
-    --yellow: #f7c948;
+    --bg: #05021a;
+    --surface: #0d0828;
+    --surface2: #150d3a;
+    --border: #2a1a60;
+    --accent: #a855f7;
+    --accent2: #f43f5e;
+    --text: #faf5ff;
+    --muted: #7c6fcd;
+    --green: #34d399;
+    --yellow: #fbbf24;
     --radius: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -109,7 +109,7 @@
     -webkit-appearance: none;
   }
   select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892b0' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
-  select:focus, input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+  select:focus, input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-group { margin-bottom: 16px; }
   .form-group.full { grid-column: 1/-1; }
@@ -141,7 +141,7 @@
     position: absolute;
     top: -50px; right: -50px;
     width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
     pointer-events: none;
   }
   .build-hero h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
@@ -160,12 +160,12 @@
     border-radius: 20px;
     font-size: 0.7rem;
     font-weight: 700;
-    background: rgba(108,99,255,0.2);
+    background: rgba(168,85,247,0.2);
     color: var(--accent);
   }
   .badge.green { background: rgba(67,217,173,0.15); color: var(--green); }
   .badge.yellow { background: rgba(247,201,72,0.15); color: var(--yellow); }
-  .badge.red { background: rgba(255,101,132,0.15); color: var(--accent2); }
+  .badge.red { background: rgba(244,63,94,0.15); color: var(--accent2); }
   .generate-btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
   /* === LOADING === */
@@ -226,8 +226,8 @@
     font-size: 0.9rem;
     transition: all 0.15s;
   }
-  .icon-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,0.1); }
-  .icon-btn.danger:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(255,101,132,0.1); }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(168,85,247,0.1); }
+  .icon-btn.danger:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(244,63,94,0.1); }
   .icon-btn.save:hover { border-color: var(--green); color: var(--green); background: rgba(67,217,173,0.1); }
 
   /* === QUIZ PLAY VIEW === */
@@ -288,7 +288,7 @@
     display: flex; align-items: center; gap: 10px;
     font-family: inherit;
   }
-  .answer-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(108,99,255,0.08); transform: translateY(-1px); }
+  .answer-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(168,85,247,0.08); transform: translateY(-1px); }
   .answer-btn:disabled { cursor: not-allowed; }
   .answer-btn.correct { border-color: var(--green); background: rgba(67,217,173,0.12); }
   .answer-btn.wrong { border-color: var(--accent2); background: rgba(255,101,132,0.1); }
@@ -400,7 +400,7 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
   .toast.success { border-color: rgba(67,217,173,0.4); }
-  .toast.error { border-color: rgba(255,101,132,0.4); }
+  .toast.error { border-color: rgba(244,63,94,0.4); }
   @keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
   .toast.out { animation: toast-out 0.25s ease forwards; }
@@ -446,6 +446,62 @@
     background: var(--accent);
     border-radius: 50%;
     font-size: 0.7rem; font-weight: 700;
+  }
+
+  /* Media & Entertainment theme animations */
+  @keyframes popIn {
+    0%   { opacity:0; transform:scale(.88) translateY(12px); }
+    70%  { transform:scale(1.03) translateY(-2px); }
+    100% { opacity:1; transform:scale(1) translateY(0); }
+  }
+  @keyframes neonPulse {
+    0%,100% { text-shadow: 0 0 8px rgba(168,85,247,.6); }
+    50%     { text-shadow: 0 0 22px rgba(168,85,247,1), 0 0 44px rgba(244,63,94,.4); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+  }
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background: radial-gradient(ellipse 80% 55% at 20% 10%, rgba(168,85,247,.09) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 45% at 80% 85%, rgba(244,63,94,.07) 0%, transparent 50%);
+    pointer-events:none;
+    z-index:0;
+  }
+  h1 { animation: neonPulse 3.5s ease-in-out infinite; }
+  h2 {
+    background: linear-gradient(90deg, var(--text) 0%, var(--accent) 50%, var(--accent2) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+  .card,[class*="card"],[class*="result"],[class*="item"],[class*="race"],[class*="quiz"] {
+    animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .card:nth-child(2) { animation-delay:.07s }
+  .card:nth-child(3) { animation-delay:.14s }
+  .card:nth-child(4) { animation-delay:.21s }
+  .card:nth-child(5) { animation-delay:.28s }
+  .card:hover,[class*="card"]:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 24px rgba(168,85,247,.2), 0 8px 32px rgba(0,0,0,.4);
+    transform: translateY(-3px);
+  }
+  button,[class*="btn"] { transition: all .2s; }
+  button:hover,[class*="btn"]:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(168,85,247,.4);
+  }
+  input:focus,select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(168,85,247,.2);
   }
 </style>
 </head>

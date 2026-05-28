@@ -6,17 +6,17 @@
   <title>GitHub Repo Monitor — Candidate Watchlist for Recruiters</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020509;
+      --surface: #080f18;
+      --surface2: #0d1a28;
+      --border: #1a3050;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #cdd9e5;
+      --muted: #3d6b8c;
+      --green: #00ff9f;
+      --yellow: #ffbe0b;
+      --radius: 6px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -160,7 +160,7 @@
     }
 
     .nav-item:hover { background: var(--surface2); color: var(--text); }
-    .nav-item.active { background: rgba(108, 99, 255, 0.12); color: var(--accent); border-left: 3px solid var(--accent); padding-left: 17px; }
+    .nav-item.active { background: rgba(0,229,255, 0.12); color: var(--accent); border-left: 3px solid var(--accent); padding-left: 17px; }
 
     .nav-icon { font-size: 16px; width: 20px; text-align: center; }
 
@@ -215,7 +215,7 @@
 
     .input-field:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(0,229,255, 0.15);
     }
 
     .input-field::placeholder { color: var(--muted); }
@@ -243,7 +243,7 @@
       color: #fff;
     }
 
-    .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(108, 99, 255, 0.45); }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(0,229,255, 0.45); }
 
     .btn-ghost {
       background: var(--surface2);
@@ -254,12 +254,12 @@
     .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
 
     .btn-danger {
-      background: rgba(255, 101, 132, 0.15);
+      background: rgba(124,58,237, 0.15);
       color: var(--accent2);
-      border: 1px solid rgba(255, 101, 132, 0.3);
+      border: 1px solid rgba(124,58,237, 0.3);
     }
 
-    .btn-danger:hover { background: rgba(255, 101, 132, 0.25); }
+    .btn-danger:hover { background: rgba(124,58,237, 0.25); }
 
     .btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
 
@@ -276,7 +276,7 @@
     }
 
     .candidate-nav-item:hover { background: var(--surface2); }
-    .candidate-nav-item.active { background: rgba(108, 99, 255, 0.1); }
+    .candidate-nav-item.active { background: rgba(0,229,255, 0.1); }
 
     .avatar {
       width: 28px;
@@ -411,7 +411,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .candidate-card:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(108, 99, 255, 0.1); }
+    .candidate-card:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(0,229,255, 0.1); }
 
     .candidate-card-header {
       display: flex;
@@ -448,12 +448,12 @@
       font-size: 11px;
       color: var(--accent);
       text-decoration: none;
-      background: rgba(108, 99, 255, 0.12);
+      background: rgba(0,229,255, 0.12);
       border-radius: 4px;
       padding: 1px 6px;
     }
 
-    .candidate-gh-link:hover { background: rgba(108, 99, 255, 0.25); }
+    .candidate-gh-link:hover { background: rgba(0,229,255, 0.25); }
 
     .candidate-bio {
       font-size: 12px;
@@ -537,7 +537,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(180deg, var(--accent), rgba(108, 99, 255, 0.4));
+      background: linear-gradient(180deg, var(--accent), rgba(0,229,255, 0.4));
       border-radius: 3px 3px 0 0;
       transition: height 0.4s ease;
     }
@@ -743,7 +743,7 @@
     .commit-repo {
       font-size: 11px;
       color: var(--accent);
-      background: rgba(108, 99, 255, 0.1);
+      background: rgba(0,229,255, 0.1);
       border-radius: 4px;
       padding: 1px 5px;
     }
@@ -880,8 +880,8 @@
     }
 
     .toast.success { border-color: rgba(67, 217, 173, 0.4); }
-    .toast.error { border-color: rgba(255, 101, 132, 0.4); }
-    .toast.info { border-color: rgba(108, 99, 255, 0.4); }
+    .toast.error { border-color: rgba(124,58,237, 0.4); }
+    .toast.info { border-color: rgba(0,229,255, 0.4); }
 
     /* ─── Progress / spinner ─── */
     .spinner {
@@ -1133,6 +1133,62 @@
     .lang-Shell { background: #89e051; }
     .lang-Vue { background: #41b883; }
 
+/* Tools / Terminal theme animations */
+@keyframes termFadeIn {
+  from { opacity:0; transform:translateX(-10px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes blinkCursor {
+  0%,100% { opacity:1; }
+  50%     { opacity:0; }
+}
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+  100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+h1::after {
+  content:'_';
+  animation: blinkCursor 1s step-end infinite;
+  color: var(--accent);
+  margin-left: 2px;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="job"],[class*="repo"],[class*="user"],[class*="avatar"] {
+  animation: termFadeIn .3s ease both;
+}
+.card:nth-child(2) { animation-delay:.04s }
+.card:nth-child(3) { animation-delay:.08s }
+.card:nth-child(4) { animation-delay:.12s }
+.card:nth-child(5) { animation-delay:.16s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,229,255,.15);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0,229,255,.25);
+}
+input:focus,select:focus,textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+}
+[class*="lang"],[class*="tag"],[class*="badge"],[class*="chip"] {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: .78em;
+}
   </style>
 </head>
 <body>

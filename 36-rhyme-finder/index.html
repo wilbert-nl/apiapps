@@ -6,17 +6,17 @@
   <title>Rhyme Finder — Dark Factory</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020509;
+      --surface: #080f18;
+      --surface2: #0d1a28;
+      --border: #1a3050;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #cdd9e5;
+      --muted: #3d6b8c;
+      --green: #00ff9f;
+      --yellow: #ffbe0b;
+      --radius: 6px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -144,7 +144,7 @@
 
     .search-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+      box-shadow: 0 0 0 3px rgba(0,229,255,0.15);
     }
 
     .search-input::placeholder { color: var(--muted); }
@@ -170,7 +170,7 @@
     .btn-primary:hover {
       background: #7c74ff;
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(108,99,255,0.4);
+      box-shadow: 0 4px 16px rgba(0,229,255,0.4);
     }
 
     .btn-primary:active { transform: translateY(0); }
@@ -231,7 +231,7 @@
     .chip:hover { border-color: var(--accent); color: var(--text); }
 
     .chip.active {
-      background: rgba(108,99,255,0.15);
+      background: rgba(0,229,255,0.15);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -323,8 +323,8 @@
       gap: 4px;
       padding: 4px 8px;
       border-radius: 6px;
-      background: rgba(108,99,255,0.12);
-      border: 1px solid rgba(108,99,255,0.3);
+      background: rgba(0,229,255,0.12);
+      border: 1px solid rgba(0,229,255,0.3);
       font-size: 0.8rem;
       color: var(--accent);
     }
@@ -451,7 +451,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(108,99,255,0.06), transparent);
+      background: linear-gradient(135deg, rgba(0,229,255,0.06), transparent);
       opacity: 0;
       transition: opacity 0.2s;
     }
@@ -459,7 +459,7 @@
     .word-card:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(108,99,255,0.2);
+      box-shadow: 0 4px 16px rgba(0,229,255,0.2);
     }
 
     .word-card:hover::before { opacity: 1; }
@@ -470,8 +470,8 @@
     }
 
     .word-card.saved {
-      border-color: rgba(108,99,255,0.5);
-      background: rgba(108,99,255,0.08);
+      border-color: rgba(0,229,255,0.5);
+      background: rgba(0,229,255,0.08);
     }
 
     .word-text {
@@ -516,7 +516,7 @@
       transition: all 0.15s;
     }
 
-    .icon-btn:hover { color: var(--accent); background: rgba(108,99,255,0.1); }
+    .icon-btn:hover { color: var(--accent); background: rgba(0,229,255,0.1); }
 
     /* ─── EMPTY / ERROR STATES ─── */
     .state-box {
@@ -567,7 +567,7 @@
       font-size: 0.78rem;
       font-weight: 700;
       color: var(--accent);
-      background: rgba(108,99,255,0.1);
+      background: rgba(0,229,255,0.1);
       border-radius: 6px;
       flex-shrink: 0;
     }
@@ -607,7 +607,7 @@
     }
 
     .sugg-chip:hover {
-      background: rgba(108,99,255,0.12);
+      background: rgba(0,229,255,0.12);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -765,7 +765,7 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       padding: 2px 8px;
-      background: rgba(108,99,255,0.08);
+      background: rgba(0,229,255,0.08);
       border-radius: 4px;
     }
 
@@ -774,6 +774,62 @@
       .app { padding: 16px 12px; }
       .word-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
     }
+
+/* Tools / Terminal theme animations */
+@keyframes termFadeIn {
+  from { opacity:0; transform:translateX(-10px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes blinkCursor {
+  0%,100% { opacity:1; }
+  50%     { opacity:0; }
+}
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+  100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px, transparent 3px,
+    rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+h1::after {
+  content:'_';
+  animation: blinkCursor 1s step-end infinite;
+  color: var(--accent);
+  margin-left: 2px;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="word"],[class*="rhyme"],[class*="synonym"] {
+  animation: termFadeIn .3s ease both;
+}
+.card:nth-child(2) { animation-delay:.04s }
+.card:nth-child(3) { animation-delay:.08s }
+.card:nth-child(4) { animation-delay:.12s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,229,255,.15);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(0,229,255,.25);
+}
+input:focus,select:focus,textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+}
+[class*="tag"],[class*="chip"],[class*="badge"] {
+  font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: .8em;
+}
   </style>
 </head>
 <body>

@@ -8,17 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020509;
+      --surface: #080f18;
+      --surface2: #0d1a28;
+      --border: #1a3050;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #cdd9e5;
+      --muted: #3d6b8c;
+      --green: #00ff9f;
+      --yellow: #ffbe0b;
+      --radius: 6px;
       --font: 'Inter', system-ui, sans-serif;
     }
 
@@ -185,7 +185,7 @@
     }
     .harmony-btn:hover { border-color: var(--accent); color: var(--text); }
     .harmony-btn.active {
-      background: rgba(108,99,255,.15);
+      background: rgba(0,229,255,.15);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -217,7 +217,7 @@
       justify-content: center;
       gap: 8px;
     }
-    .generate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,99,255,.4); }
+    .generate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,229,255,.4); }
     .generate-btn:active { transform: translateY(0); }
 
     /* ── Main area ────────────────────────────── */
@@ -292,7 +292,7 @@
       z-index: 2;
     }
     .swatch-lock:hover { background: rgba(0,0,0,.8); }
-    .swatch-lock.locked { background: rgba(108,99,255,.7); border-color: var(--accent); }
+    .swatch-lock.locked { background: rgba(0,229,255,.7); border-color: var(--accent); }
 
     .swatch-info {
       background: rgba(0,0,0,.6);
@@ -349,7 +349,7 @@
       font-size: 11px;
       transition: background .15s;
     }
-    .color-card-lock.locked { background: rgba(108,99,255,.8); }
+    .color-card-lock.locked { background: rgba(0,229,255,.8); }
 
     .color-card-body { padding: 12px; }
     .color-card-hex {
@@ -490,7 +490,7 @@
       display: inline-block;
     }
     .pass { background: rgba(67,217,173,.15); color: var(--green); }
-    .fail { background: rgba(255,101,132,.15); color: var(--accent2); }
+    .fail { background: rgba(124,58,237,.15); color: var(--accent2); }
 
     /* ── Export ───────────────────────────────── */
     .export-section { display: none; }
@@ -512,7 +512,7 @@
       cursor: pointer;
       transition: all .15s;
     }
-    .export-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,.1); }
+    .export-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,.1); }
     .export-tab:hover:not(.active) { color: var(--text); }
 
     .export-code {
@@ -712,7 +712,7 @@
       transition: all .15s;
     }
     .mood-chip:hover { border-color: var(--accent); color: var(--accent); }
-    .mood-chip.active { border-color: var(--accent2); color: var(--accent2); background: rgba(255,101,132,.1); }
+    .mood-chip.active { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,.1); }
 
     /* Color input tabs */
     .input-tabs {
@@ -790,6 +790,63 @@
       .preview-cards { grid-template-columns: 1fr; }
       .contrast-pickers { grid-template-columns: 1fr; }
     }
+
+    /* Tools / Terminal theme animations */
+    @keyframes termFadeIn {
+      from { opacity:0; transform:translateX(-10px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    @keyframes blinkCursor {
+      0%,100% { opacity:1; }
+      50%     { opacity:0; }
+    }
+    @keyframes pulseRing {
+      0%   { box-shadow: 0 0 0 0 rgba(0,229,255,.35); }
+      100% { box-shadow: 0 0 0 14px rgba(0,229,255,0); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 3px,
+        rgba(0,229,255,.014) 3px, rgba(0,229,255,.014) 4px
+      );
+      pointer-events:none;
+      z-index:0;
+    }
+    h1::after {
+      content:'_';
+      animation: blinkCursor 1s step-end infinite;
+      color: var(--accent);
+      margin-left: 2px;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="definition"] {
+      animation: termFadeIn .3s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.04s }
+    .card:nth-child(3) { animation-delay:.08s }
+    .card:nth-child(4) { animation-delay:.12s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(0,229,255,.15);
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(0,229,255,.25);
+    }
+    button:focus,[class*="btn"]:focus {
+      animation: pulseRing .6s ease-out forwards;
+    }
+    input:focus,select:focus,textarea:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 0 8px rgba(0,229,255,.04);
+    }
+    [class*="valid"],[class*="success"] { color: var(--green); }
+    [class*="invalid"],[class*="error"] { color: #ff4560; }
   </style>
 </head>
 <body>

@@ -6,16 +6,16 @@
   <title>Dog Breed Identifier — Dark Factory</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
+      --bg: #05021a;
+      --surface: #0d0828;
+      --surface2: #150d3a;
+      --border: #2a1a60;
+      --accent: #a855f7;
+      --accent2: #f43f5e;
+      --text: #faf5ff;
+      --muted: #7c6fcd;
+      --green: #34d399;
+      --yellow: #fbbf24;
       --radius: 12px;
       --font: 'Inter', system-ui, -apple-system, sans-serif;
     }
@@ -104,7 +104,7 @@
     .tab-btn:hover { color: var(--text); background: var(--surface2); }
     .tab-btn.active {
       color: var(--accent);
-      background: rgba(108,99,255,0.12);
+      background: rgba(168,85,247,0.12);
     }
 
     /* ── Main layout ── */
@@ -164,7 +164,7 @@
       overflow: hidden;
       transition: box-shadow 0.3s;
     }
-    .quiz-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(108,99,255,0.15); }
+    .quiz-card:hover { box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(168,85,247,0.15); }
 
     .quiz-image-wrap {
       position: relative;
@@ -243,7 +243,7 @@
     }
     .option-btn:hover:not(:disabled) {
       border-color: var(--accent);
-      background: rgba(108,99,255,0.1);
+      background: rgba(168,85,247,0.1);
       transform: translateY(-1px);
     }
     .option-btn:disabled { cursor: default; }
@@ -254,7 +254,7 @@
     }
     .option-btn.wrong {
       border-color: var(--accent2);
-      background: rgba(255,101,132,0.1);
+      background: rgba(244,63,94,0.1);
       color: var(--accent2);
     }
 
@@ -277,8 +277,8 @@
       color: var(--green);
     }
     .quiz-feedback.wrong {
-      background: rgba(255,101,132,0.1);
-      border: 1px solid rgba(255,101,132,0.3);
+      background: rgba(244,63,94,0.1);
+      border: 1px solid rgba(244,63,94,0.3);
       color: var(--accent2);
     }
 
@@ -335,7 +335,7 @@
       background: var(--accent);
       color: #fff;
     }
-    .btn-primary:hover { background: #7d75ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(108,99,255,0.4); }
+    .btn-primary:hover { background: #7d75ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(168,85,247,0.4); }
     .btn-secondary {
       background: var(--surface2);
       color: var(--text);
@@ -413,7 +413,7 @@
     .breed-card:hover {
       border-color: var(--accent);
       transform: translateY(-3px);
-      box-shadow: 0 8px 32px rgba(108,99,255,0.2);
+      box-shadow: 0 8px 32px rgba(168,85,247,0.2);
     }
     .breed-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -452,7 +452,7 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .tag-group { background: rgba(108,99,255,0.18); color: var(--accent); }
+    .tag-group { background: rgba(168,85,247,0.18); color: var(--accent); }
     .tag-size { background: rgba(247,201,72,0.18); color: var(--yellow); }
     .tag-sub { background: rgba(67,217,173,0.15); color: var(--green); font-size: 0.62rem; color: var(--muted); background: var(--surface2); }
 
@@ -610,8 +610,8 @@
       margin-bottom: 1rem;
     }
     .trait-pill {
-      background: rgba(108,99,255,0.12);
-      border: 1px solid rgba(108,99,255,0.25);
+      background: rgba(168,85,247,0.12);
+      border: 1px solid rgba(168,85,247,0.25);
       color: var(--accent);
       font-size: 0.8rem;
       padding: 0.3rem 0.7rem;
@@ -668,8 +668,8 @@
       font-size: 0.85rem;
       padding: 0.35rem 0.7rem;
       border-radius: 6px;
-      background: rgba(255,101,132,0.08);
-      border-left: 3px solid rgba(255,101,132,0.4);
+      background: rgba(244,63,94,0.08);
+      border-left: 3px solid rgba(244,63,94,0.4);
       color: var(--text);
     }
 
@@ -785,7 +785,66 @@
       nav .tab-btn { padding: 0.4rem 0.65rem; font-size: 0.8rem; }
       .stats-bar { gap: 0.75rem; }
     }
-  </style>
+  /* Media & Entertainment theme animations */
+ popIn {
+  0%   { opacity:0; transform:scale(.88) translateY(12px); }
+  70%  { transform:scale(1.03) translateY(-2px); }
+  100% { opacity:1; transform:scale(1) translateY(0); }
+}
+ neonPulse {
+  0%,100% { text-shadow: 0 0 8px rgba(168,85,247,.6); }
+  50%     { text-shadow: 0 0 22px rgba(168,85,247,1), 0 0 44px rgba(244,63,94,.4); }
+}
+ shimmerMove {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+ borderGlow {
+  0%,100% { border-color: var(--border); }
+  50%     { border-color: var(--accent); box-shadow: 0 0 16px rgba(168,85,247,.3); }
+}
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse 80% 55% at 20% 10%, rgba(168,85,247,.09) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 45% at 80% 85%, rgba(244,63,94,.07) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+h1 { animation: neonPulse 3.5s ease-in-out infinite; }
+h2 {
+  background: linear-gradient(90deg, var(--text) 0%, var(--accent) 50%, var(--accent2) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerMove 4s linear infinite;
+}
+.card,[class*="card"],[class*="result"],[class*="item"],[class*="book"],[class*="show"] {
+  animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.card:nth-child(2) { animation-delay:.07s }
+.card:nth-child(3) { animation-delay:.14s }
+.card:nth-child(4) { animation-delay:.21s }
+.card:nth-child(5) { animation-delay:.28s }
+.card:hover,[class*="card"]:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(168,85,247,.2), 0 8px 32px rgba(0,0,0,.4);
+  transform: translateY(-3px);
+}
+button,[class*="btn"] { transition: all .2s; }
+button:hover,[class*="btn"]:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(168,85,247,.4);
+}
+input:focus,select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(168,85,247,.2);
+}
+</style>
 </head>
 <body>
 

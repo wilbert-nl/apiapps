@@ -8,16 +8,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
+      --bg: #05021a;
+      --surface: #0d0828;
+      --surface2: #150d3a;
+      --border: #2a1a60;
+      --accent: #a855f7;
+      --accent2: #f43f5e;
+      --text: #faf5ff;
+      --muted: #7c6fcd;
+      --green: #34d399;
+      --yellow: #fbbf24;
       --radius: 12px;
     }
 
@@ -103,7 +103,7 @@
 
     .search-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.18);
+      box-shadow: 0 0 0 3px rgba(168,85,247,.18);
     }
 
     .search-input::placeholder { color: var(--muted); }
@@ -459,8 +459,8 @@
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { opacity: 0.85; }
 
-    .btn-danger { background: rgba(255, 101, 132, 0.15); color: var(--accent2); border: 1px solid rgba(255,101,132,0.3); }
-    .btn-danger:hover { background: rgba(255, 101, 132, 0.25); }
+    .btn-danger { background: rgba(244,63,94, 0.15); color: var(--accent2); border: 1px solid rgba(244,63,94,0.3); }
+    .btn-danger:hover { background: rgba(244,63,94, 0.25); }
 
     .btn-ghost { background: var(--surface2); color: var(--muted); }
     .btn-ghost:hover { background: var(--border); color: var(--text); }
@@ -571,8 +571,8 @@
       letter-spacing: 0.5px;
     }
 
-    .ep-badge.premiere { background: rgba(108,99,255,0.2); color: var(--accent); }
-    .ep-badge.finale { background: rgba(255,101,132,0.2); color: var(--accent2); }
+    .ep-badge.premiere { background: rgba(168,85,247,0.2); color: var(--accent); }
+    .ep-badge.finale { background: rgba(244,63,94,0.2); color: var(--accent2); }
     .ep-badge.regular { background: rgba(67,217,173,0.15); color: var(--green); }
     .ep-badge.new { background: rgba(247,201,72,0.15); color: var(--yellow); }
 
@@ -904,7 +904,7 @@
     }
 
     .cal-day.today { border-color: var(--accent); }
-    .cal-day.has-shows { border-color: rgba(108,99,255,0.4); }
+    .cal-day.has-shows { border-color: rgba(168,85,247,0.4); }
 
     .cal-day-num {
       font-size: 12px;
@@ -1007,6 +1007,61 @@
     /* ── View pane visibility ── */
     .view-pane { display: none; }
     .view-pane.active { display: block; }
+
+    /* Media & Entertainment theme animations */
+    @keyframes popIn {
+      0%   { opacity:0; transform:scale(.88) translateY(12px); }
+      70%  { transform:scale(1.03) translateY(-2px); }
+      100% { opacity:1; transform:scale(1) translateY(0); }
+    }
+    @keyframes neonPulse {
+      0%,100% { text-shadow: 0 0 8px rgba(168,85,247,.6); }
+      50%     { text-shadow: 0 0 22px rgba(168,85,247,1), 0 0 44px rgba(244,63,94,.4); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background: radial-gradient(ellipse 80% 55% at 20% 10%, rgba(168,85,247,.09) 0%, transparent 50%),
+                  radial-gradient(ellipse 60% 45% at 80% 85%, rgba(244,63,94,.07) 0%, transparent 50%);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1 { animation: neonPulse 3.5s ease-in-out infinite; }
+    h2 {
+      background: linear-gradient(90deg, var(--text) 0%, var(--accent) 50%, var(--accent2) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 4s linear infinite;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="movie"],[class*="show"],[class*="book"],[class*="comic"] {
+      animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .card:nth-child(2) { animation-delay:.07s }
+    .card:nth-child(3) { animation-delay:.14s }
+    .card:nth-child(4) { animation-delay:.21s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 24px rgba(168,85,247,.2), 0 8px 32px rgba(0,0,0,.4);
+      transform: translateY(-3px);
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(168,85,247,.4);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(168,85,247,.2);
+    }
   </style>
 </head>
 <body>

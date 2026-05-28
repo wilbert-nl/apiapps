@@ -6,17 +6,17 @@
   <title>Transit Watch — Know Before You Go</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #020a02;
+      --surface: #071407;
+      --surface2: #0c1e0c;
+      --border: #163516;
+      --accent: #4ade80;
+      --accent2: #38bdf8;
+      --text: #f0fdf4;
+      --muted: #4d7a52;
+      --green: #22c55e;
+      --yellow: #fbbf24;
+      --radius: 10px;
       --red: #ff5370;
     }
 
@@ -299,7 +299,7 @@
     }
     .alert-icon.warn { background: rgba(247,201,72,0.15); }
     .alert-icon.alert { background: rgba(255,83,112,0.15); }
-    .alert-icon.info { background: rgba(108,99,255,0.15); }
+    .alert-icon.info { background: rgba(74,222,128,0.15); }
     .alert-icon.ok { background: rgba(67,217,173,0.15); }
 
     .alert-body { flex: 1; min-width: 0; }
@@ -388,7 +388,7 @@
       cursor: pointer;
       transition: border-color 0.2s, color 0.2s, background 0.2s;
     }
-    .add-route-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,0.06); }
+    .add-route-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(74,222,128,0.06); }
 
     /* ── ADD ROUTE MODAL ── */
     .modal-backdrop {
@@ -690,6 +690,76 @@
     .mt-16 { margin-top: 16px; }
     .w-full { width: 100%; }
     .font-bold { font-weight: 700; }
+
+    /* Travel & Geo theme animations */
+    @keyframes mapFadeIn {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes locationPing {
+      0%   { transform:scale(1); opacity:1; }
+      70%  { transform:scale(2.2); opacity:0; }
+      100% { transform:scale(2.2); opacity:0; }
+    }
+    @keyframes routeDraw {
+      from { stroke-dashoffset: 1000; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes compassSpin {
+      from { transform:rotate(0deg); }
+      to   { transform:rotate(360deg); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px),
+        repeating-linear-gradient(0deg,  transparent 0, transparent 39px, rgba(74,222,128,.04) 39px, rgba(74,222,128,.04) 40px);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card,[class*="card"],[class*="result"],[class*="item"],[class*="route"],[class*="station"],[class*="park"] {
+      animation: mapFadeIn .45s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.07s }
+    .card:nth-child(3) { animation-delay:.14s }
+    .card:nth-child(4) { animation-delay:.21s }
+    .card:nth-child(5) { animation-delay:.28s }
+    .card:hover,[class*="card"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(74,222,128,.15);
+      transform: translateY(-2px);
+    }
+    [class*="status"],[class*="live"],[class*="ping"] {
+      position:relative;
+    }
+    [class*="status"]::before,[class*="live"]::before {
+      content:'';
+      position:absolute;
+      inset:-3px;
+      border-radius:50%;
+      background: rgba(74,222,128,.3);
+      animation: locationPing 1.8s ease-out infinite;
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(74,222,128,.25);
+      transform: translateY(-1px);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(74,222,128,.2);
+    }
+    [class*="delay"],[class*="alert"],[class*="warning"] { color: var(--yellow); }
+    [class*="on-time"],[class*="clear"],[class*="available"] { color: var(--green); }
   </style>
 </head>
 <body>

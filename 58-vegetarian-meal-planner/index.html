@@ -6,17 +6,17 @@
   <title>Vegetarian Meal Planner — Dark Factory</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
-      --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
-      --yellow: #f7c948;
-      --radius: 12px;
+      --bg: #0c0800;
+      --surface: #1a1200;
+      --surface2: #251a00;
+      --border: #3d2800;
+      --accent: #f97316;
+      --accent2: #84cc16;
+      --text: #fef9ee;
+      --muted: #92680a;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --radius: 14px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -341,7 +341,7 @@
     }
     .meal-slot:hover, .meal-slot.dragover {
       border-color: var(--accent);
-      background: rgba(108, 99, 255, 0.08);
+      background: rgba(249,115,22, 0.08);
     }
     .meal-slot.has-meal {
       border-style: solid;
@@ -395,7 +395,7 @@
       transition: all 0.2s;
     }
     .meal-action-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-    .meal-action-btn.remove:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(255,101,132,0.1); }
+    .meal-action-btn.remove:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(132,204,22,0.1); }
 
     /* ── PAGE VIEWS ── */
     .page-view { display: none; }
@@ -443,7 +443,7 @@
     .recipe-card:hover {
       transform: translateY(-4px);
       border-color: var(--accent);
-      box-shadow: 0 8px 24px rgba(108,99,255,0.2);
+      box-shadow: 0 8px 24px rgba(249,115,22,0.2);
     }
     .recipe-card-img {
       width: 100%;
@@ -906,6 +906,68 @@
       padding: 1px 7px;
       font-size: 0.65rem;
       font-weight: 700;
+    }
+
+    /* Food & Health theme animations */
+    @keyframes warmFade {
+      from { opacity:0; transform:translateY(14px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes warmGlow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(249,115,22,.0); }
+      50%     { box-shadow: 0 0 24px 6px rgba(249,115,22,.18); }
+    }
+    @keyframes ingredientIn {
+      from { opacity:0; transform:translateX(-10px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background: radial-gradient(ellipse 55% 45% at 25% 85%, rgba(249,115,22,.07) 0%, transparent 60%),
+                  radial-gradient(ellipse 40% 35% at 80% 15%, rgba(132,204,22,.05) 0%, transparent 60%);
+      pointer-events:none;
+      z-index:0;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card,[class*="card"],[class*="result"],[class*="recipe"],[class*="panel"] {
+      animation: warmFade .45s ease both;
+    }
+    .card:nth-child(2) { animation-delay:.06s }
+    .card:nth-child(3) { animation-delay:.12s }
+    .card:nth-child(4) { animation-delay:.18s }
+    li,[class*="ingredient"],[class*="item"]:not([class*="menu"]) {
+      animation: ingredientIn .3s ease both;
+    }
+    li:nth-child(2) { animation-delay:.04s }
+    li:nth-child(3) { animation-delay:.08s }
+    li:nth-child(4) { animation-delay:.12s }
+    li:nth-child(5) { animation-delay:.16s }
+    li:nth-child(6) { animation-delay:.20s }
+    button[type="submit"],button[class*="generate"],[class*="btn-primary"] {
+      animation: warmGlow 2.5s ease-in-out infinite;
+    }
+    button,[class*="btn"] { transition: all .2s; }
+    button:hover,[class*="btn"]:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(249,115,22,.3);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(249,115,22,.2);
+    }
+    [class*="tag"],[class*="badge"],[class*="label"] {
+      background: rgba(249,115,22,.15);
+      border: 1px solid rgba(249,115,22,.3);
+      color: var(--accent);
     }
   </style>
 </head>

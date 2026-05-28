@@ -6,17 +6,17 @@
   <title>Country Info Dashboard — Trade Intel</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #ff6584;
+      --bg: #020912;
+      --surface: #091525;
+      --surface2: #0f2040;
+      --border: #1a3a5f;
+      --accent: #00d4aa;
+      --accent2: #f59e0b;
       --text: #e2e8f0;
-      --muted: #8892b0;
-      --green: #43d9ad;
+      --muted: #4a7a9b;
+      --green: #10d48e;
       --yellow: #f7c948;
-      --radius: 12px;
+      --radius: 6px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -215,7 +215,7 @@
     .country-card:hover {
       transform: translateY(-3px);
       border-color: var(--accent);
-      box-shadow: 0 8px 24px rgba(108, 99, 255, 0.15);
+      box-shadow: 0 8px 24px rgba(0,212,170, 0.15);
     }
 
     .country-card:focus-visible {
@@ -282,10 +282,10 @@
     .card-compare-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); opacity: 1; }
 
     /* Region colors */
-    .region-africa { background: rgba(255, 101, 132, 0.15); color: #ff6584; }
+    .region-africa { background: rgba(245,158,11, 0.15); color: #f59e0b; }
     .region-americas { background: rgba(67, 217, 173, 0.15); color: #43d9ad; }
     .region-asia { background: rgba(247, 201, 72, 0.15); color: #f7c948; }
-    .region-europe { background: rgba(108, 99, 255, 0.15); color: #6c63ff; }
+    .region-europe { background: rgba(0,212,170, 0.15); color: #00d4aa; }
     .region-oceania { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
     .region-antarctic { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
 
@@ -419,11 +419,11 @@
 
     .tag.clickable:hover {
       border-color: var(--accent);
-      background: rgba(108, 99, 255, 0.1);
+      background: rgba(0,212,170, 0.1);
       color: var(--accent);
     }
 
-    .tag.accent-tag { background: rgba(108, 99, 255, 0.12); border-color: rgba(108, 99, 255, 0.3); color: var(--accent); }
+    .tag.accent-tag { background: rgba(0,212,170, 0.12); border-color: rgba(0,212,170, 0.3); color: var(--accent); }
     .tag.green-tag { background: rgba(67, 217, 173, 0.12); border-color: rgba(67, 217, 173, 0.3); color: var(--green); }
 
     .map-link {
@@ -442,7 +442,7 @@
       margin-bottom: 16px;
     }
 
-    .map-link:hover { border-color: var(--accent); background: rgba(108, 99, 255, 0.1); }
+    .map-link:hover { border-color: var(--accent); background: rgba(0,212,170, 0.1); }
 
     /* ── COMPARE VIEW ── */
     .compare-bar {
@@ -626,8 +626,8 @@
       padding: 3px 8px;
       border-radius: 4px;
       margin: 2px;
-      background: rgba(108, 99, 255, 0.15);
-      border: 1px solid rgba(108, 99, 255, 0.3);
+      background: rgba(0,212,170, 0.15);
+      border: 1px solid rgba(0,212,170, 0.3);
       color: var(--accent);
     }
 
@@ -651,6 +651,68 @@
       .compare-table { font-size: 0.78rem; }
       .country-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
       .card-flag { height: 90px; }
+    }
+
+    /* Finance theme animations */
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes pulseGreen {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,212,170,.4); }
+      50%     { box-shadow: 0 0 0 8px rgba(0,212,170,0); }
+    }
+    @keyframes tickerScroll {
+      from { transform:translateX(100%); }
+      to   { transform:translateX(-100%); }
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,212,170,.018) 3px, rgba(0,212,170,.018) 4px);
+      pointer-events:none;
+      z-index:0;
+    }
+    .card,[class*="card"],[class*="-item"],[class*="result"],tbody tr {
+      animation: slideUp .4s ease both;
+    }
+    .card:nth-child(2),[class*="item"]:nth-child(2) { animation-delay:.06s }
+    .card:nth-child(3),[class*="item"]:nth-child(3) { animation-delay:.12s }
+    .card:nth-child(4) { animation-delay:.18s }
+    .card:nth-child(5) { animation-delay:.24s }
+    button,[class*="btn"] {
+      transition: all .2s;
+      position:relative;
+      overflow:hidden;
+    }
+    button::after,[class*="btn"]::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      background: linear-gradient(135deg, rgba(0,212,170,.15) 0%, transparent 60%);
+      opacity:0;
+      transition:.2s;
+    }
+    button:hover::after,[class*="btn"]:hover::after { opacity:1; }
+    button:hover,[class*="btn"]:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(0,212,170,.25);
+    }
+    input:focus,select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px rgba(0,212,170,.25);
+    }
+    [class*="positive"],[class*="up"],[class*="gain"] { color: var(--green); }
+    [class*="negative"],[class*="down"],[class*="loss"] { color: #ef4444; }
+    [class*="live"],[class*="status-dot"],[class*="indicator"] {
+      animation: pulseGreen 2s ease-in-out infinite;
+    }
+    h1,h2 {
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   </style>
 </head>
