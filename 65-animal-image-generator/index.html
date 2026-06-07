@@ -711,7 +711,7 @@
 
   <header>
     <div class="header-inner">
-      <a href="#" class="logo" aria-label="Animal Image Generator Home">
+      <a href="app.html" class="logo" aria-label="Animal Image Generator Home">
         <span class="logo-icon" aria-hidden="true">🐾</span>
         Animal Image Generator
         <span class="logo-badge">Free</span>
@@ -909,15 +909,23 @@
     }
 
     async function fetchCats(count = 9) {
-      const res = await fetch(`https://api.thecatapi.com/v1/images/search?limit=${count}`);
-      if (!res.ok) throw new Error(`Cat API error: ${res.status}`);
-      const data = await res.json();
-      return data.map(d => ({ url: d.url, label: d.breeds && d.breeds[0] ? d.breeds[0].name : 'cat' }));
+      // Try thecatapi first, fall back to cataas.com
+      try {
+        const res = await fetch(`https://api.thecatapi.com/v1/images/search?limit=${count}&size=med`);
+        if (!res.ok) throw new Error(`Cat API error: ${res.status}`);
+        const data = await res.json();
+        if (data.length === 0) throw new Error('No cat images returned');
+        return data.map(d => ({ url: d.url, label: d.breeds && d.breeds[0] ? d.breeds[0].name : 'cat' }));
+      } catch {
+        // cataas.com fallback — generate unique URLs using a random seed
+        return Array.from({ length: count }, (_, i) => ({
+          url: `https://cataas.com/cat?${Date.now()}_${i}`,
+          label: 'cat'
+        }));
+      }
     }
 
     async function fetchFoxes(count = 9) {
-      const results = [];
-      // RandomFox returns one image at a time
       const requests = Array.from({ length: count }, () =>
         fetch('https://randomfox.ca/floof/')
           .then(r => r.json())
@@ -925,27 +933,40 @@
           .catch(() => null)
       );
       const settled = await Promise.allSettled(requests);
-      for (const s of settled) {
-        if (s.status === 'fulfilled' && s.value) results.push(s.value);
+      const results = settled
+        .filter(s => s.status === 'fulfilled' && s.value)
+        .map(s => s.value);
+      if (results.length === 0) {
+        // loremflickr fallback
+        return Array.from({ length: count }, (_, i) => ({
+          url: `https://loremflickr.com/400/300/fox?lock=${Math.floor(Math.random() * 9000) + i}`,
+          label: 'fox'
+        }));
       }
-      if (results.length === 0) throw new Error('Fox API returned no images');
       return results;
     }
 
     async function fetchDucks(count = 9) {
-      const results = [];
-      const requests = Array.from({ length: count }, () =>
-        fetch('https://random-d.uk/api/random')
-          .then(r => r.json())
-          .then(d => ({ url: d.url, label: 'duck' }))
-          .catch(() => null)
-      );
-      const settled = await Promise.allSettled(requests);
-      for (const s of settled) {
-        if (s.status === 'fulfilled' && s.value) results.push(s.value);
+      // random-d.uk is unreliable; use loremflickr for duck photos
+      try {
+        const requests = Array.from({ length: count }, () =>
+          fetch('https://random-d.uk/api/random', { signal: AbortSignal.timeout(4000) })
+            .then(r => r.json())
+            .then(d => d.url ? { url: d.url, label: 'duck' } : null)
+            .catch(() => null)
+        );
+        const settled = await Promise.allSettled(requests);
+        const results = settled
+          .filter(s => s.status === 'fulfilled' && s.value)
+          .map(s => s.value);
+        if (results.length >= Math.ceil(count / 2)) return results;
+        throw new Error('too few results');
+      } catch {
+        return Array.from({ length: count }, (_, i) => ({
+          url: `https://loremflickr.com/400/300/duck?lock=${Math.floor(Math.random() * 9000) + i}`,
+          label: 'duck'
+        }));
       }
-      if (results.length === 0) throw new Error('Duck API returned no images');
-      return results;
     }
 
     async function fetchBreeds() {
@@ -1034,9 +1055,10 @@
       card.setAttribute('aria-label', `${img.label} photo`);
 
       const favActive = isFav(img.url) ? 'active' : '';
+      const fallbackSeed = Math.floor(Math.random() * 9000) + index;
       card.innerHTML = `
         <span class="card-label">${img.label}</span>
-        <img src="${img.url}" alt="${img.label} photo" loading="lazy" />
+        <img src="${img.url}" alt="${img.label} photo" loading="lazy" onerror="this.onerror=null;this.src='https://loremflickr.com/400/300/${img.label}?lock=${fallbackSeed}'" />
         <div class="card-overlay" aria-hidden="true">
           <button class="card-action fav ${favActive}" data-url="${img.url}" data-label="${img.label}" title="Save to favorites" tabindex="-1" aria-label="Save to favorites">★</button>
           <button class="card-action view" data-index="${index}" data-fav="${isFavCard}" title="View full size" tabindex="-1" aria-label="View full size">⤢</button>

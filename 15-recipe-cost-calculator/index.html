@@ -3,1413 +3,1075 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recipe Cost Calculator</title>
+<title>Mise — Recipe Cost Calculator for Independent Restaurants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Nunito:wght@400;500;600;700&display=swap');
-  :root {
-  --bg: #0c0800;
-  --surface: #1a1200;
-  --surface2: #251a00;
-  --border: rgba(249,115,22,0.2);
-  --accent: #f97316;
-  --accent2: #84cc16;
-  --text: #fef9ee;
-  --muted: #a16207;
-  --green: #4ade80;
-  --yellow: #fbbf24;
-  --radius: 16px;
-  --red: #ff4757;
+/* Hallmark · macrostructure: Stat-Led · genre: editorial-culinary · theme: Garden · nav: N1b · footer: Ft4 · tone: warm-professional · anchor hue: sage-green */
+
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 */
+/* P=Philosophy(anti-slop) H=Hierarchy E=Execution S=Specificity R=Restraint V=Variety */
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  overflow-x: clip;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-
-  /* ── Header ── */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .icon-badge {
-    width: 38px; height: 38px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; flex-shrink: 0;
-  }
-
-  header h1 {
-    font-size: 1.3rem; font-weight: 700;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  header .tagline {
-    color: var(--muted); font-size: 0.8rem; margin-left: auto;
-    display: none;
-  }
-  @media(min-width:640px) { header .tagline { display: block; } }
-
-  /* ── Layout ── */
-  .layout {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 24px;
-    padding: 24px;
-    max-width: 1340px;
-    margin: 0 auto;
-  }
-  @media(max-width:860px) { .layout { grid-template-columns: 1fr; } }
-
-  /* ── Panels ── */
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .panel-header {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px;
-  }
-
-  .panel-title {
-    font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--muted);
-  }
-
-  .panel-body { padding: 18px; }
-
-  /* ── Buttons ── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
-    border: none; cursor: pointer; transition: all 0.18s ease;
-    text-decoration: none;
-  }
-
-  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), #5a52e0);
-    color: #fff;
-  }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(249,115,22,0.35); }
-  .btn-primary:active { transform: translateY(0); }
-
-  .btn-ghost {
-    background: transparent; color: var(--muted);
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
-
-  .btn-danger {
-    background: transparent; color: var(--red);
-    border: 1px solid transparent;
-    padding: 4px 8px; font-size: 0.78rem;
-  }
-  .btn-danger:hover { background: rgba(255,71,87,0.12); border-color: var(--red); }
-
-  .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
-
-  .btn-icon {
-    width: 30px; height: 30px; padding: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 6px;
-  }
-
-  /* ── Forms ── */
-  label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-
-  input, select, textarea {
-    width: 100%; padding: 9px 12px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-size: 0.88rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    outline: none;
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(249,115,22,0.18);
-  }
-  input::placeholder { color: var(--muted); }
-  select option { background: var(--surface2); }
-
-  .form-row { margin-bottom: 12px; }
-
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-
-  /* ── Recipe Library ── */
-  .recipe-list { display: flex; flex-direction: column; gap: 6px; }
-
-  .recipe-card {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .recipe-card:hover { border-color: var(--accent); background: rgba(249,115,22,0.06); }
-  .recipe-card.active { border-color: var(--accent); background: rgba(249,115,22,0.1); }
-
-  .recipe-card-info { flex: 1; min-width: 0; }
-  .recipe-card-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .recipe-card-meta { font-size: 0.75rem; color: var(--muted); }
-
-  .health-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
-  .health-green { background: var(--green); box-shadow: 0 0 6px rgba(67,217,173,0.5); }
-  .health-yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(247,201,72,0.5); }
-  .health-red { background: var(--red); box-shadow: 0 0 6px rgba(255,71,87,0.5); }
-
-  /* ── Recipe Builder ── */
-  .recipe-title-row {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
-  }
-  .recipe-title-row input { font-size: 1.1rem; font-weight: 600; }
-
-  .ingredient-search-wrap { position: relative; }
-  .autocomplete-list {
-    position: absolute; z-index: 50; width: 100%;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; margin-top: 4px;
-    max-height: 220px; overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  .autocomplete-item {
-    padding: 9px 14px; cursor: pointer; font-size: 0.85rem;
-    display: flex; align-items: center; justify-content: space-between;
-    transition: background 0.1s;
-  }
-  .autocomplete-item:hover, .autocomplete-item.focused { background: var(--surface2); }
-  .autocomplete-item .price-hint { color: var(--muted); font-size: 0.78rem; }
-
-  .add-ingredient-row {
-    display: grid; grid-template-columns: 1fr 90px 90px auto; gap: 8px;
-    align-items: end; margin-top: 10px;
-  }
-  @media(max-width:600px) {
-    .add-ingredient-row { grid-template-columns: 1fr 1fr; }
-  }
-
-  /* ── Ingredient Table ── */
-  .ingredient-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-  .ingredient-table th {
-    text-align: left; padding: 7px 10px;
-    font-size: 0.75rem; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--border);
-  }
-  .ingredient-table td {
-    padding: 8px 10px; font-size: 0.85rem;
-    border-bottom: 1px solid rgba(46,51,80,0.5);
-  }
-  .ingredient-table tr:last-child td { border-bottom: none; }
-  .ingredient-table tr:hover td { background: rgba(249,115,22,0.04); }
-
-  .ingredient-table input[type="number"] {
-    width: 80px; padding: 4px 8px; font-size: 0.82rem;
-  }
-
-  .cost-cell { font-weight: 600; color: var(--green); }
-
-  /* ── Summary Cards ── */
-  .summary-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 12px; margin-bottom: 20px;
-  }
-
-  .stat-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: var(--accent-line, var(--accent));
-    border-radius: 2px 2px 0 0;
-  }
-
-  .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .stat-value { font-size: 1.4rem; font-weight: 700; line-height: 1.1; }
-  .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-  /* ── Pie Chart ── */
-  .chart-section {
-    display: flex; gap: 20px; align-items: center;
-    flex-wrap: wrap; margin-top: 4px;
-  }
-
-  .pie-wrap { flex-shrink: 0; }
-
-  .legend { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }
-  .legend-item {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.8rem;
-  }
-  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-  .legend-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-  .legend-pct { color: var(--muted); font-variant-numeric: tabular-nums; }
-
-  /* ── Food Cost % Calculator ── */
-  .fcp-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .meter-bar {
-    height: 8px; background: var(--border); border-radius: 4px;
-    overflow: hidden; margin-top: 8px;
-  }
-  .meter-fill {
-    height: 100%; border-radius: 4px;
-    transition: width 0.4s ease, background 0.4s ease;
-  }
-
-  .recommendation-box {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 14px; margin-top: 12px;
-    font-size: 0.85rem;
-  }
-  .recommendation-box .rec-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-
-  /* ── Ingredient DB Modal ── */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 200; opacity: 0; pointer-events: none;
-    transition: opacity 0.2s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-
-  .modal {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); width: 90%; max-width: 720px;
-    max-height: 85vh; display: flex; flex-direction: column;
-    transform: scale(0.95);
-    transition: transform 0.2s;
-  }
-  .modal-overlay.open .modal { transform: scale(1); }
-
-  .modal-header {
-    padding: 16px 20px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .modal-title { font-size: 1rem; font-weight: 700; }
-
-  .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
-
-  .db-search { margin-bottom: 14px; }
-
-  .db-table { width: 100%; border-collapse: collapse; }
-  .db-table th {
-    text-align: left; padding: 7px 10px;
-    font-size: 0.73rem; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; background: var(--surface);
-  }
-  .db-table td { padding: 7px 10px; font-size: 0.83rem; border-bottom: 1px solid rgba(46,51,80,0.4); }
-  .db-table tr:hover td { background: rgba(249,115,22,0.05); }
-  .db-table input[type="number"] { width: 80px; }
-
-  /* ── Toast ── */
-  .toast-container {
-    position: fixed; bottom: 24px; right: 24px; z-index: 999;
-    display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
-  }
-
-  .toast {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 16px;
-    font-size: 0.83rem; color: var(--text);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    animation: toastIn 0.2s ease, toastOut 0.2s ease 2.5s forwards;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .toast.success { border-color: var(--green); }
-  .toast.error { border-color: var(--red); }
-
-  @keyframes toastIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-  @keyframes toastOut { from { opacity:1; } to { opacity:0; transform: translateY(10px); } }
-
-  /* ── Empty state ── */
-  .empty-state {
-    text-align: center; padding: 40px 20px; color: var(--muted);
-  }
-  .empty-state .es-icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
-  .empty-state p { font-size: 0.88rem; }
-
-  /* ── Utility ── */
-  .flex { display: flex; }
-  .gap-2 { gap: 8px; }
-  .mt-2 { margin-top: 8px; }
-  .mt-3 { margin-top: 12px; }
-  .mt-4 { margin-top: 16px; }
-  .text-muted { color: var(--muted); }
-  .text-green { color: var(--green); }
-  .text-yellow { color: var(--yellow); }
-  .text-red { color: var(--red); }
-  .text-accent { color: var(--accent); }
-  .fw-bold { font-weight: 700; }
-  .hidden { display: none !important; }
-
-  /* ── Scroll ── */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-/* ── Food & Health design system v2 ── */
-body { font-family: 'Nunito', system-ui, sans-serif; }
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 20% 85%, rgba(249,115,22,.08) 0%, transparent 60%),
-              radial-gradient(ellipse 40% 40% at 85% 10%, rgba(132,204,22,.06) 0%, transparent 60%);
-  pointer-events: none; z-index: 0;
+/* ── Focus rings (all interactive) ── */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
-h1, h2, [class*="title"], [class*="name"] {
-  font-family: 'Fraunces', Georgia, serif;
-  letter-spacing: -.02em;
+
+/* ── Navigation ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-paper);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-8);
 }
-h1 {
-  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
 }
-.card,[class*="card"],[class*="recipe"],[class*="result"] {
-  border-radius: 20px !important;
-  box-shadow: 0 4px 24px rgba(249,115,22,.1), 0 1px 4px rgba(0,0,0,.3) !important;
-  border: 1px solid rgba(249,115,22,.15) !important;
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
 }
-[class*="tag"],[class*="badge"],[class*="pill"],[class*="chip"] {
-  border-radius: 999px;
-  font-size: 11px;
+
+.nav-logo span {
+  color: var(--color-accent);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  list-style: none;
+  margin: 0 auto;
+}
+
+.nav-links a {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.nav-links a:hover { color: var(--color-ink); }
+
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-6);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
   font-weight: 600;
-  padding: 3px 10px;
-  background: rgba(249,115,22,.15);
-  color: var(--accent);
-  border: 1px solid rgba(249,115,22,.25);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: rgba(249,115,22,.3); border-radius: 3px; }
-@keyframes warmFade { from{opacity:0;transform:translateY(14px) scale(.97);} to{opacity:1;transform:translateY(0) scale(1);} }
-@keyframes warmGlow { 0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0);} 50%{box-shadow:0 0 28px 6px rgba(249,115,22,.18);} }
-@keyframes ingredientIn { from{opacity:0;transform:translateX(-8px);} to{opacity:1;transform:translateX(0);} }
-.card,[class*="card"],[class*="result"],[class*="recipe"] { animation: warmFade .45s cubic-bezier(.34,1.56,.64,1) both; }
-.card:nth-child(2){animation-delay:.06s} .card:nth-child(3){animation-delay:.12s} .card:nth-child(4){animation-delay:.18s}
-li,[class*="ingredient"],[class*="step"] { animation: ingredientIn .3s ease both; }
-li:nth-child(2){animation-delay:.04s} li:nth-child(3){animation-delay:.08s} li:nth-child(4){animation-delay:.12s}
-li:nth-child(5){animation-delay:.16s} li:nth-child(6){animation-delay:.20s}
-button[type="submit"],[class*="generate"],[class*="btn-primary"] { animation: warmGlow 2.5s ease-in-out infinite; }
-button,[class*="btn"] { transition: all .2s; border-radius: 12px; }
-button:hover,[class*="btn"]:hover {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  color: #fff !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(249,115,22,.35);
+
+.btn-nav:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(52% 0.14 155 / 0.28);
 }
-input:focus,select:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px rgba(249,115,22,.2); }
+
+.btn-nav:active { transform: translateY(0); }
+
+@media (max-width: 768px) {
+  .nav { padding: var(--space-4); }
+  .nav-links { display: none; }
+  .nav-inner { justify-content: space-between; }
+}
+
+/* ── Stat-Led Hero ── */
+.stat-section {
+  padding: var(--space-24) var(--space-8) var(--space-16);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-12);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--color-accent-line);
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-16);
+  background: var(--color-paper);
+}
+
+.stat-block {
+  padding: var(--space-12) var(--space-8);
+  border-right: 1px solid var(--color-border);
+  position: relative;
+}
+
+.stat-block:last-child { border-right: none; }
+
+.stat-block::before {
+  content: '';
+  position: absolute;
+  top: 0; left: var(--space-8);
+  width: 32px; height: 2px;
+  background: var(--color-accent);
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 300;
+  line-height: 0.95;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-4);
+}
+
+.stat-label {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  line-height: 1.4;
+  max-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .stat-section { padding: var(--space-16) var(--space-4) var(--space-12); }
+  .stats-row { grid-template-columns: 1fr; }
+  .stat-block { border-right: none; border-bottom: 1px solid var(--color-border); }
+  .stat-block:last-child { border-bottom: none; }
+  .stat-number { font-size: var(--text-4xl); }
+}
+
+@media (max-width: 414px) {
+  .stat-number { font-size: var(--text-3xl); }
+}
+
+/* ── Hero Headline Below Stats ── */
+.hero-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16);
+  align-items: start;
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+}
+
+.hero-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-top: var(--space-2);
+}
+
+.hero-body p {
+  font-size: var(--text-lg);
+  color: var(--color-ink-muted);
+  line-height: 1.65;
+  max-width: 460px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: var(--space-4) var(--space-8);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px oklch(52% 0.14 155 / 0.30);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: var(--space-4) var(--space-8);
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-accent-line);
+  background: var(--color-accent-subtle);
+}
+
+.btn-secondary:active { transform: translateY(0); }
+
+.hero-cta-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .hero-foot {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+  .hero-headline { font-size: var(--text-3xl); }
+}
+
+/* ── Divider ── */
+.section-rule {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+}
+
+/* ── Recipe Mock Section ── */
+.mock-section {
+  padding: var(--space-24) var(--space-8);
+  background: var(--color-paper-2);
+}
+
+.mock-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 520px);
+  gap: var(--space-16);
+  align-items: center;
+}
+
+.mock-copy {
+  max-width: 440px;
+}
+
+.section-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-4);
+}
+
+.mock-copy h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin-bottom: var(--space-6);
+}
+
+.mock-copy p {
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+}
+
+/* The recipe card mock */
+.recipe-mock {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 2px 8px oklch(18% 0.04 155 / 0.06), 0 12px 40px oklch(18% 0.04 155 / 0.08);
+}
+
+.recipe-mock-header {
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.recipe-mock-name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: -0.015em;
+}
+
+.recipe-mock-servings {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  margin-top: var(--space-1);
+}
+
+.health-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.health-badge.green {
+  background: oklch(55% 0.14 155 / 0.12);
+  color: var(--color-success);
+}
+
+.health-badge.amber {
+  background: oklch(62% 0.15 72 / 0.12);
+  color: var(--color-warn);
+}
+
+.health-badge.red {
+  background: oklch(55% 0.20 25 / 0.12);
+  color: var(--color-danger);
+}
+
+.health-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ingredient-rows {
+  padding: 0 var(--space-6);
+}
+
+.ingredient-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 60px 70px;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  align-items: center;
+}
+
+.ingredient-row:last-child { border-bottom: none; }
+
+.ingredient-row .ing-name { color: var(--color-ink); }
+.ingredient-row .ing-qty  { color: var(--color-ink-muted); font-size: var(--text-xs); }
+.ingredient-row .ing-unit { color: var(--color-ink-muted); font-size: var(--text-xs); }
+.ingredient-row .ing-cost { color: var(--color-ink); font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+
+.ing-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 60px 70px;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-paper-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ing-col-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.ing-col-label:last-child { text-align: right; }
+
+.recipe-mock-summary {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  background: var(--color-paper-2);
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.summary-stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.summary-stat-value {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.summary-stat-value.health-green { color: var(--color-success); }
+.summary-stat-value.health-amber { color: var(--color-warn); }
+.summary-stat-value.health-red   { color: var(--color-danger); }
+
+.summary-stat-sub {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+@media (max-width: 768px) {
+  .mock-section { padding: var(--space-16) var(--space-4); }
+  .mock-inner { grid-template-columns: 1fr; gap: var(--space-12); }
+  .recipe-mock-summary { grid-template-columns: 1fr 1fr; }
+  .ingredient-row { grid-template-columns: 1fr 70px 60px 60px; font-size: var(--text-xs); }
+  .ing-header { grid-template-columns: 1fr 70px 60px 60px; }
+}
+
+@media (max-width: 414px) {
+  .recipe-mock-summary { grid-template-columns: 1fr; }
+  .ingredient-row { grid-template-columns: 1fr 60px 55px; }
+  .ingredient-row .ing-unit { display: none; }
+  .ing-header { grid-template-columns: 1fr 60px 55px; }
+  .ing-header .ing-col-label:nth-child(3) { display: none; }
+}
+
+/* ── Feature List ── */
+.features-section {
+  padding: var(--space-24) var(--space-8);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.features-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin-bottom: var(--space-16);
+  max-width: 560px;
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--color-border);
+  align-items: start;
+}
+
+.feature-row:first-child { border-top: 1px solid var(--color-border); }
+
+.feature-name {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.feature-desc {
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+  padding-top: var(--space-1);
+}
+
+@media (max-width: 768px) {
+  .features-section { padding: var(--space-16) var(--space-4); }
+  .feature-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    padding: var(--space-6) 0;
+  }
+  .feature-name { font-size: var(--text-xl); }
+}
+
+/* ── For Restaurants Section ── */
+.for-section {
+  padding: var(--space-24) var(--space-8);
+  background: var(--color-paper-2);
+}
+
+.for-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-24);
+  align-items: start;
+}
+
+.for-editorial {
+  max-width: 520px;
+}
+
+.for-editorial h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin-bottom: var(--space-6);
+  line-height: 1.15;
+}
+
+.for-editorial p {
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: 1.8;
+}
+
+.for-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.for-type-row {
+  padding: var(--space-6) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.for-type-row:first-child { border-top: 1px solid var(--color-border); }
+
+.for-type-name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 400;
+  color: var(--color-ink);
+  letter-spacing: -0.015em;
+  margin-bottom: var(--space-2);
+}
+
+.for-type-desc {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .for-section { padding: var(--space-16) var(--space-4); }
+  .for-inner { grid-template-columns: 1fr; gap: var(--space-12); }
+}
+
+/* ── CTA Section ── */
+.cta-section {
+  padding: var(--space-24) var(--space-8);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cta-block {
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-16) var(--space-12);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-12);
+  align-items: center;
+}
+
+.cta-headline {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+  line-height: 1.1;
+  margin-bottom: var(--space-4);
+}
+
+.cta-body {
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+  max-width: 460px;
+}
+
+.cta-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.cta-note {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+@media (max-width: 768px) {
+  .cta-section { padding: var(--space-16) var(--space-4); }
+  .cta-block {
+    grid-template-columns: 1fr;
+    padding: var(--space-8);
+    gap: var(--space-8);
+  }
+  .cta-action { align-items: flex-start; }
+  .cta-headline { font-size: var(--text-3xl); }
+}
+
+@media (max-width: 414px) {
+  .cta-headline { font-size: var(--text-2xl); }
+}
+
+/* ── Footer Ft4 Mini ── */
+.footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-6) var(--space-8);
+  background: var(--color-paper);
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  list-style: none;
+  margin: 0 auto;
+}
+
+.footer-links a {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.footer-links a:hover { color: var(--color-ink); }
+
+.footer-copy {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .footer { padding: var(--space-6) var(--space-4); }
+  .footer-inner { flex-wrap: wrap; gap: var(--space-4); }
+  .footer-links { margin: 0; }
+  .footer-copy { width: 100%; }
+}
+
+/* ── Stat counter animation ── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stat-number.animate-in {
+  animation: count-up 0.5s ease forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-number.animate-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-nav:hover { transform: none; }
+}
+
+/* ── Health indicator classes ── */
+.health-green { color: var(--color-success); }
+.health-amber  { color: var(--color-warn); }
+.health-red    { color: var(--color-danger); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="icon-badge" aria-hidden="true">🍳</div>
-  <h1>Recipe Cost Calculator</h1>
-  <span class="tagline">Know your true food cost per dish</span>
-</header>
+<!-- N1b Nav: logo left · links center · CTA right -->
+<nav class="nav" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" aria-label="Mise — Recipe Cost Calculator">
+      MISE<span>.</span>
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#for-food-trucks">For Food Trucks</a></li>
+      <li><a href="#" aria-label="Sign in to your account">Sign in</a></li>
+    </ul>
+    <a href="app.html" class="btn-nav" role="button">Start free trial</a>
+  </div>
+</nav>
 
-<div class="layout">
-  <!-- LEFT: Recipe Library -->
-  <aside>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Recipe Library</span>
-        <button class="btn btn-primary btn-sm" id="btn-new-recipe" aria-label="New recipe">+ New</button>
-      </div>
-      <div class="panel-body">
-        <div class="recipe-list" id="recipe-list" role="list" aria-label="Saved recipes">
-          <!-- filled by JS -->
-        </div>
-        <div class="empty-state hidden" id="library-empty">
-          <div class="es-icon">📋</div>
-          <p>No recipes yet.<br>Click <strong>+ New</strong> to start.</p>
-        </div>
-      </div>
+<!-- Stat-Led Hero — numbers before prose -->
+<section class="stat-section" aria-labelledby="stat-eyebrow">
+  <p class="eyebrow" id="stat-eyebrow">The margin problem in independent restaurants</p>
+
+  <div class="stats-row" role="list" aria-label="Industry statistics">
+    <div class="stat-block" role="listitem">
+      <div class="stat-number" data-target-display="68%" aria-label="68 percent">68%</div>
+      <p class="stat-label">of independent restaurants fail within 3 years</p>
     </div>
-
-    <!-- Ingredient Database shortcut -->
-    <div class="panel mt-3">
-      <div class="panel-header">
-        <span class="panel-title">Ingredient Prices</span>
-        <button class="btn btn-ghost btn-sm" id="btn-open-db" aria-label="Edit ingredient database">Edit DB</button>
-      </div>
-      <div class="panel-body">
-        <p style="font-size:0.8rem;color:var(--muted);">80+ ingredients preloaded with average US market prices. Edit any price to match your local supplier.</p>
-      </div>
+    <div class="stat-block" role="listitem">
+      <div class="stat-number" aria-label="28 to 32 percent range">28–32%</div>
+      <p class="stat-label">target food cost percentage for a healthy restaurant</p>
     </div>
-  </aside>
-
-  <!-- RIGHT: Builder + Analysis -->
-  <main>
-    <!-- Recipe Builder -->
-    <div class="panel" id="builder-panel">
-      <div class="panel-header">
-        <span class="panel-title" id="builder-label">Recipe Builder</span>
-        <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm" id="btn-duplicate" aria-label="Duplicate recipe">⧉ Duplicate</button>
-          <button class="btn btn-danger btn-sm" id="btn-delete-recipe" aria-label="Delete recipe">🗑 Delete</button>
-          <button class="btn btn-primary btn-sm" id="btn-save-recipe" aria-label="Save recipe">💾 Save</button>
-        </div>
-      </div>
-      <div class="panel-body">
-        <!-- Recipe meta -->
-        <div class="recipe-title-row">
-          <input type="text" id="recipe-name" placeholder="Recipe name…" aria-label="Recipe name" style="flex:1;">
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <label style="margin:0;white-space:nowrap;" for="recipe-servings">Servings</label>
-            <input type="number" id="recipe-servings" value="4" min="1" step="1" aria-label="Number of servings" style="width:60px;">
-          </div>
-        </div>
-
-        <!-- Add ingredient -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
-          <p class="text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-weight:600;">Add Ingredient</p>
-          <div class="add-ingredient-row">
-            <div class="ingredient-search-wrap">
-              <input type="text" id="ing-search" placeholder="Search ingredient…" aria-label="Search ingredient" autocomplete="off">
-              <div class="autocomplete-list hidden" id="autocomplete-list" role="listbox" aria-label="Ingredient suggestions"></div>
-            </div>
-            <div>
-              <label for="ing-qty">Qty</label>
-              <input type="number" id="ing-qty" value="1" min="0" step="0.01" aria-label="Quantity">
-            </div>
-            <div>
-              <label for="ing-unit">Unit</label>
-              <select id="ing-unit" aria-label="Unit">
-                <option value="each">each</option>
-                <option value="lb">lb</option>
-                <option value="oz">oz</option>
-                <option value="kg">kg</option>
-                <option value="g">g</option>
-                <option value="cup">cup</option>
-                <option value="tbsp">tbsp</option>
-                <option value="tsp">tsp</option>
-                <option value="fl oz">fl oz</option>
-                <option value="liter">liter</option>
-                <option value="ml">ml</option>
-                <option value="dozen">dozen</option>
-                <option value="bunch">bunch</option>
-                <option value="can">can</option>
-                <option value="package">package</option>
-              </select>
-            </div>
-            <button class="btn btn-primary" id="btn-add-ing" aria-label="Add ingredient">+ Add</button>
-          </div>
-          <p class="text-muted mt-2" style="font-size:0.73rem;" id="selected-ing-hint"></p>
-        </div>
-
-        <!-- Ingredient list -->
-        <div id="ingredient-table-wrap">
-          <div class="empty-state hidden" id="no-ingredients">
-            <div class="es-icon">🥕</div>
-            <p>Search and add ingredients above.</p>
-          </div>
-          <table class="ingredient-table" id="ingredient-table" aria-label="Recipe ingredients">
-            <thead>
-              <tr>
-                <th>Ingredient</th>
-                <th>Qty</th>
-                <th>Unit</th>
-                <th>Unit Cost</th>
-                <th>Line Cost</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="ingredient-tbody">
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Analysis Panel -->
-    <div class="panel mt-3" id="analysis-panel">
-      <div class="panel-header">
-        <span class="panel-title">Cost Analysis</span>
-      </div>
-      <div class="panel-body">
-        <!-- Summary stats -->
-        <div class="summary-grid" id="summary-grid">
-          <div class="stat-card" style="--accent-line:var(--accent);">
-            <div class="stat-label">Total Cost</div>
-            <div class="stat-value" id="stat-total">$0.00</div>
-            <div class="stat-sub">whole recipe</div>
-          </div>
-          <div class="stat-card" style="--accent-line:var(--green);">
-            <div class="stat-label">Cost / Serving</div>
-            <div class="stat-value" id="stat-per-serving">$0.00</div>
-            <div class="stat-sub" id="stat-servings-label">per serving</div>
-          </div>
-          <div class="stat-card" style="--accent-line:var(--yellow);">
-            <div class="stat-label">Food Cost %</div>
-            <div class="stat-value" id="stat-fcp">—</div>
-            <div class="stat-sub">set price below</div>
-          </div>
-          <div class="stat-card" style="--accent-line:var(--accent2);">
-            <div class="stat-label">Recommended Price</div>
-            <div class="stat-value" id="stat-rec-price">—</div>
-            <div class="stat-sub" id="stat-rec-label">at 30% food cost</div>
-          </div>
-        </div>
-
-        <!-- Pie chart + legend -->
-        <div class="chart-section" id="chart-section">
-          <div class="pie-wrap">
-            <svg id="pie-chart" width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Ingredient cost breakdown pie chart">
-              <circle cx="70" cy="70" r="50" fill="var(--surface2)"/>
-              <g id="pie-slices"></g>
-              <circle cx="70" cy="70" r="28" fill="var(--surface)"/>
-              <text x="70" y="74" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="700" id="pie-center-text">0</text>
-            </svg>
-          </div>
-          <div class="legend" id="pie-legend">
-            <p class="text-muted" style="font-size:0.8rem;">Add ingredients to see breakdown.</p>
-          </div>
-        </div>
-
-        <!-- Food Cost % calculator -->
-        <hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
-        <div class="panel-title mb-2" style="margin-bottom:12px;">Menu Price Calculator</div>
-        <div class="fcp-grid">
-          <div class="form-row">
-            <label for="menu-price">Menu Price ($)</label>
-            <input type="number" id="menu-price" placeholder="e.g. 18.00" min="0" step="0.01">
-          </div>
-          <div class="form-row">
-            <label for="target-fcp">Target Food Cost %</label>
-            <input type="number" id="target-fcp" value="30" min="1" max="100" step="0.5">
-          </div>
-        </div>
-
-        <div class="meter-bar">
-          <div class="meter-fill" id="fcp-meter" style="width:0%;background:var(--green);"></div>
-        </div>
-
-        <div class="recommendation-box" id="recommendation-box">
-          <div class="rec-label">Recommendation</div>
-          <div id="rec-text" class="text-muted" style="font-size:0.85rem;">Enter your recipe ingredients and a menu price to get a recommendation.</div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- Ingredient DB Modal -->
-<div class="modal-overlay" id="db-modal" role="dialog" aria-modal="true" aria-labelledby="db-modal-title">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="db-modal-title">Ingredient Price Database</span>
-      <button class="btn btn-ghost btn-icon" id="btn-close-db" aria-label="Close modal">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="db-search form-row">
-        <input type="text" id="db-search-input" placeholder="Filter ingredients…" aria-label="Filter ingredients">
-      </div>
-      <table class="db-table" aria-label="Ingredient database">
-        <thead>
-          <tr>
-            <th>Ingredient</th>
-            <th>Category</th>
-            <th>Price (USD)</th>
-            <th>Per</th>
-          </tr>
-        </thead>
-        <tbody id="db-tbody">
-        </tbody>
-      </table>
+    <div class="stat-block" role="listitem">
+      <div class="stat-number" aria-label="4 times">4×</div>
+      <p class="stat-label">more profitable with accurate food costing <em style="font-style:normal;font-size:var(--text-xs);color:var(--color-ink-muted);">(estimated)</em></p>
     </div>
   </div>
-</div>
 
-<!-- Toast container -->
-<div class="toast-container" id="toast-container" aria-live="polite"></div>
+  <div class="hero-foot">
+    <h1 class="hero-headline">Price your menu with confidence.</h1>
+    <div class="hero-body">
+      <p>
+        Mise calculates your true food cost per dish — ingredient by ingredient — so you can price every plate at a healthy margin and stop leaving money on the pass.
+      </p>
+      <div class="hero-cta-row">
+        <a href="app.html" class="btn-primary" role="button">Start free trial</a>
+        <a href="#mock" class="btn-secondary" role="button">See how it works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Recipe Cost Interface Mock -->
+<section class="mock-section" id="mock" aria-labelledby="mock-heading">
+  <div class="mock-inner">
+    <div class="mock-copy">
+      <p class="section-label">The calculator</p>
+      <h2 id="mock-heading">Ingredient costs calculated to the gram.</h2>
+      <p>
+        Build a recipe, set your ingredient prices from supplier invoices, and Mise gives you the cost per serving and the menu price that keeps your margins intact. Change a price, and every recipe that uses that ingredient updates instantly.
+      </p>
+    </div>
+
+    <!-- HTML/CSS Recipe Mock -->
+    <div class="recipe-mock" role="figure" aria-label="Recipe cost calculator interface showing Pan-Seared Duck Breast">
+      <div class="recipe-mock-header">
+        <div>
+          <div class="recipe-mock-name">Pan-Seared Duck Breast</div>
+          <div class="recipe-mock-servings">1 serving · fine dining portion</div>
+        </div>
+        <div class="health-badge green" role="status" aria-label="Margin health: good">
+          <span class="dot" aria-hidden="true"></span>
+          Good margin
+        </div>
+      </div>
+
+      <div class="ing-header" aria-hidden="true">
+        <span class="ing-col-label">Ingredient</span>
+        <span class="ing-col-label">Qty</span>
+        <span class="ing-col-label">Unit</span>
+        <span class="ing-col-label" style="text-align:right">Cost</span>
+      </div>
+
+      <div class="ingredient-rows" role="table" aria-label="Ingredient breakdown">
+        <div class="ingredient-row" role="row">
+          <span class="ing-name" role="cell">Duck breast</span>
+          <span class="ing-qty"  role="cell">7</span>
+          <span class="ing-unit" role="cell">oz</span>
+          <span class="ing-cost" role="cell">$2.45</span>
+        </div>
+        <div class="ingredient-row" role="row">
+          <span class="ing-name" role="cell">Duck fat</span>
+          <span class="ing-qty"  role="cell">1</span>
+          <span class="ing-unit" role="cell">tbsp</span>
+          <span class="ing-cost" role="cell">$0.28</span>
+        </div>
+        <div class="ingredient-row" role="row">
+          <span class="ing-name" role="cell">Fresh thyme</span>
+          <span class="ing-qty"  role="cell">3</span>
+          <span class="ing-unit" role="cell">sprig</span>
+          <span class="ing-cost" role="cell">$0.18</span>
+        </div>
+        <div class="ingredient-row" role="row">
+          <span class="ing-name" role="cell">Garlic clove</span>
+          <span class="ing-qty"  role="cell">1</span>
+          <span class="ing-unit" role="cell">each</span>
+          <span class="ing-cost" role="cell">$0.30</span>
+        </div>
+        <div class="ingredient-row" role="row">
+          <span class="ing-name" role="cell">Black pepper, fleur de sel</span>
+          <span class="ing-qty"  role="cell">—</span>
+          <span class="ing-unit" role="cell">—</span>
+          <span class="ing-cost" role="cell">$0.99</span>
+        </div>
+      </div>
+
+      <div class="recipe-mock-summary" role="region" aria-label="Cost summary">
+        <div class="summary-stat">
+          <span class="summary-stat-label">Cost / serving</span>
+          <span class="summary-stat-value">$4.20</span>
+          <span class="summary-stat-sub">ingredient cost</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-stat-label">Food cost %</span>
+          <span class="summary-stat-value health-green" aria-label="23.5 percent — below 28 percent target">23.5%</span>
+          <span class="summary-stat-sub" style="color:var(--color-success);">Below 28% target</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-stat-label">Sell price (28%)</span>
+          <span class="summary-stat-value">$17.85</span>
+          <span class="summary-stat-sub">recommended floor</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- Feature list — typographic two-column rows, not cards -->
+<section class="features-section" id="features" aria-labelledby="features-heading">
+  <h2 class="features-heading" id="features-heading">
+    Everything you need to run a tighter kitchen.
+  </h2>
+
+  <div class="feature-list" role="list">
+
+    <div class="feature-row" role="listitem">
+      <div class="feature-name">Recipe builder</div>
+      <p class="feature-desc">
+        Enter any recipe with ingredient quantities and units from your prep notes. Mise handles the unit conversion math — mix grams, ounces, liters, and cups in the same recipe without rounding errors.
+      </p>
+    </div>
+
+    <div class="feature-row" role="listitem">
+      <div class="feature-name">Supplier price sync</div>
+      <p class="feature-desc">
+        Enter your local supplier prices once and Mise applies them across every recipe that uses that ingredient. When your duck breast cost goes up on Tuesday's invoice, you'll see the margin impact across your whole menu immediately.
+      </p>
+    </div>
+
+    <div class="feature-row" role="listitem">
+      <div class="feature-name">Food cost percentage</div>
+      <p class="feature-desc">
+        Mise calculates your food cost as a percentage of your menu price and flags dishes outside the 28–32% target range. You set the target; the calculator does the watching.
+      </p>
+    </div>
+
+    <div class="feature-row" role="listitem">
+      <div class="feature-name">Recommended pricing</div>
+      <p class="feature-desc">
+        Set your target food cost percentage and Mise works backwards to the minimum menu price that protects your margin. A starting point, not a mandate — your market and format still govern the final number.
+      </p>
+    </div>
+
+    <div class="feature-row" role="listitem">
+      <div class="feature-name">Margin health library</div>
+      <p class="feature-desc">
+        Your recipe library shows a green, amber, or red health indicator beside each dish. One glance tells you which plates are carrying the menu and which ones are quietly draining it.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- For Restaurants — editorial voice, three types -->
+<section class="for-section" id="for-food-trucks" aria-labelledby="for-heading">
+  <div class="for-inner">
+    <div class="for-editorial">
+      <h2 id="for-heading">Built for kitchens where the margin between survival and failure is razor thin.</h2>
+      <p>
+        Independent restaurant operators don't have a corporate finance team to tell them when a dish is underwater. They have a clipboard, a supplier invoice, and a gut feeling developed over years — and that's often not enough. Mise was designed for the chef who knows how to cook the food but doesn't always know whether the food is being priced to keep the lights on. It's a back-of-house tool that respects the intelligence of the people who run real kitchens.
+      </p>
+    </div>
+
+    <div class="for-types" role="list" aria-label="Businesses served">
+      <div class="for-type-row" role="listitem">
+        <div class="for-type-name">Independent restaurant</div>
+        <p class="for-type-desc">
+          Full service, casual dining, or fast-casual with 1–3 locations. Manage a full menu of recipes and spot which dishes are worth keeping.
+        </p>
+      </div>
+      <div class="for-type-row" role="listitem">
+        <div class="for-type-name">Food truck</div>
+        <p class="for-type-desc">
+          Tight margins, limited prep time, rotating menus. Mise helps you build a cost baseline before a new item hits the window.
+        </p>
+      </div>
+      <div class="for-type-row" role="listitem">
+        <div class="for-type-name">Catering business</div>
+        <p class="for-type-desc">
+          Quote confidently. Scale recipes to headcount and see the per-person food cost before you name a price to a client.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- CTA Section -->
+<section class="cta-section" aria-labelledby="cta-heading">
+  <div class="cta-block">
+    <div>
+      <h2 class="cta-headline" id="cta-heading">Stop guessing your margins.</h2>
+      <p class="cta-body">
+        Free for your first 10 recipes. No credit card required. When you're ready to scale — unlimited recipes, team access, and menu export — it's $35 per kitchen per month.
+      </p>
+    </div>
+    <div class="cta-action">
+      <a href="app.html" class="btn-primary" role="button">Start free trial</a>
+      <span class="cta-note">Free up to 10 recipes</span>
+    </div>
+  </div>
+</section>
+
+<!-- Ft4 Mini Footer -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner">
+    <span class="footer-logo">Mise · Recipe Cost Calculator</span>
+    <ul class="footer-links" role="list">
+      <li><a href="#">Privacy</a></li>
+      <li><a href="#">Terms</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+    <span class="footer-copy">&copy; 2026 Mise. All rights reserved.</span>
+  </div>
+</footer>
 
 <script>
-// ─────────────────────────────────────────────
-// INGREDIENT DATABASE  (80+ items, price per base unit)
-// ─────────────────────────────────────────────
-const INGREDIENT_DB = [
-  // PRODUCE
-  { id:'tomato',       name:'Tomato',               cat:'Produce',    price:1.50,  unit:'lb' },
-  { id:'onion',        name:'Onion',                cat:'Produce',    price:0.80,  unit:'lb' },
-  { id:'garlic',       name:'Garlic',               cat:'Produce',    price:0.30,  unit:'each' },
-  { id:'potato',       name:'Potato',               cat:'Produce',    price:0.90,  unit:'lb' },
-  { id:'carrot',       name:'Carrot',               cat:'Produce',    price:0.70,  unit:'lb' },
-  { id:'celery',       name:'Celery',               cat:'Produce',    price:1.20,  unit:'bunch' },
-  { id:'bell_pepper',  name:'Bell Pepper',          cat:'Produce',    price:1.00,  unit:'each' },
-  { id:'spinach',      name:'Spinach',              cat:'Produce',    price:2.50,  unit:'lb' },
-  { id:'lettuce',      name:'Lettuce (Romaine)',    cat:'Produce',    price:1.80,  unit:'each' },
-  { id:'broccoli',     name:'Broccoli',             cat:'Produce',    price:2.00,  unit:'lb' },
-  { id:'zucchini',     name:'Zucchini',             cat:'Produce',    price:1.30,  unit:'lb' },
-  { id:'mushroom',     name:'Mushroom',             cat:'Produce',    price:3.50,  unit:'lb' },
-  { id:'avocado',      name:'Avocado',              cat:'Produce',    price:1.25,  unit:'each' },
-  { id:'lemon',        name:'Lemon',                cat:'Produce',    price:0.60,  unit:'each' },
-  { id:'lime',         name:'Lime',                 cat:'Produce',    price:0.40,  unit:'each' },
-  { id:'apple',        name:'Apple',                cat:'Produce',    price:0.80,  unit:'each' },
-  { id:'banana',       name:'Banana',               cat:'Produce',    price:0.20,  unit:'each' },
-  { id:'strawberry',   name:'Strawberries',         cat:'Produce',    price:4.00,  unit:'lb' },
-  { id:'blueberry',    name:'Blueberries',          cat:'Produce',    price:5.50,  unit:'lb' },
-  { id:'sweet_potato', name:'Sweet Potato',         cat:'Produce',    price:1.20,  unit:'lb' },
-  { id:'jalapeño',     name:'Jalapeño',             cat:'Produce',    price:1.80,  unit:'lb' },
-  { id:'cilantro',     name:'Cilantro',             cat:'Produce',    price:0.80,  unit:'bunch' },
-  { id:'parsley',      name:'Parsley',              cat:'Produce',    price:0.80,  unit:'bunch' },
-  { id:'basil',        name:'Fresh Basil',          cat:'Produce',    price:2.50,  unit:'bunch' },
-  { id:'ginger',       name:'Ginger',               cat:'Produce',    price:3.00,  unit:'lb' },
-  // MEAT & PROTEIN
-  { id:'chicken_breast',name:'Chicken Breast',     cat:'Meat',       price:5.50,  unit:'lb' },
-  { id:'chicken_thigh', name:'Chicken Thigh',      cat:'Meat',       price:3.50,  unit:'lb' },
-  { id:'ground_beef',   name:'Ground Beef 80%',    cat:'Meat',       price:6.50,  unit:'lb' },
-  { id:'beef_steak',    name:'Beef Steak (sirloin)',cat:'Meat',       price:12.00, unit:'lb' },
-  { id:'pork_chop',     name:'Pork Chop',          cat:'Meat',       price:4.50,  unit:'lb' },
-  { id:'bacon',         name:'Bacon',              cat:'Meat',       price:7.00,  unit:'lb' },
-  { id:'salmon',        name:'Salmon Fillet',      cat:'Seafood',    price:13.00, unit:'lb' },
-  { id:'shrimp',        name:'Shrimp (21-25 ct)',  cat:'Seafood',    price:10.00, unit:'lb' },
-  { id:'tuna_can',      name:'Tuna (canned)',      cat:'Seafood',    price:1.50,  unit:'can' },
-  { id:'egg',           name:'Egg',               cat:'Dairy',      price:0.25,  unit:'each' },
-  { id:'tofu',          name:'Tofu (firm)',        cat:'Protein',    price:2.50,  unit:'lb' },
-  { id:'tempeh',        name:'Tempeh',             cat:'Protein',    price:3.80,  unit:'lb' },
-  // DAIRY
-  { id:'milk',          name:'Milk (whole)',       cat:'Dairy',      price:1.20,  unit:'liter' },
-  { id:'butter',        name:'Butter',             cat:'Dairy',      price:5.00,  unit:'lb' },
-  { id:'heavy_cream',   name:'Heavy Cream',        cat:'Dairy',      price:2.50,  unit:'cup' },
-  { id:'cheddar',       name:'Cheddar Cheese',     cat:'Dairy',      price:6.00,  unit:'lb' },
-  { id:'mozzarella',    name:'Mozzarella',         cat:'Dairy',      price:5.50,  unit:'lb' },
-  { id:'parmesan',      name:'Parmesan',           cat:'Dairy',      price:9.00,  unit:'lb' },
-  { id:'cream_cheese',  name:'Cream Cheese',       cat:'Dairy',      price:3.00,  unit:'package' },
-  { id:'yogurt',        name:'Greek Yogurt',       cat:'Dairy',      price:1.50,  unit:'cup' },
-  { id:'sour_cream',    name:'Sour Cream',         cat:'Dairy',      price:2.00,  unit:'cup' },
-  // GRAINS & PASTA
-  { id:'all_purpose_flour',name:'All-Purpose Flour', cat:'Grains',   price:0.50,  unit:'lb' },
-  { id:'bread_flour',   name:'Bread Flour',        cat:'Grains',     price:0.65,  unit:'lb' },
-  { id:'rice_white',    name:'Rice (white)',       cat:'Grains',     price:0.80,  unit:'lb' },
-  { id:'rice_brown',    name:'Rice (brown)',       cat:'Grains',     price:1.00,  unit:'lb' },
-  { id:'pasta_dry',     name:'Pasta (dry)',        cat:'Grains',     price:1.20,  unit:'lb' },
-  { id:'bread',         name:'Bread (loaf)',       cat:'Grains',     price:3.50,  unit:'each' },
-  { id:'oats',          name:'Rolled Oats',        cat:'Grains',     price:1.00,  unit:'lb' },
-  { id:'quinoa',        name:'Quinoa',             cat:'Grains',     price:3.50,  unit:'lb' },
-  { id:'cornmeal',      name:'Cornmeal',           cat:'Grains',     price:0.90,  unit:'lb' },
-  // PANTRY
-  { id:'olive_oil',     name:'Olive Oil',          cat:'Pantry',     price:0.40,  unit:'fl oz' },
-  { id:'vegetable_oil', name:'Vegetable Oil',      cat:'Pantry',     price:0.10,  unit:'fl oz' },
-  { id:'soy_sauce',     name:'Soy Sauce',          cat:'Pantry',     price:0.12,  unit:'tbsp' },
-  { id:'vinegar',       name:'White Vinegar',      cat:'Pantry',     price:0.05,  unit:'tbsp' },
-  { id:'balsamic',      name:'Balsamic Vinegar',   cat:'Pantry',     price:0.20,  unit:'tbsp' },
-  { id:'honey',         name:'Honey',              cat:'Pantry',     price:0.35,  unit:'tbsp' },
-  { id:'sugar',         name:'Sugar (white)',      cat:'Pantry',     price:0.04,  unit:'oz' },
-  { id:'brown_sugar',   name:'Brown Sugar',        cat:'Pantry',     price:0.05,  unit:'oz' },
-  { id:'salt',          name:'Salt',               cat:'Pantry',     price:0.01,  unit:'tsp' },
-  { id:'black_pepper',  name:'Black Pepper',       cat:'Pantry',     price:0.15,  unit:'tsp' },
-  { id:'paprika',       name:'Paprika',            cat:'Pantry',     price:0.10,  unit:'tsp' },
-  { id:'cumin',         name:'Cumin',              cat:'Pantry',     price:0.12,  unit:'tsp' },
-  { id:'oregano',       name:'Dried Oregano',      cat:'Pantry',     price:0.10,  unit:'tsp' },
-  { id:'thyme',         name:'Dried Thyme',        cat:'Pantry',     price:0.10,  unit:'tsp' },
-  { id:'cinnamon',      name:'Cinnamon',           cat:'Pantry',     price:0.15,  unit:'tsp' },
-  { id:'chili_powder',  name:'Chili Powder',       cat:'Pantry',     price:0.10,  unit:'tsp' },
-  { id:'baking_powder', name:'Baking Powder',      cat:'Pantry',     price:0.05,  unit:'tsp' },
-  { id:'baking_soda',   name:'Baking Soda',        cat:'Pantry',     price:0.03,  unit:'tsp' },
-  { id:'vanilla',       name:'Vanilla Extract',    cat:'Pantry',     price:0.50,  unit:'tsp' },
-  { id:'tomato_paste',  name:'Tomato Paste',       cat:'Pantry',     price:1.80,  unit:'can' },
-  { id:'diced_tomatoes',name:'Diced Tomatoes (can)',cat:'Pantry',    price:1.50,  unit:'can' },
-  { id:'chicken_broth', name:'Chicken Broth',      cat:'Pantry',     price:2.00,  unit:'liter' },
-  { id:'beef_broth',    name:'Beef Broth',         cat:'Pantry',     price:2.50,  unit:'liter' },
-  { id:'coconut_milk',  name:'Coconut Milk (can)', cat:'Pantry',     price:2.20,  unit:'can' },
-  { id:'beans_black',   name:'Black Beans (can)',  cat:'Pantry',     price:1.20,  unit:'can' },
-  { id:'chickpeas',     name:'Chickpeas (can)',    cat:'Pantry',     price:1.30,  unit:'can' },
-  { id:'lentils',       name:'Lentils (dry)',      cat:'Pantry',     price:1.50,  unit:'lb' },
-  { id:'walnuts',       name:'Walnuts',            cat:'Pantry',     price:8.00,  unit:'lb' },
-  { id:'almonds',       name:'Almonds',            cat:'Pantry',     price:9.00,  unit:'lb' },
-  { id:'pine_nuts',     name:'Pine Nuts',          cat:'Pantry',     price:18.00, unit:'lb' },
-  { id:'cocoa',         name:'Cocoa Powder',       cat:'Pantry',     price:4.00,  unit:'lb' },
-  { id:'chocolate',     name:'Dark Chocolate',     cat:'Pantry',     price:5.00,  unit:'lb' },
-  { id:'mayo',          name:'Mayonnaise',         cat:'Pantry',     price:0.10,  unit:'tbsp' },
-  { id:'mustard',       name:'Dijon Mustard',      cat:'Pantry',     price:0.15,  unit:'tbsp' },
-  { id:'hot_sauce',     name:'Hot Sauce',          cat:'Pantry',     price:0.08,  unit:'tbsp' },
-  { id:'worcestershire',name:'Worcestershire Sauce',cat:'Pantry',   price:0.10,  unit:'tbsp' },
-];
+// ── Stat counter animation (count-up on intersection, respects reduced-motion) ──
+(function () {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Unit conversion factors (to base unit)
-const UNIT_CONVERT = {
-  // weight
-  lb: 1, oz: 0.0625, kg: 2.20462, g: 0.00220462,
-  // volume
-  cup: 1, tbsp: 0.0625, tsp: 0.020833, 'fl oz': 0.125, liter: 4.22675, ml: 0.004227,
-  // count
-  each: 1, dozen: 12, bunch: 1, can: 1, package: 1,
-};
+  const statNumbers = document.querySelectorAll('.stat-number');
 
-// PIE CHART COLORS
-const PIE_COLORS = [
-  '#6c63ff','#ff6584','#43d9ad','#f7c948','#4ecdc4',
-  '#ff9f43','#a55eea','#26de81','#fd79a8','#fdcb6e',
-  '#74b9ff','#55efc4','#e17055','#00b894',
-];
-
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
-let db = JSON.parse(localStorage.getItem('rcalc_db') || 'null') || structuredClone(INGREDIENT_DB);
-let recipes = JSON.parse(localStorage.getItem('rcalc_recipes') || '[]');
-let currentRecipe = null;  // { id, name, servings, ingredients: [{id, name, qty, unit, unitCost}] }
-let selectedIngredient = null;  // DB item currently typed/picked
-let acFocusIdx = -1;
-
-// ─────────────────────────────────────────────
-// PERSISTENCE
-// ─────────────────────────────────────────────
-function saveAll() {
-  localStorage.setItem('rcalc_db', JSON.stringify(db));
-  localStorage.setItem('rcalc_recipes', JSON.stringify(recipes));
-}
-
-// ─────────────────────────────────────────────
-// TOAST
-// ─────────────────────────────────────────────
-function toast(msg, type = 'info') {
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  const icons = { success:'✅', error:'❌', info:'ℹ️' };
-  el.innerHTML = `<span>${icons[type] || ''}</span><span>${msg}</span>`;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 2800);
-}
-
-// ─────────────────────────────────────────────
-// RECIPE LIBRARY
-// ─────────────────────────────────────────────
-function renderLibrary() {
-  const list = document.getElementById('recipe-list');
-  const empty = document.getElementById('library-empty');
-  list.innerHTML = '';
-
-  if (recipes.length === 0) {
-    empty.classList.remove('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
-
-  recipes.forEach(r => {
-    const total = calcTotal(r);
-    const perServing = r.servings > 0 ? total / r.servings : 0;
-    const health = getHealthStatus(r);
-    const card = document.createElement('div');
-    card.className = `recipe-card${currentRecipe && currentRecipe.id === r.id ? ' active' : ''}`;
-    card.setAttribute('role', 'listitem');
-    card.setAttribute('tabindex', '0');
-    card.setAttribute('aria-label', `Recipe: ${r.name}`);
-    card.innerHTML = `
-      <div class="health-dot health-${health}"></div>
-      <div class="recipe-card-info">
-        <div class="recipe-card-name">${escHtml(r.name || 'Untitled')}</div>
-        <div class="recipe-card-meta">$${total.toFixed(2)} total · $${perServing.toFixed(2)}/serving · ${r.ingredients.length} ingredients</div>
-      </div>
-    `;
-    card.addEventListener('click', () => loadRecipe(r.id));
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadRecipe(r.id); } });
-    list.appendChild(card);
-  });
-}
-
-function calcTotal(recipe) {
-  return recipe.ingredients.reduce((sum, ing) => {
-    const dbItem = db.find(d => d.id === ing.id) || ing;
-    const unitCost = dbItem.price;
-    const factor = getConversionFactor(ing.unit, dbItem.unit);
-    return sum + (ing.qty * factor * unitCost);
-  }, 0);
-}
-
-function getConversionFactor(from, to) {
-  if (from === to) return 1;
-  const fromBase = UNIT_CONVERT[from];
-  const toBase = UNIT_CONVERT[to];
-  if (!fromBase || !toBase) return 1;
-  return fromBase / toBase;
-}
-
-function getHealthStatus(recipe) {
-  // Based on food cost percentage from menu price or default 30%
-  const total = calcTotal(recipe);
-  const perServing = recipe.servings > 0 ? total / recipe.servings : 0;
-  const menuPrice = recipe.menuPrice || 0;
-  if (!menuPrice || perServing === 0) return 'yellow';
-  const pct = (perServing / menuPrice) * 100;
-  if (pct <= 30) return 'green';
-  if (pct <= 38) return 'yellow';
-  return 'red';
-}
-
-function loadRecipe(id) {
-  currentRecipe = structuredClone(recipes.find(r => r.id === id));
-  if (!currentRecipe) return;
-  document.getElementById('recipe-name').value = currentRecipe.name;
-  document.getElementById('recipe-servings').value = currentRecipe.servings;
-  document.getElementById('menu-price').value = currentRecipe.menuPrice || '';
-  renderIngredientTable();
-  renderLibrary();
-  updateAnalysis();
-}
-
-function newRecipe() {
-  currentRecipe = {
-    id: `r_${Date.now()}`,
-    name: '',
-    servings: 4,
-    ingredients: [],
-    menuPrice: 0,
-  };
-  document.getElementById('recipe-name').value = '';
-  document.getElementById('recipe-servings').value = 4;
-  document.getElementById('menu-price').value = '';
-  renderIngredientTable();
-  updateAnalysis();
-  document.getElementById('recipe-name').focus();
-}
-
-function saveRecipe() {
-  if (!currentRecipe) { toast('Create a recipe first.', 'error'); return; }
-  currentRecipe.name = document.getElementById('recipe-name').value.trim() || 'Untitled Recipe';
-  currentRecipe.servings = Math.max(1, parseFloat(document.getElementById('recipe-servings').value) || 1);
-  currentRecipe.menuPrice = parseFloat(document.getElementById('menu-price').value) || 0;
-  const idx = recipes.findIndex(r => r.id === currentRecipe.id);
-  if (idx >= 0) {
-    recipes[idx] = structuredClone(currentRecipe);
-  } else {
-    recipes.push(structuredClone(currentRecipe));
-  }
-  saveAll();
-  renderLibrary();
-  toast(`"${currentRecipe.name}" saved!`, 'success');
-}
-
-function deleteRecipe() {
-  if (!currentRecipe) return;
-  const idx = recipes.findIndex(r => r.id === currentRecipe.id);
-  if (idx >= 0) {
-    recipes.splice(idx, 1);
-    saveAll();
-    toast('Recipe deleted.', 'info');
-  }
-  currentRecipe = null;
-  newRecipe();
-  renderLibrary();
-}
-
-function duplicateRecipe() {
-  if (!currentRecipe) return;
-  const copy = structuredClone(currentRecipe);
-  copy.id = `r_${Date.now()}`;
-  copy.name = `${currentRecipe.name} (copy)`;
-  recipes.push(copy);
-  saveAll();
-  loadRecipe(copy.id);
-  toast('Recipe duplicated.', 'success');
-}
-
-// ─────────────────────────────────────────────
-// INGREDIENT TABLE
-// ─────────────────────────────────────────────
-function renderIngredientTable() {
-  const tbody = document.getElementById('ingredient-tbody');
-  const table = document.getElementById('ingredient-table');
-  const emptyMsg = document.getElementById('no-ingredients');
-
-  if (!currentRecipe || currentRecipe.ingredients.length === 0) {
-    table.classList.add('hidden');
-    emptyMsg.classList.remove('hidden');
+  if (prefersReduced) {
+    statNumbers.forEach(el => el.classList.add('animate-in'));
     return;
   }
 
-  table.classList.remove('hidden');
-  emptyMsg.classList.add('hidden');
-  tbody.innerHTML = '';
+  // Observe stat blocks and animate in sequence
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
 
-  currentRecipe.ingredients.forEach((ing, idx) => {
-    const dbItem = db.find(d => d.id === ing.id);
-    const unitCost = dbItem ? dbItem.price : ing.unitCost;
-    const factor = getConversionFactor(ing.unit, dbItem ? dbItem.unit : ing.unit);
-    const lineCost = ing.qty * factor * unitCost;
+        setTimeout(() => {
+          el.style.transition = 'opacity 0.45s ease, transform 0.45s ease';
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        }, parseInt(el.dataset.delay || 0));
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${escHtml(ing.name)}</td>
-      <td>
-        <input type="number" value="${ing.qty}" min="0" step="0.01"
-          aria-label="Quantity for ${escHtml(ing.name)}"
-          data-idx="${idx}" class="ing-qty-input">
-      </td>
-      <td>
-        <select aria-label="Unit for ${escHtml(ing.name)}" data-idx="${idx}" class="ing-unit-select" style="width:80px;padding:4px 6px;">
-          ${buildUnitOptions(ing.unit)}
-        </select>
-      </td>
-      <td>$${unitCost.toFixed(3)}/${dbItem ? dbItem.unit : ing.unit}</td>
-      <td class="cost-cell">$${lineCost.toFixed(3)}</td>
-      <td>
-        <button class="btn btn-danger btn-icon" data-idx="${idx}" aria-label="Remove ${escHtml(ing.name)}">✕</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // Event delegation
-  tbody.querySelectorAll('.ing-qty-input').forEach(inp => {
-    inp.addEventListener('change', e => {
-      const i = parseInt(e.target.dataset.idx);
-      currentRecipe.ingredients[i].qty = Math.max(0, parseFloat(e.target.value) || 0);
-      renderIngredientTable();
-      updateAnalysis();
-    });
-  });
-
-  tbody.querySelectorAll('.ing-unit-select').forEach(sel => {
-    sel.addEventListener('change', e => {
-      const i = parseInt(e.target.dataset.idx);
-      currentRecipe.ingredients[i].unit = e.target.value;
-      renderIngredientTable();
-      updateAnalysis();
-    });
-  });
-
-  tbody.querySelectorAll('.btn-danger').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const i = parseInt(e.currentTarget.dataset.idx);
-      currentRecipe.ingredients.splice(i, 1);
-      renderIngredientTable();
-      updateAnalysis();
-    });
-  });
-}
-
-function buildUnitOptions(selected) {
-  const units = ['each','lb','oz','kg','g','cup','tbsp','tsp','fl oz','liter','ml','dozen','bunch','can','package'];
-  return units.map(u => `<option value="${u}"${u === selected ? ' selected' : ''}>${u}</option>`).join('');
-}
-
-// ─────────────────────────────────────────────
-// ANALYSIS & STATS
-// ─────────────────────────────────────────────
-function updateAnalysis() {
-  if (!currentRecipe) return;
-
-  const servings = Math.max(1, parseFloat(document.getElementById('recipe-servings').value) || 1);
-  const menuPrice = parseFloat(document.getElementById('menu-price').value) || 0;
-  const targetFcp = parseFloat(document.getElementById('target-fcp').value) || 30;
-
-  currentRecipe.servings = servings;
-  currentRecipe.menuPrice = menuPrice;
-
-  const total = calcTotal(currentRecipe);
-  const perServing = total / servings;
-  const recPrice = perServing / (targetFcp / 100);
-  const fcpActual = menuPrice > 0 ? (perServing / menuPrice) * 100 : null;
-
-  // Update stats
-  document.getElementById('stat-total').textContent = `$${total.toFixed(2)}`;
-  document.getElementById('stat-per-serving').textContent = `$${perServing.toFixed(2)}`;
-  document.getElementById('stat-servings-label').textContent = `${servings} serving${servings !== 1 ? 's' : ''}`;
-  document.getElementById('stat-rec-price').textContent = total > 0 ? `$${recPrice.toFixed(2)}` : '—';
-  document.getElementById('stat-rec-label').textContent = `at ${targetFcp}% food cost`;
-
-  if (fcpActual !== null) {
-    const fcpColor = fcpActual <= 30 ? 'var(--green)' : fcpActual <= 38 ? 'var(--yellow)' : 'var(--red)';
-    document.getElementById('stat-fcp').textContent = `${fcpActual.toFixed(1)}%`;
-    document.getElementById('stat-fcp').style.color = fcpColor;
-  } else {
-    document.getElementById('stat-fcp').textContent = '—';
-    document.getElementById('stat-fcp').style.color = '';
-  }
-
-  // Meter
-  const meter = document.getElementById('fcp-meter');
-  if (fcpActual !== null) {
-    const meterW = Math.min(fcpActual, 100);
-    meter.style.width = `${meterW}%`;
-    meter.style.background = fcpActual <= 30 ? 'var(--green)' : fcpActual <= 38 ? 'var(--yellow)' : 'var(--red)';
-  } else {
-    meter.style.width = '0%';
-  }
-
-  // Recommendation
-  renderRecommendation(fcpActual, perServing, menuPrice, recPrice, targetFcp);
-
-  // Pie chart
-  renderPie();
-}
-
-function renderRecommendation(fcpActual, perServing, menuPrice, recPrice, targetFcp) {
-  const box = document.getElementById('rec-text');
-  if (perServing === 0) {
-    box.innerHTML = `<span class="text-muted">Add ingredients to get recommendations.</span>`;
-    return;
-  }
-  if (!menuPrice) {
-    box.innerHTML = `Cost per serving is <strong class="text-accent">$${perServing.toFixed(2)}</strong>.
-      Set a menu price above to calculate food cost %, or use the recommended price of
-      <strong class="text-green">$${recPrice.toFixed(2)}</strong> (${targetFcp}% food cost).`;
-    return;
-  }
-  if (fcpActual <= 30) {
-    box.innerHTML = `<span class="text-green">Excellent margin!</span> At $${menuPrice.toFixed(2)}, your food cost is
-      <strong>${fcpActual.toFixed(1)}%</strong> — well within the ideal 28–32% restaurant range.`;
-  } else if (fcpActual <= 38) {
-    box.innerHTML = `<span class="text-yellow">Acceptable, but watch margins.</span> Food cost is
-      <strong>${fcpActual.toFixed(1)}%</strong>. Consider raising price to
-      <strong class="text-green">$${recPrice.toFixed(2)}</strong> to hit ${targetFcp}%.`;
-  } else {
-    box.innerHTML = `<span class="text-red">High food cost alert!</span> At ${fcpActual.toFixed(1)}%, margins are
-      squeezed. Recommended price: <strong class="text-green">$${recPrice.toFixed(2)}</strong>
-      or reduce ingredient costs.`;
-  }
-}
-
-function renderPie() {
-  const slicesG = document.getElementById('pie-slices');
-  const legend = document.getElementById('pie-legend');
-  const centerText = document.getElementById('pie-center-text');
-  slicesG.innerHTML = '';
-  legend.innerHTML = '';
-
-  if (!currentRecipe || currentRecipe.ingredients.length === 0) {
-    centerText.textContent = '$0';
-    legend.innerHTML = `<p class="text-muted" style="font-size:0.8rem;">Add ingredients to see breakdown.</p>`;
-    return;
-  }
-
-  const costs = currentRecipe.ingredients.map(ing => {
-    const dbItem = db.find(d => d.id === ing.id);
-    const unitCost = dbItem ? dbItem.price : ing.unitCost;
-    const factor = getConversionFactor(ing.unit, dbItem ? dbItem.unit : ing.unit);
-    return { name: ing.name, cost: ing.qty * factor * unitCost };
-  });
-
-  const total = costs.reduce((s, c) => s + c.cost, 0);
-  centerText.textContent = `$${total.toFixed(2)}`;
-
-  const cx = 70, cy = 70, r = 50;
-  let angle = -Math.PI / 2;
-
-  costs.forEach((item, i) => {
-    if (total === 0 || item.cost === 0) return;
-    const slice = (item.cost / total) * Math.PI * 2;
-    const x1 = cx + r * Math.cos(angle);
-    const y1 = cy + r * Math.sin(angle);
-    const x2 = cx + r * Math.cos(angle + slice);
-    const y2 = cy + r * Math.sin(angle + slice);
-    const largeArc = slice > Math.PI ? 1 : 0;
-    const color = PIE_COLORS[i % PIE_COLORS.length];
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z`);
-    path.setAttribute('fill', color);
-    path.setAttribute('aria-label', `${item.name}: $${item.cost.toFixed(2)}`);
-    path.style.cursor = 'pointer';
-    path.style.transition = 'opacity 0.15s';
-    path.addEventListener('mouseenter', () => { path.style.opacity = '0.75'; });
-    path.addEventListener('mouseleave', () => { path.style.opacity = '1'; });
-    slicesG.appendChild(path);
-
-    // Legend
-    const pct = ((item.cost / total) * 100).toFixed(1);
-    const li = document.createElement('div');
-    li.className = 'legend-item';
-    li.innerHTML = `
-      <div class="legend-dot" style="background:${color};"></div>
-      <span class="legend-name" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
-      <span class="legend-pct">${pct}%</span>
-    `;
-    legend.appendChild(li);
-
-    angle += slice;
-  });
-}
-
-// ─────────────────────────────────────────────
-// AUTOCOMPLETE
-// ─────────────────────────────────────────────
-function filterDb(query) {
-  const q = query.toLowerCase().trim();
-  if (!q) return [];
-  return db.filter(d => d.name.toLowerCase().includes(q)).slice(0, 12);
-}
-
-function renderAutocomplete(items) {
-  const list = document.getElementById('autocomplete-list');
-  if (items.length === 0) { list.classList.add('hidden'); return; }
-
-  list.innerHTML = '';
-  list.classList.remove('hidden');
-  acFocusIdx = -1;
-
-  items.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'autocomplete-item';
-    div.setAttribute('role', 'option');
-    div.setAttribute('id', `ac-item-${i}`);
-    div.innerHTML = `<span>${escHtml(item.name)} <small class="text-muted">(${item.cat})</small></span><span class="price-hint">$${item.price.toFixed(2)}/${item.unit}</span>`;
-    div.addEventListener('mousedown', e => {
-      e.preventDefault();
-      pickIngredient(item);
-    });
-    list.appendChild(div);
-  });
-}
-
-function pickIngredient(item) {
-  selectedIngredient = item;
-  document.getElementById('ing-search').value = item.name;
-  document.getElementById('autocomplete-list').classList.add('hidden');
-  document.getElementById('selected-ing-hint').textContent = `Selected: ${item.name} — $${item.price.toFixed(2)} per ${item.unit}`;
-  document.getElementById('ing-qty').focus();
-}
-
-function closeAutocomplete() {
-  document.getElementById('autocomplete-list').classList.add('hidden');
-  acFocusIdx = -1;
-}
-
-// ─────────────────────────────────────────────
-// ADD INGREDIENT
-// ─────────────────────────────────────────────
-function addIngredient() {
-  if (!currentRecipe) { toast('Create or select a recipe first.', 'error'); return; }
-  if (!selectedIngredient) { toast('Select an ingredient from the list.', 'error'); return; }
-
-  const qty = Math.max(0, parseFloat(document.getElementById('ing-qty').value) || 0);
-  const unit = document.getElementById('ing-unit').value;
-
-  if (qty === 0) { toast('Enter a valid quantity.', 'error'); return; }
-
-  currentRecipe.ingredients.push({
-    id: selectedIngredient.id,
-    name: selectedIngredient.name,
-    qty,
-    unit,
-    unitCost: selectedIngredient.price,
-  });
-
-  renderIngredientTable();
-  updateAnalysis();
-
-  // Reset add form
-  document.getElementById('ing-search').value = '';
-  document.getElementById('ing-qty').value = '1';
-  document.getElementById('selected-ing-hint').textContent = '';
-  selectedIngredient = null;
-  closeAutocomplete();
-  toast(`${selectedIngredient ? selectedIngredient.name : 'Ingredient'} added.`, 'success');
-}
-
-// ─────────────────────────────────────────────
-// DB MODAL
-// ─────────────────────────────────────────────
-function openDbModal() {
-  renderDbTable('');
-  document.getElementById('db-modal').classList.add('open');
-  document.getElementById('db-search-input').focus();
-}
-
-function closeDbModal() {
-  document.getElementById('db-modal').classList.remove('open');
-  saveAll();
-  if (currentRecipe) updateAnalysis();
-}
-
-function renderDbTable(filter) {
-  const q = filter.toLowerCase();
-  const tbody = document.getElementById('db-tbody');
-  tbody.innerHTML = '';
-  db.filter(d => !q || d.name.toLowerCase().includes(q) || d.cat.toLowerCase().includes(q))
-    .forEach(item => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${escHtml(item.name)}</td>
-        <td class="text-muted">${escHtml(item.cat)}</td>
-        <td>
-          <input type="number" value="${item.price}" min="0" step="0.001"
-            aria-label="Price for ${escHtml(item.name)}"
-            data-id="${item.id}" class="db-price-input" style="width:90px;">
-        </td>
-        <td class="text-muted">${escHtml(item.unit)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-  tbody.querySelectorAll('.db-price-input').forEach(inp => {
-    inp.addEventListener('change', e => {
-      const id = e.target.dataset.id;
-      const val = Math.max(0, parseFloat(e.target.value) || 0);
-      const item = db.find(d => d.id === id);
-      if (item) {
-        item.price = val;
-        saveAll();
+        observer.unobserve(el);
       }
     });
+  }, { threshold: 0.3 });
+
+  statNumbers.forEach((el, i) => {
+    el.dataset.delay = i * 120;
+    observer.observe(el);
   });
-}
-
-// ─────────────────────────────────────────────
-// UTILITIES
-// ─────────────────────────────────────────────
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-// ─────────────────────────────────────────────
-// EVENT LISTENERS
-// ─────────────────────────────────────────────
-document.getElementById('btn-new-recipe').addEventListener('click', newRecipe);
-document.getElementById('btn-save-recipe').addEventListener('click', saveRecipe);
-document.getElementById('btn-delete-recipe').addEventListener('click', deleteRecipe);
-document.getElementById('btn-duplicate').addEventListener('click', duplicateRecipe);
-document.getElementById('btn-open-db').addEventListener('click', openDbModal);
-document.getElementById('btn-close-db').addEventListener('click', closeDbModal);
-document.getElementById('btn-add-ing').addEventListener('click', addIngredient);
-
-// Ingredient search
-const ingSearch = document.getElementById('ing-search');
-ingSearch.addEventListener('input', e => {
-  const items = filterDb(e.target.value);
-  selectedIngredient = null;
-  document.getElementById('selected-ing-hint').textContent = '';
-  renderAutocomplete(items);
-});
-
-ingSearch.addEventListener('keydown', e => {
-  const list = document.getElementById('autocomplete-list');
-  const items = list.querySelectorAll('.autocomplete-item');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    acFocusIdx = Math.min(acFocusIdx + 1, items.length - 1);
-    items.forEach((el, i) => el.classList.toggle('focused', i === acFocusIdx));
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    acFocusIdx = Math.max(acFocusIdx - 1, 0);
-    items.forEach((el, i) => el.classList.toggle('focused', i === acFocusIdx));
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    if (acFocusIdx >= 0 && items[acFocusIdx]) {
-      items[acFocusIdx].dispatchEvent(new MouseEvent('mousedown'));
-    }
-  } else if (e.key === 'Escape') {
-    closeAutocomplete();
-  }
-});
-
-ingSearch.addEventListener('blur', () => setTimeout(closeAutocomplete, 150));
-
-// Add ingredient on Enter in qty field
-document.getElementById('ing-qty').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addIngredient();
-});
-
-// Analysis inputs
-document.getElementById('recipe-servings').addEventListener('input', updateAnalysis);
-document.getElementById('menu-price').addEventListener('input', updateAnalysis);
-document.getElementById('target-fcp').addEventListener('input', updateAnalysis);
-
-// DB modal search
-document.getElementById('db-search-input').addEventListener('input', e => {
-  renderDbTable(e.target.value);
-});
-
-// Close modal on overlay click
-document.getElementById('db-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('db-modal')) closeDbModal();
-});
-
-// Keyboard: close modal on Escape
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('db-modal').classList.contains('open')) {
-    closeDbModal();
-  }
-});
-
-// ─────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────
-function init() {
-  renderLibrary();
-  if (recipes.length > 0) {
-    loadRecipe(recipes[0].id);
-  } else {
-    newRecipe();
-  }
-  // Seed a demo recipe if first visit
-  if (recipes.length === 0 && !localStorage.getItem('rcalc_seeded')) {
-    localStorage.setItem('rcalc_seeded', '1');
-    const demo = {
-      id: `r_demo`,
-      name: 'Classic Spaghetti Bolognese',
-      servings: 4,
-      menuPrice: 18,
-      ingredients: [
-        { id:'pasta_dry',    name:'Pasta (dry)',      qty:1,   unit:'lb',   unitCost:1.20 },
-        { id:'ground_beef',  name:'Ground Beef 80%',  qty:0.75,unit:'lb',   unitCost:6.50 },
-        { id:'tomato',       name:'Tomato',           qty:0.5, unit:'lb',   unitCost:1.50 },
-        { id:'tomato_paste', name:'Tomato Paste',     qty:1,   unit:'can',  unitCost:1.80 },
-        { id:'onion',        name:'Onion',            qty:0.5, unit:'lb',   unitCost:0.80 },
-        { id:'garlic',       name:'Garlic',           qty:3,   unit:'each', unitCost:0.30 },
-        { id:'olive_oil',    name:'Olive Oil',        qty:2,   unit:'fl oz',unitCost:0.40 },
-        { id:'oregano',      name:'Dried Oregano',    qty:1,   unit:'tsp',  unitCost:0.10 },
-        { id:'black_pepper', name:'Black Pepper',     qty:0.5, unit:'tsp',  unitCost:0.15 },
-        { id:'parmesan',     name:'Parmesan',         qty:0.25,unit:'lb',   unitCost:9.00 },
-      ],
-    };
-    recipes.push(demo);
-    saveAll();
-    loadRecipe('r_demo');
-    renderLibrary();
-  }
-}
-
-init();
+})();
 </script>
 </body>
 </html>

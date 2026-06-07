@@ -1031,6 +1031,7 @@ td { padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
   </div>
   <div class="header-right">
     <span class="badge badge-live">NASA APOD Live</span>
+    <a href="app.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Open App ↗</a>
   </div>
 </header>
 
@@ -1365,6 +1366,11 @@ td { padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
 
 <div id="toast-container" role="status" aria-live="polite"></div>
 
+<div style="position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--surface);border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+  <span style="font-size:0.8rem;color:var(--muted);">Ready for the full newsletter builder experience?</span>
+  <a href="app.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--accent);color:#fff;border-radius:8px;font-size:0.82rem;font-weight:700;text-decoration:none;flex-shrink:0;">Launch App →</a>
+</div>
+
 <script>
 (function() {
   'use strict';
@@ -1578,9 +1584,9 @@ td { padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
       ${copyLine ? `<p class="apod-copyright">${copyLine}</p>` : ''}
       <p class="apod-explanation">${escHtml(apod.explanation)}</p>
       <div class="action-row">
-        <button class="btn btn-primary" onclick="useInNewsletter()" aria-label="Use this picture in newsletter">
-          ✉️ Use in Newsletter
-        </button>
+        <a href="app.html" class="btn btn-primary" aria-label="Open full newsletter builder app">
+          ✉️ Open Newsletter Builder
+        </a>
         <a href="${apod.hdurl || apod.url}" target="_blank" rel="noopener" class="btn btn-secondary" aria-label="View full resolution image">
           🔍 Full Resolution
         </a>

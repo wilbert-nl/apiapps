@@ -966,15 +966,18 @@
   </style>
 </head>
 <body>
+<div style="background:#1db954;color:#fff;text-align:center;padding:0.5rem 1rem;font-size:0.82rem;font-family:system-ui,sans-serif;">
+  New dashboard available — <a href="app.html" style="color:#fff;font-weight:700;text-decoration:underline;">Open improved tracker →</a>
+</div>
 <div class="app-shell">
   <header>
-    <div class="logo">
+    <a href="app.html" class="logo" style="text-decoration:none;color:inherit;" aria-label="Open new Anime Release Tracker">
       <div class="logo-icon">🎌</div>
       <div class="logo-text">
         <span class="logo-title">Anime Release Tracker</span>
         <span class="logo-sub">Merch Store Dashboard</span>
       </div>
-    </div>
+    </a>
 
     <div class="header-actions">
       <nav class="nav-tabs" role="tablist" aria-label="Main navigation">
@@ -984,10 +987,9 @@
         <button class="nav-tab" role="tab" aria-selected="false" data-tab="calendar">📅 Calendar</button>
       </nav>
 
-      <button class="watchlist-badge" id="watchlist-badge-btn" aria-label="View watchlist">
-        ⭐ Watchlist
-        <span class="count" id="wl-count">0</span>
-      </button>
+      <a href="app.html" class="watchlist-badge" id="watchlist-badge-btn" aria-label="Open new tracker dashboard" style="text-decoration:none;">
+        ✨ New App
+      </a>
     </div>
   </header>
 

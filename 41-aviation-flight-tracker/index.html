@@ -822,6 +822,7 @@
       <input type="text" id="search-input" placeholder="Search flight (e.g. AA101)" aria-label="Flight number" autocomplete="off" />
       <button class="btn-primary" id="search-btn" aria-label="Search">Search</button>
     </div>
+    <a href="app.html" class="btn-primary" style="text-decoration:none;padding:8px 16px;font-size:0.82rem;font-weight:600;border-radius:8px;" aria-label="Open live flight tracker app">Open Live App →</a>
   </div>
 </header>
 
@@ -864,6 +865,7 @@
         <span class="map-stat">Active flights: <strong id="stat-active">0</strong></span>
         <span class="map-stat">En Route: <strong id="stat-enroute">0</strong></span>
         <span class="map-stat">Updates in: <strong id="stat-timer">5s</strong></span>
+        <a href="app.html" class="btn-primary" style="text-decoration:none;padding:5px 12px;font-size:0.78rem;font-weight:600;border-radius:8px;margin-left:12px;" aria-label="Open real-time flight tracker">Real-time Tracker →</a>
       </div>
     </div>
 
@@ -998,6 +1000,12 @@
       </div>
     </div>
   </section>
+</div>
+
+<!-- Bottom CTA -->
+<div style="position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--surface);border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+  <span style="font-size:0.82rem;color:var(--muted);">This is a demo with simulated data. Access live OpenSky Network data in the full app.</span>
+  <a href="app.html" class="btn-primary" style="text-decoration:none;padding:8px 20px;font-size:0.82rem;font-weight:600;border-radius:8px;white-space:nowrap;" aria-label="Open live flight tracker with real data">Track Live Flights →</a>
 </div>
 
 <!-- Toast -->

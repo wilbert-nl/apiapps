@@ -539,7 +539,7 @@ select option { background: #0d1f3c; color: white; }
   <div class="search-section">
     <div class="search-row">
       <input id="cityInput" type="text" placeholder="Enter city name (e.g. Amsterdam, New York)" />
-      <button class="btn" onclick="fetchLocation()">Check Air Quality</button>
+      <a href="app.html" class="btn">Check Air Quality</a>
     </div>
     <div class="threshold-row">
       <label>Alert threshold AQI:</label>
@@ -574,13 +574,13 @@ select option { background: #0d1f3c; color: white; }
           <input id="evTitle" type="text" placeholder="Event name" />
           <input id="evDate" type="date" />
           <input id="evDesc" type="text" placeholder="Notes (optional)" />
-          <button class="btn" onclick="addEvent()">Add Event</button>
+          <a href="app.html" class="btn">Add Event</a>
         </div>
         <div id="eventList" class="event-list">
           <div style="color:var(--muted);font-size:0.83rem;text-align:center;padding:1rem 0;">No events scheduled yet.</div>
         </div>
         <div class="export-section">
-          <button class="btn btn-outline btn-sm" onclick="exportSchedule()">Export Schedule (.csv)</button>
+          <a href="app.html" class="btn btn-outline btn-sm">Export Schedule (.csv)</a>
         </div>
       </div>
 

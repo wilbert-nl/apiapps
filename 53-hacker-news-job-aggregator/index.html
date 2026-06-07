@@ -818,7 +818,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
 
 <header>
   <div class="header-inner">
-    <a class="logo" href="#" aria-label="HN Jobs Home">
+    <a class="logo" href="app.html" aria-label="HN Jobs Home">
       <div class="logo-icon">🦊</div>
       <div class="logo-text">HN<span>Jobs</span></div>
     </a>
@@ -909,9 +909,9 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
         <h3>HN Jobs Aggregator</h3>
         <p>Loads the latest Hacker News "Who is Hiring" job posts — filtered, searchable, and bookmarkable.</p>
         <br />
-        <button class="reload-btn" style="margin:0 auto" onclick="loadJobs()">
+        <a class="reload-btn" href="app.html" style="margin:0 auto">
           ↻ Load Jobs
-        </button>
+        </a>
       </div>
     </div>
   </div>
@@ -1181,7 +1181,7 @@ td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
         <h3>Could not load jobs</h3>
         <p>${msg}</p>
         <br/>
-        <button class="reload-btn" style="margin:0 auto" onclick="loadJobs()">↻ Try Again</button>
+        <a class="reload-btn" href="app.html" style="margin:0 auto">↻ Try Again</a>
       </div>`;
   }
 

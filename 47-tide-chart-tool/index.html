@@ -753,6 +753,7 @@ select option { background: #0d1f3c; color: white; }
   <div class="header-meta">
     <span id="live-clock"></span>
     <span id="moon-header" style="color:var(--yellow);font-weight:600;"></span>
+    <a href="app.html" style="background:var(--accent);color:#fff;border-radius:8px;padding:5px 14px;font-size:0.8rem;font-weight:700;text-decoration:none;letter-spacing:0.3px;">Open Full App →</a>
   </div>
 </header>
 
@@ -804,6 +805,7 @@ select option { background: #0d1f3c; color: white; }
       <button class="btn-primary" id="calculate-btn" style="width:100%;">
         Calculate Tides
       </button>
+      <a href="app.html" style="display:block;text-align:center;margin-top:8px;font-size:0.78rem;color:var(--accent);text-decoration:none;opacity:0.8;">Try the NOAA-powered app →</a>
     </div>
 
     <!-- Today highlights -->
@@ -973,6 +975,14 @@ select option { background: #0d1f3c; color: white; }
 
 <!-- Toast container -->
 <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Bottom CTA -->
+<div style="text-align:center;padding:20px 16px 28px;background:var(--surface);border-top:1px solid var(--border);">
+  <a href="app.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border-radius:12px;padding:10px 24px;font-size:0.88rem;font-weight:700;text-decoration:none;letter-spacing:0.3px;">
+    🌊 Open NOAA-powered Tide App
+  </a>
+  <div style="margin-top:8px;font-size:0.75rem;color:var(--muted);">Real predictions from NOAA Tides &amp; Currents API — no account needed</div>
+</div>
 
 <script>
 (function() {
