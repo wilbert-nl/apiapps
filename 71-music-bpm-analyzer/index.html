@@ -1,1604 +1,1463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BPM Analyzer — Music Tempo Tool</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
-
-    :root {
-      --bg: #0a0a0a;
-      --surface: #141414;
-      --surface2: #1e1e1e;
-      --border: rgba(255,255,255,0.08);
-      --accent: #1db954;
-      --accent2: #ff6b6b;
-      --text: #ffffff;
-      --muted: #9ca3af;
-      --radius: 12px;
-      --font-display: 'Bebas Neue', Impact, sans-serif;
-      --font-body: 'Figtree', system-ui, sans-serif;
-      --font-mono: 'DM Mono', monospace;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ── HEADER ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(12px);
-    }
-
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    header h1 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-
-    header p {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-left: auto;
-    }
-
-    /* ── LAYOUT ── */
-    .app {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 1.5rem 1rem 3rem;
-      display: grid;
-      gap: 1.25rem;
-      grid-template-columns: 1fr 1fr;
-      grid-template-areas:
-        "bpm-display bpm-display"
-        "tap-panel mic-panel"
-        "metronome note-convert"
-        "genre-guide genre-guide"
-        "saved-list saved-list";
-    }
-
-    @media (max-width: 640px) {
-      .app {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-          "bpm-display"
-          "tap-panel"
-          "mic-panel"
-          "metronome"
-          "note-convert"
-          "genre-guide"
-          "saved-list";
-      }
-    }
-
-    /* ── CARD ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-    }
-
-    .card-title {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .card-title span { font-size: 0.85rem; }
-
-    /* ── BPM DISPLAY ── */
-    .bpm-display {
-      grid-area: bpm-display;
-      background: linear-gradient(135deg, #1a1d27 0%, #16192a 100%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem 1.5rem 1.5rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .bpm-display::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% -10%, rgba(168,85,247,0.15) 0%, transparent 65%);
-      pointer-events: none;
-    }
-
-    .bpm-number-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: baseline;
-      gap: 0.5rem;
-    }
-
-    .bpm-number {
-      font-size: clamp(4rem, 12vw, 7rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1;
-      background: linear-gradient(135deg, var(--accent) 0%, #a89bff 50%, var(--accent2) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      transition: transform 0.08s ease;
-    }
-
-    .bpm-number.pulse {
-      animation: bpmPulse 0.12s ease-out forwards;
-    }
-
-    @keyframes bpmPulse {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.06); }
-      100% { transform: scale(1); }
-    }
-
-    .bpm-unit {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: var(--muted);
-      -webkit-text-fill-color: var(--muted);
-    }
-
-    .bpm-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-top: 0.25rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .bpm-meta {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      margin-top: 1.25rem;
-      flex-wrap: wrap;
-    }
-
-    .bpm-meta-item {
-      text-align: center;
-    }
-
-    .bpm-meta-value {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--green);
-    }
-
-    .bpm-meta-label {
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .intensity-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.35rem 0.9rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-top: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    .intensity-badge.rest     { background: rgba(139,148,170,0.15); color: #8b94aa; border: 1px solid rgba(139,148,170,0.25); }
-    .intensity-badge.warmup   { background: rgba(67,217,173,0.12); color: var(--green); border: 1px solid rgba(67,217,173,0.3); }
-    .intensity-badge.moderate { background: rgba(247,201,72,0.12); color: var(--yellow); border: 1px solid rgba(247,201,72,0.3); }
-    .intensity-badge.peak     { background: rgba(244,63,94,0.12); color: var(--accent2); border: 1px solid rgba(244,63,94,0.3); }
-    .intensity-badge.cooldown { background: rgba(168,85,247,0.12); color: var(--accent); border: 1px solid rgba(168,85,247,0.3); }
-
-    /* ── TAP PANEL ── */
-    .tap-panel { grid-area: tap-panel; }
-
-    .tap-btn {
-      width: 100%;
-      height: 80px;
-      background: linear-gradient(135deg, var(--accent) 0%, #5046e5 100%);
-      border: none;
-      border-radius: var(--radius);
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.03em;
-      transition: transform 0.08s ease, box-shadow 0.08s ease;
-      box-shadow: 0 4px 20px rgba(168,85,247,0.35);
-      position: relative;
-      overflow: hidden;
-      outline: none;
-    }
-
-    .tap-btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.2) 0%, transparent 60%);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .tap-btn:active::after { opacity: 1; }
-    .tap-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-
-    .tap-btn:active {
-      transform: scale(0.97);
-      box-shadow: 0 2px 10px rgba(168,85,247,0.2);
-    }
-
-    .tap-dots {
-      display: flex;
-      gap: 6px;
-      margin-top: 0.85rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .tap-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: background 0.2s, transform 0.15s;
-    }
-
-    .tap-dot.active {
-      background: var(--accent);
-      transform: scale(1.3);
-    }
-
-    .tap-dot.recent {
-      background: var(--accent2);
-      transform: scale(1.15);
-    }
-
-    .tap-info {
-      margin-top: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .tap-count {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .tap-confidence {
-      font-size: 0.78rem;
-      color: var(--green);
-      font-weight: 600;
-    }
-
-    .btn-sm {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 6px;
-      padding: 0.3rem 0.65rem;
-      font-size: 0.72rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-sm:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    /* ── MIC PANEL ── */
-    .mic-panel { grid-area: mic-panel; }
-
-    .mic-status {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      margin-bottom: 0.85rem;
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--border);
-      transition: background 0.3s;
-      flex-shrink: 0;
-    }
-
-    .status-dot.active { background: var(--green); animation: pulse-dot 1.2s infinite; }
-    .status-dot.error  { background: var(--accent2); }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
-
-    .mic-btn {
-      width: 100%;
-      padding: 0.7rem;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--text);
-      border-radius: var(--radius);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .mic-btn:hover { border-color: var(--green); color: var(--green); }
-    .mic-btn.active { border-color: var(--green); background: rgba(67,217,173,0.08); color: var(--green); }
-    .mic-btn.active:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(244,63,94,0.08); }
-    .mic-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
-
-    .waveform-canvas {
-      width: 100%;
-      height: 56px;
-      border-radius: 8px;
-      background: var(--surface2);
-      margin-top: 0.85rem;
-      display: block;
-    }
-
-    .mic-hint {
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-top: 0.6rem;
-      text-align: center;
-    }
-
-    /* ── METRONOME ── */
-    .metronome { grid-area: metronome; }
-
-    .metro-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.85rem;
-    }
-
-    .metro-btn {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: 2px solid var(--accent);
-      background: rgba(168,85,247,0.1);
-      color: var(--accent);
-      font-size: 1.2rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      outline: none;
-    }
-
-    .metro-btn:hover, .metro-btn:focus-visible {
-      background: rgba(168,85,247,0.2);
-      transform: scale(1.06);
-    }
-
-    .metro-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    .metro-btn.playing {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .metro-bpm-input {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 1.2rem;
-      font-weight: 700;
-      text-align: center;
-      padding: 0.5rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .metro-bpm-input:focus { border-color: var(--accent); }
-    .metro-bpm-input::-webkit-inner-spin-button { display: none; }
-
-    .metro-sync-btn {
-      background: rgba(168,85,247,0.12);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      border-radius: 8px;
-      padding: 0.5rem 0.7rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      outline: none;
-    }
-
-    .metro-sync-btn:hover, .metro-sync-btn:focus-visible {
-      background: rgba(168,85,247,0.2);
-    }
-
-    .metro-sync-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    .metro-beat-strip {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      margin-top: 0.5rem;
-    }
-
-    .metro-beat {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      background: var(--border);
-      transition: background 0.06s, transform 0.06s;
-    }
-
-    .metro-beat.on { background: var(--accent2); transform: scaleY(1.3); }
-
-    .metro-beat-input {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .metro-beat-select {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      padding: 0.25rem 0.5rem;
-      font-size: 0.82rem;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .metro-beat-select:focus { border-color: var(--accent); }
-
-    /* ── NOTE CONVERTER ── */
-    .note-convert { grid-area: note-convert; }
-
-    .note-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
-    }
-
-    .note-item {
-      background: var(--surface2);
-      border-radius: 8px;
-      padding: 0.6rem 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .note-name {
-      font-size: 0.72rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .note-value {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--yellow);
-    }
-
-    /* ── GENRE GUIDE ── */
-    .genre-guide { grid-area: genre-guide; }
-
-    .genre-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 0.6rem;
-    }
-
-    .genre-item {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.65rem 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      outline: none;
-    }
-
-    .genre-item:hover, .genre-item:focus-visible {
-      border-color: var(--accent);
-      background: rgba(168,85,247,0.07);
-    }
-
-    .genre-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .genre-item.match { border-color: var(--green); background: rgba(67,217,173,0.07); }
-
-    .genre-name {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .genre-range {
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .genre-bar {
-      height: 3px;
-      border-radius: 2px;
-      background: var(--border);
-      margin-top: 0.4rem;
-      overflow: hidden;
-    }
-
-    .genre-bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-    }
-
-    /* ── SAVED LIST ── */
-    .saved-list { grid-area: saved-list; }
-
-    .save-form {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .save-input {
-      flex: 1;
-      min-width: 0;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 0.55rem 0.75rem;
-      font-size: 0.88rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .save-input:focus { border-color: var(--accent); }
-    .save-input::placeholder { color: var(--muted); }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), #5046e5);
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      padding: 0.55rem 1rem;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      outline: none;
-    }
-
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn-primary:active { transform: translateY(0); }
-    .btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    .saved-entries {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .saved-entry {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: var(--surface2);
-      border-radius: 8px;
-      padding: 0.65rem 0.85rem;
-      animation: slideIn 0.25s ease;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .saved-bpm {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--accent);
-      min-width: 52px;
-    }
-
-    .saved-name {
-      flex: 1;
-      font-size: 0.88rem;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .saved-time {
-      font-size: 0.7rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .saved-del {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      transition: color 0.2s;
-      outline: none;
-    }
-
-    .saved-del:hover { color: var(--accent2); }
-    .saved-del:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }
-
-    .empty-state {
-      text-align: center;
-      padding: 1.5rem;
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.75rem 1.1rem;
-      font-size: 0.85rem;
-      color: var(--text);
-      z-index: 999;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.25s ease;
-      pointer-events: none;
-      max-width: 280px;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    /* ── UTILITY ── */
-    .section-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 0.5rem 0;
-    }
-
-    /* === Music/Podcast v2 Design System === */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      min-height: 100vh;
-      line-height: 1.6;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 600px 400px at 20% 80%, rgba(29,185,84,0.1) 0%, transparent 60%),
-        radial-gradient(ellipse 500px 300px at 80% 20%, rgba(255,107,107,0.06) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    body > * { position: relative; z-index: 1; }
-
-    h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem); letter-spacing: 0.02em; color: var(--text); line-height: 1; }
-    h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: 0.04em; color: var(--accent); }
-    h3 { font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
-
-    .container, main, .wrapper, .app { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
-
-    .card, .result, .item, .track, .artist, .album, .podcast, .episode, .station, .radio,
-    [class*="card"], [class*="item"], [class*="result"], [class*="track"], [class*="artist"] {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      transition: transform 0.2s, background 0.2s;
-      animation: mediaFade 0.4s ease both;
-    }
-    .card:hover, .item:hover, [class*="card"]:hover, [class*="track"]:hover { transform: translateY(-2px); background: var(--surface2); }
-
-    input, select, textarea {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 0.75rem 1rem;
-      font-family: var(--font-body);
-      font-size: 0.95rem;
-      width: 100%;
-      transition: border-color 0.2s;
-    }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-
-    button, .btn, input[type="submit"], input[type="button"] {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 999px;
-      padding: 0.75rem 2rem;
-      font-family: var(--font-body);
-      font-weight: 800;
-      font-size: 0.9rem;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: transform 0.15s, filter 0.15s;
-    }
-    button:hover { transform: scale(1.03); filter: brightness(1.1); }
-    button:active { transform: scale(0.97); }
-
-    .bpm, .tempo, .key, .duration, .time, .frequency {
-      font-family: var(--font-mono);
-      font-size: 2.2rem;
-      font-weight: 500;
-      color: var(--accent);
-      letter-spacing: -0.02em;
-    }
-
-    .tag, .badge, .genre, .category, .label {
-      display: inline-block;
-      background: rgba(29,185,84,0.12);
-      border: 1px solid rgba(29,185,84,0.25);
-      color: var(--accent);
-      border-radius: 4px;
-      padding: 0.15rem 0.6rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    /* Waveform bars visualization */
-    .waveform, .bars, .equalizer {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 32px;
-    }
-    .waveform div, .bar {
-      width: 4px;
-      background: var(--accent);
-      border-radius: 2px;
-      animation: wave 1s ease infinite;
-    }
-    .waveform div:nth-child(2n) { animation-delay: 0.2s; }
-    .waveform div:nth-child(3n) { animation-delay: 0.4s; }
-
-    table { width: 100%; border-collapse: collapse; }
-    th { padding: 0.5rem 1rem; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; border-bottom: 1px solid var(--border); }
-    td { padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
-
-    @keyframes mediaFade {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: none; }
-    }
-
-    @keyframes wave {
-      0%, 100% { transform: scaleY(0.4); }
-      50% { transform: scaleY(1); }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPM Fitness — Workout Playlist Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* Hallmark · macrostructure: Stat-Led · nav: N1b */
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow-x: clip; }
+body {
+  overflow-x: clip;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-style: normal; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ── N1b Nav ── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  height: 56px;
+  background: var(--color-paper);
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 var(--space-6);
+  gap: var(--space-4);
+}
+.nav-left { display: flex; align-items: center; }
+.nav-wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.nav-wordmark span { color: var(--color-accent); }
+.nav-center { display: flex; align-items: center; gap: var(--space-6); }
+.nav-link {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  transition: color 0.15s var(--ease-out);
+}
+.nav-link:hover { color: var(--color-ink); }
+.nav-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: 2px; }
+.nav-right { display: flex; align-items: center; justify-content: flex-end; }
+.nav-back {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  white-space: nowrap;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+.nav-back:hover { color: var(--color-ink); border-color: var(--color-ink-muted); }
+.nav-back:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ── Page shell ── */
+.page { padding-top: 56px; min-height: 100vh; }
+
+/* ── Stat hero ── */
+.stat-hero {
+  text-align: center;
+  padding: var(--space-12) var(--space-6) var(--space-8);
+}
+.hero-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-2);
+}
+.bpm-primary {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  font-style: normal;
+  color: var(--color-ink);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bpm-primary .bpm-unit {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 400;
+  color: var(--color-ink-muted);
+  margin-left: var(--space-2);
+  vertical-align: baseline;
+}
+.hero-sub {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  margin-top: var(--space-3);
+}
+.sub-metrics {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  margin-top: var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.sub-metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-paper-2);
+  border-right: 1px solid var(--color-border);
+}
+.sub-metric:last-child { border-right: none; }
+.sub-metric-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.sub-metric-value {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sub-metric-sub { font-size: var(--text-xs); color: var(--color-ink-muted); }
+
+/* ── Divider ── */
+.section-divider { border: none; border-top: 1px solid var(--color-border); }
+
+/* ── API Key Banner ── */
+.api-banner {
+  background: var(--color-paper-2);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-6);
+}
+.api-banner-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.api-banner-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.api-key-input {
+  flex: 1;
+  min-width: 180px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  transition: border-color 0.15s var(--ease-out);
+}
+.api-key-input:focus { outline: none; border-color: var(--color-accent-line); }
+.api-key-hint {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  flex-basis: 100%;
+  line-height: 1.4;
+}
+.api-key-hint a { color: var(--color-accent); text-decoration: underline; }
+
+/* ── Shared button styles ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s var(--ease-out);
+  flex-shrink: 0;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-primary:disabled { opacity: 0.4; pointer-events: none; }
+.btn-primary:active { opacity: 0.7; }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+.btn-ghost:hover { border-color: var(--color-accent-line); color: var(--color-accent); }
+.btn-ghost:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-ghost:active { opacity: 0.7; }
+.btn-ghost.danger:hover { border-color: var(--color-danger); color: var(--color-danger); }
+
+/* ── Section label ── */
+.section-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+  display: block;
+}
+
+/* ── Main 2-col grid ── */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+/* ── Search panel ── */
+.search-panel { display: flex; flex-direction: column; gap: var(--space-4); }
+.search-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.intensity-legend {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.legend-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-cooldown { background: var(--color-accent-dim); }
+.dot-warmup   { background: var(--color-accent); }
+.dot-moderate { background: var(--color-warn); }
+.dot-peak     { background: var(--color-neg); }
+
+.search-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+.search-type-toggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.toggle-btn {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+}
+.toggle-btn.active { background: var(--color-accent); color: var(--color-paper); }
+.toggle-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.toggle-btn:not(.active):hover { background: var(--color-paper-2); color: var(--color-ink); }
+.search-input-wrap { flex: 1; min-width: 0; }
+.search-input {
+  width: 100%;
+  height: 100%;
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  transition: border-color 0.15s var(--ease-out);
+}
+.search-input:focus { outline: none; border-color: var(--color-accent-line); }
+.search-input::placeholder { color: var(--color-ink-muted); }
+
+/* BPM filter */
+.bpm-filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  flex-wrap: wrap;
+}
+.bpm-filter-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.bpm-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.bpm-num {
+  width: 60px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink);
+  text-align: center;
+  transition: border-color 0.15s var(--ease-out);
+}
+.bpm-num:focus { outline: none; border-color: var(--color-accent-line); }
+.bpm-sep { font-size: var(--text-xs); color: var(--color-ink-muted); }
+
+/* Search results */
+.search-results {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 100px;
+}
+.results-state {
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  background: var(--color-paper-2);
+}
+.results-state.loading { color: var(--color-accent); }
+.results-state.error { color: var(--color-danger); }
+.results-state.hidden { display: none; }
+
+.track-result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-paper-2);
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.12s var(--ease-out);
+  cursor: grab;
+}
+.track-result:last-child { border-bottom: none; }
+.track-result:hover { background: var(--color-paper-3); }
+.track-result.drag-ghost { opacity: 0.4; }
+.track-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+.track-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.track-main { flex: 1; min-width: 0; }
+.track-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-artist {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+.track-zone-row { margin-top: 3px; }
+.track-bpm-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.track-bpm-num {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.track-bpm-num.unknown { color: var(--color-ink-muted); font-size: var(--text-sm); font-family: var(--font-body); font-weight: 400; }
+.track-bpm-lbl { font-size: var(--text-xs); color: var(--color-ink-muted); line-height: 1; }
+.bpm-manual-input {
+  width: 54px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink);
+  text-align: center;
+}
+.bpm-manual-input:focus { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.bpm-manual-input::placeholder { color: var(--color-ink-muted); }
+
+/* Zone badges */
+.badge-zone {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px var(--space-2);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.zone-cooldown { background: var(--color-accent-bg); color: var(--color-accent-dim); }
+.zone-warmup   { background: var(--color-accent-subtle); color: var(--color-accent); }
+.zone-moderate { background: var(--color-neg-bg); color: var(--color-warn); }
+.zone-peak     { background: var(--color-neg-bg); color: var(--color-neg); }
+.zone-unknown  { background: var(--color-paper-3); color: var(--color-ink-muted); }
+
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s var(--ease-out);
+}
+.btn-add:hover { background: var(--color-accent-subtle); }
+.btn-add:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-add:active { opacity: 0.7; }
+
+/* ── Playlist Builder ── */
+.playlist-panel { display: flex; flex-direction: column; gap: var(--space-4); }
+.playlist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.playlist-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.phase-section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-paper-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.phase-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -0.01em;
+}
+.phase-title.warmup   { color: var(--color-accent); }
+.phase-title.moderate { color: var(--color-warn); }
+.phase-title.peak     { color: var(--color-neg); }
+.phase-title.cooldown { color: var(--color-accent-dim); }
+.phase-meta {
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.phase-drop-zone {
+  min-height: 72px;
+  padding: var(--space-2);
+  transition: background 0.15s var(--ease-out);
+}
+.phase-drop-zone.drag-over { background: var(--color-accent-subtle); }
+.phase-empty {
+  padding: var(--space-4) var(--space-3);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-faint);
+  pointer-events: none;
+}
+.phase-empty.hidden { display: none; }
+
+.playlist-track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
+  background: var(--color-paper-2);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-1);
+  cursor: grab;
+  transition: background 0.1s var(--ease-out), opacity 0.1s var(--ease-out);
+  user-select: none;
+}
+.playlist-track:last-child { margin-bottom: 0; }
+.playlist-track:hover { background: var(--color-paper-3); }
+.playlist-track.dragging { opacity: 0.35; cursor: grabbing; }
+.drag-handle {
+  color: var(--color-faint);
+  font-size: 14px;
+  flex-shrink: 0;
+  padding: 0 var(--space-1);
+  line-height: 1;
+  cursor: grab;
+}
+.pl-track-info { flex: 1; min-width: 0; }
+.pl-track-name {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pl-track-artist {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pl-track-bpm {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.pl-track-bpm.no-bpm { color: var(--color-faint); font-family: var(--font-body); font-weight: 400; }
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--color-faint);
+  cursor: pointer;
+  font-size: var(--text-base);
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  transition: color 0.12s var(--ease-out);
+  flex-shrink: 0;
+}
+.btn-remove:hover { color: var(--color-danger); }
+.btn-remove:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ── Genre ref ── */
+.ref-zone {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-6);
+}
+.ref-inner { max-width: 1200px; margin: 0 auto; }
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-top: var(--space-3);
+}
+.ref-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  background: var(--color-paper-2);
+  border-right: 1px solid var(--color-border);
+}
+.ref-cell:last-child { border-right: none; }
+.ref-cell-genre { font-size: var(--text-xs); font-weight: 600; color: var(--color-ink); }
+.ref-cell-range { font-size: var(--text-xs); color: var(--color-ink-muted); font-variant-numeric: tabular-nums; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 600;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px var(--color-shadow-card);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  pointer-events: none;
+  max-width: 320px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error   { background: var(--color-danger); }
+.toast.success { background: var(--color-success); }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .nav { grid-template-columns: 1fr auto; }
+  .nav-center { display: none; }
+  .main-content { grid-template-columns: 1fr; padding: var(--space-6) var(--space-4); gap: var(--space-6); }
+  .ref-grid { grid-template-columns: repeat(4, 1fr); }
+  .ref-cell { border-bottom: 1px solid var(--color-border); }
+  .ref-cell:nth-child(4n) { border-right: none; }
+  .sub-metrics { max-width: 100%; }
+  .stat-hero { padding-top: var(--space-8); padding-bottom: var(--space-6); }
+}
+@media (max-width: 480px) {
+  .ref-grid { grid-template-columns: repeat(2, 1fr); }
+  .ref-cell:nth-child(2n) { border-right: none; }
+  .search-row { flex-wrap: nowrap; }
+  .bpm-filter-row { gap: var(--space-2); }
+}
+@media (max-width: 360px) {
+  .playlist-actions { gap: var(--space-1); }
+  .btn-ghost { padding: var(--space-1) var(--space-2); }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+</style>
 </head>
 <body>
-  <header>
-    <div class="logo-icon" aria-hidden="true">🎵</div>
-    <h1>BPM Analyzer</h1>
-    <p>No API keys required</p>
-  </header>
 
-  <main class="app" role="main">
+<!-- N1b Nav -->
+<nav class="nav" aria-label="Application navigation">
+  <div class="nav-left">
+    <span class="nav-wordmark">BPM<span>.</span>Fitness</span>
+  </div>
+  <div class="nav-center">
+    <a href="#search" class="nav-link">Search</a>
+    <a href="#playlist" class="nav-link">Playlist</a>
+    <a href="#ref" class="nav-link">Reference</a>
+  </div>
+  <div class="nav-right">
+    <a href="../index.html" class="nav-back">← All Apps</a>
+  </div>
+</nav>
 
-    <!-- BPM Display -->
-    <section class="bpm-display" aria-label="Current BPM">
-      <div class="bpm-number-wrap">
-        <div class="bpm-number" id="bpmNumber" aria-live="polite" aria-atomic="true">0</div>
-        <div class="bpm-unit">BPM</div>
+<div class="page">
+
+  <!-- Stat hero -->
+  <div class="stat-hero">
+    <p class="hero-eyebrow">Workout Playlist Builder</p>
+    <div class="bpm-primary" id="hero-bpm" aria-live="polite" aria-atomic="true">
+      —<span class="bpm-unit">BPM</span>
+    </div>
+    <p class="hero-sub" id="hero-sub">Search for tracks and build your workout playlist by phase</p>
+
+    <div class="sub-metrics" role="region" aria-label="Playlist summary stats">
+      <div class="sub-metric">
+        <span class="sub-metric-label">Tracks</span>
+        <span class="sub-metric-value" id="stat-tracks">0</span>
+        <span class="sub-metric-sub">in playlist</span>
       </div>
-      <div class="bpm-label">Beats Per Minute</div>
-      <div class="bpm-meta">
-        <div class="bpm-meta-item">
-          <div class="bpm-meta-value" id="metaConfidence">—</div>
-          <div class="bpm-meta-label">Confidence</div>
-        </div>
-        <div class="bpm-meta-item">
-          <div class="bpm-meta-value" id="metaTaps">—</div>
-          <div class="bpm-meta-label">Taps</div>
-        </div>
-        <div class="bpm-meta-item">
-          <div class="bpm-meta-value" id="metaSource">—</div>
-          <div class="bpm-meta-label">Source</div>
+      <div class="sub-metric">
+        <span class="sub-metric-label">BPM Range</span>
+        <span class="sub-metric-value" id="stat-range">—</span>
+        <span class="sub-metric-sub">min – max</span>
+      </div>
+      <div class="sub-metric">
+        <span class="sub-metric-label">Avg BPM</span>
+        <span class="sub-metric-value" id="stat-avg">—</span>
+        <span class="sub-metric-sub">per track</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- API Key Banner -->
+  <div class="api-banner" id="api-banner" role="region" aria-label="API key setup">
+    <div class="api-banner-inner">
+      <span class="api-banner-label">LastFM API Key</span>
+      <input type="text" class="api-key-input" id="api-key-input"
+        placeholder="Paste your LastFM API key here…"
+        autocomplete="off" spellcheck="false"
+        aria-label="LastFM API key">
+      <button class="btn-primary" id="btn-save-key" type="button">Save Key</button>
+      <span class="api-key-hint">
+        Get a free API key at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener noreferrer">last.fm/api</a>.
+        Your key is saved locally in this browser only — never sent anywhere else.
+      </span>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+
+    <!-- Search panel -->
+    <section class="search-panel" id="search" aria-labelledby="search-heading">
+      <div class="search-panel-head">
+        <span class="section-label" id="search-heading">Track Search</span>
+        <div class="intensity-legend" role="list" aria-label="BPM intensity zones">
+          <span class="legend-item" role="listitem"><span class="legend-dot dot-cooldown" aria-hidden="true"></span>Cool-down &lt;80</span>
+          <span class="legend-item" role="listitem"><span class="legend-dot dot-warmup" aria-hidden="true"></span>Warm-up 80–109</span>
+          <span class="legend-item" role="listitem"><span class="legend-dot dot-moderate" aria-hidden="true"></span>Moderate 110–139</span>
+          <span class="legend-item" role="listitem"><span class="legend-dot dot-peak" aria-hidden="true"></span>Peak 140+</span>
         </div>
       </div>
-      <div>
-        <span class="intensity-badge rest" id="intensityBadge" role="status">⚡ Rest / No Signal</span>
+
+      <div class="search-row" role="search">
+        <div class="search-type-toggle" role="group" aria-label="Search by">
+          <button class="toggle-btn active" id="toggle-track" type="button" aria-pressed="true">Track</button>
+          <button class="toggle-btn" id="toggle-artist" type="button" aria-pressed="false">Artist</button>
+        </div>
+        <div class="search-input-wrap">
+          <input type="search" class="search-input" id="search-input"
+            placeholder="Search track name…"
+            aria-label="Search query"
+            autocomplete="off">
+        </div>
+        <button class="btn-primary" id="btn-search" type="button">Search</button>
+      </div>
+
+      <div class="bpm-filter-row" role="group" aria-label="BPM range filter">
+        <span class="bpm-filter-label">BPM Filter</span>
+        <div class="bpm-range-inputs">
+          <input type="number" class="bpm-num" id="bpm-min"
+            value="60" min="40" max="300"
+            aria-label="Minimum BPM" title="Minimum BPM">
+          <span class="bpm-sep">–</span>
+          <input type="number" class="bpm-num" id="bpm-max"
+            value="200" min="40" max="300"
+            aria-label="Maximum BPM" title="Maximum BPM">
+          <span class="bpm-sep">BPM</span>
+        </div>
+      </div>
+
+      <div class="search-results" id="search-results" role="list" aria-label="Search results" aria-live="polite" aria-busy="false">
+        <div class="results-state" id="results-state">Search for a track or artist to discover BPM data and add songs to your playlist.</div>
       </div>
     </section>
 
-    <!-- Tap Tempo -->
-    <section class="card tap-panel" aria-labelledby="tapTitle">
-      <div class="card-title">
-        <span>👆</span>
-        <span id="tapTitle">Tap Tempo</span>
-      </div>
-      <button class="tap-btn" id="tapBtn" aria-label="Tap to detect BPM">
-        Tap to the Beat
-      </button>
-      <div class="tap-dots" aria-hidden="true">
-        <div class="tap-dot" id="dot0"></div>
-        <div class="tap-dot" id="dot1"></div>
-        <div class="tap-dot" id="dot2"></div>
-        <div class="tap-dot" id="dot3"></div>
-        <div class="tap-dot" id="dot4"></div>
-        <div class="tap-dot" id="dot5"></div>
-        <div class="tap-dot" id="dot6"></div>
-        <div class="tap-dot" id="dot7"></div>
-      </div>
-      <div class="tap-info">
-        <span class="tap-count" id="tapCountLabel">No taps yet — keep tapping!</span>
-        <span class="tap-confidence" id="tapConfLabel"></span>
-        <button class="btn-sm" id="tapResetBtn" aria-label="Reset tap tempo">Reset</button>
-      </div>
-    </section>
-
-    <!-- Microphone -->
-    <section class="card mic-panel" aria-labelledby="micTitle">
-      <div class="card-title">
-        <span>🎤</span>
-        <span id="micTitle">Microphone BPM</span>
-      </div>
-      <div class="mic-status">
-        <div class="status-dot" id="micStatusDot" role="status" aria-label="Microphone status"></div>
-        <span id="micStatusText">Microphone off</span>
-      </div>
-      <button class="mic-btn" id="micBtn" aria-label="Toggle microphone analysis">
-        <span id="micBtnIcon">🎙️</span>
-        <span id="micBtnText">Start Mic Analysis</span>
-      </button>
-      <canvas class="waveform-canvas" id="waveCanvas" aria-hidden="true" width="600" height="112"></canvas>
-      <p class="mic-hint" id="micHint">Detects beats from ambient audio — works best with clear rhythmic music</p>
-    </section>
-
-    <!-- Metronome -->
-    <section class="card metronome" aria-labelledby="metroTitle">
-      <div class="card-title">
-        <span>🥁</span>
-        <span id="metroTitle">Metronome</span>
-      </div>
-      <div class="metro-controls">
-        <button class="metro-btn" id="metroToggle" aria-label="Play / stop metronome">▶</button>
-        <input
-          class="metro-bpm-input"
-          type="number"
-          id="metroBpmInput"
-          min="20" max="300" value="120"
-          aria-label="Metronome BPM"
-        />
-        <button class="metro-sync-btn" id="metroSync" aria-label="Sync metronome to detected BPM">Sync BPM</button>
-      </div>
-      <div class="metro-beat-strip" id="metroBeatStrip" aria-hidden="true">
-        <div class="metro-beat" id="mbeat0"></div>
-        <div class="metro-beat" id="mbeat1"></div>
-        <div class="metro-beat" id="mbeat2"></div>
-        <div class="metro-beat" id="mbeat3"></div>
-      </div>
-      <div class="metro-beat-input">
-        <label for="metroBeats">Beats per measure:</label>
-        <select class="metro-beat-select" id="metroBeats">
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4" selected>4</option>
-          <option value="6">6</option>
-          <option value="8">8</option>
-        </select>
-      </div>
-    </section>
-
-    <!-- Note Value Converter -->
-    <section class="card note-convert" aria-labelledby="noteTitle">
-      <div class="card-title">
-        <span>🎼</span>
-        <span id="noteTitle">Note Values at Current BPM</span>
-      </div>
-      <div class="note-grid" id="noteGrid">
-        <div class="note-item">
-          <div class="note-name">Whole note</div>
-          <div class="note-value" id="noteWhole">—</div>
-        </div>
-        <div class="note-item">
-          <div class="note-name">Half note</div>
-          <div class="note-value" id="noteHalf">—</div>
-        </div>
-        <div class="note-item">
-          <div class="note-name">Quarter note</div>
-          <div class="note-value" id="noteQuarter">—</div>
-        </div>
-        <div class="note-item">
-          <div class="note-name">8th note</div>
-          <div class="note-value" id="noteEighth">—</div>
-        </div>
-        <div class="note-item">
-          <div class="note-name">16th note</div>
-          <div class="note-value" id="noteSixteenth">—</div>
-        </div>
-        <div class="note-item">
-          <div class="note-name">Triplet 8th</div>
-          <div class="note-value" id="noteTriplet">—</div>
+    <!-- Playlist builder -->
+    <section class="playlist-panel" id="playlist" aria-labelledby="playlist-heading">
+      <div class="playlist-head">
+        <span class="section-label" id="playlist-heading">Workout Playlist</span>
+        <div class="playlist-actions">
+          <button class="btn-ghost" id="btn-export" type="button" aria-label="Export playlist as text">Export</button>
+          <button class="btn-ghost danger" id="btn-clear" type="button" aria-label="Clear entire playlist">Clear all</button>
         </div>
       </div>
-    </section>
 
-    <!-- Genre Guide -->
-    <section class="card genre-guide" aria-labelledby="genreTitle">
-      <div class="card-title">
-        <span>🎚️</span>
-        <span id="genreTitle">DJ Tempo Guide — Genre BPM Ranges</span>
+      <!-- Warm-up -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-title warmup">Warm-up</span>
+          <div class="phase-meta">
+            <span id="meta-warm-up">0 tracks</span>
+            <span id="bpm-warm-up">—</span>
+          </div>
+        </div>
+        <div class="phase-drop-zone" id="drop-warm-up" data-phase="warm-up"
+          role="list" aria-label="Warm-up phase tracks" aria-dropeffect="move">
+          <div class="phase-empty" id="empty-warm-up">Drop tracks here · 80–109 BPM recommended</div>
+        </div>
       </div>
-      <div class="genre-grid" id="genreGrid" role="list" aria-label="Genre BPM ranges"></div>
-    </section>
 
-    <!-- Saved BPMs -->
-    <section class="card saved-list" aria-labelledby="savedTitle">
-      <div class="card-title">
-        <span>💾</span>
-        <span id="savedTitle">Saved BPMs</span>
+      <!-- Moderate -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-title moderate">Moderate</span>
+          <div class="phase-meta">
+            <span id="meta-moderate">0 tracks</span>
+            <span id="bpm-moderate">—</span>
+          </div>
+        </div>
+        <div class="phase-drop-zone" id="drop-moderate" data-phase="moderate"
+          role="list" aria-label="Moderate phase tracks" aria-dropeffect="move">
+          <div class="phase-empty" id="empty-moderate">Drop tracks here · 110–139 BPM recommended</div>
+        </div>
       </div>
-      <form class="save-form" id="saveForm" aria-label="Save current BPM with song name">
-        <input
-          class="save-input"
-          type="text"
-          id="saveInput"
-          placeholder="Song or artist name…"
-          maxlength="80"
-          aria-label="Song name"
-        />
-        <button class="btn-primary" type="submit" id="saveBtn">Save BPM</button>
-      </form>
-      <div class="saved-entries" id="savedEntries" role="list" aria-label="Saved BPM entries"></div>
+
+      <!-- Peak -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-title peak">Peak</span>
+          <div class="phase-meta">
+            <span id="meta-peak">0 tracks</span>
+            <span id="bpm-peak">—</span>
+          </div>
+        </div>
+        <div class="phase-drop-zone" id="drop-peak" data-phase="peak"
+          role="list" aria-label="Peak phase tracks" aria-dropeffect="move">
+          <div class="phase-empty" id="empty-peak">Drop tracks here · 140+ BPM recommended</div>
+        </div>
+      </div>
+
+      <!-- Cool-down -->
+      <div class="phase-section">
+        <div class="phase-header">
+          <span class="phase-title cooldown">Cool-down</span>
+          <div class="phase-meta">
+            <span id="meta-cool-down">0 tracks</span>
+            <span id="bpm-cool-down">—</span>
+          </div>
+        </div>
+        <div class="phase-drop-zone" id="drop-cool-down" data-phase="cool-down"
+          role="list" aria-label="Cool-down phase tracks" aria-dropeffect="move">
+          <div class="phase-empty" id="empty-cool-down">Drop tracks here · &lt;80 BPM recommended</div>
+        </div>
+      </div>
+
     </section>
+  </div>
 
-  </main>
+  <!-- Genre BPM reference -->
+  <div class="ref-zone" id="ref">
+    <div class="ref-inner">
+      <span class="section-label">Genre BPM Reference</span>
+      <div class="ref-grid" aria-label="Typical BPM ranges by genre">
+        <div class="ref-cell"><span class="ref-cell-genre">Yoga</span><span class="ref-cell-range">60–80</span></div>
+        <div class="ref-cell"><span class="ref-cell-genre">Hip-hop</span><span class="ref-cell-range">70–100</span></div>
+        <div class="ref-cell"><span class="ref-cell-genre">R&amp;B</span><span class="ref-cell-range">85–105</span></div>
+        <div class="ref-cell"><span class="ref-cell-genre">Pop</span><span class="ref-cell-range">100–130</span></div>
+        <div class="ref-cell"><span class="ref-cell-genre">House</span><span class="ref-cell-range">120–135</span></div>
+        <div class="ref-cell"><span class="ref-cell-genre">Techno</span><span class="ref-cell-range">130–160</span></div>
+        <div class="ref-cell"><span class="ref-cell-genre">D&amp;B</span><span class="ref-cell-range">160–180</span></div>
+      </div>
+    </div>
+  </div>
 
-  <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+</div>
 
-  <script>
-    'use strict';
+<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-    // ── STATE ──────────────────────────────────────────────────────────────────
-    let currentBPM = 0;
-    let tapTimes = [];
-    const MAX_TAPS = 8;
-    const TAP_TIMEOUT_MS = 2500;
-    let tapResetTimer = null;
+<script>
+'use strict';
 
-    let micStream = null;
-    let micAudioCtx = null;
-    let micAnalyser = null;
-    let micAnimFrame = null;
-    let micBeatHistory = [];
-    let micLastBeatTime = 0;
-    let micBPMHistory = [];
+/* ── Helpers ──────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid = () => Math.random().toString(36).slice(2, 9);
 
-    let metroAudioCtx = null;
-    let metroPlaying = false;
-    let metroBeat = 0;
-    let metroScheduleId = null;
-    let metroNextBeatTime = 0;
-    let metroBeatsPerMeasure = 4;
+let toastTimer = null;
+function toast(msg, type, dur = 3500) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, dur);
+}
 
-    const GENRES = [
-      { name: 'Ambient / Drone', min: 60, max: 90 },
-      { name: 'Ballad / Slow', min: 60, max: 90 },
-      { name: 'Hip-Hop', min: 80, max: 100 },
-      { name: 'R&B / Soul', min: 85, max: 105 },
-      { name: 'Reggae', min: 80, max: 110 },
-      { name: 'Pop', min: 100, max: 130 },
-      { name: 'Rock', min: 110, max: 140 },
-      { name: 'House', min: 120, max: 135 },
-      { name: 'Funk / Disco', min: 100, max: 130 },
-      { name: 'Jungle / DnB', min: 160, max: 180 },
-      { name: 'Techno', min: 130, max: 160 },
-      { name: 'Trance', min: 128, max: 145 },
-      { name: 'Dubstep', min: 138, max: 145 },
-      { name: 'Salsa / Latin', min: 165, max: 220 },
-      { name: 'Drum & Bass', min: 160, max: 180 },
-    ];
+/* ── State ────────────────────────────────────────────────────── */
+let apiKey = localStorage.getItem('lastfm-api-key') || '';
+let searchType = 'track';
+let searchResults = [];
+let bpmFilter = { min: 60, max: 200 };
 
-    // ── DOM REFS ───────────────────────────────────────────────────────────────
-    const $ = id => document.getElementById(id);
-    const bpmNumber     = $('bpmNumber');
-    const metaConf      = $('metaConfidence');
-    const metaTaps      = $('metaTaps');
-    const metaSource    = $('metaSource');
-    const intensityBadge = $('intensityBadge');
-    const tapBtn        = $('tapBtn');
-    const tapResetBtn   = $('tapResetBtn');
-    const tapCountLabel = $('tapCountLabel');
-    const tapConfLabel  = $('tapConfLabel');
-    const micBtn        = $('micBtn');
-    const micBtnIcon    = $('micBtnIcon');
-    const micBtnText    = $('micBtnText');
-    const micStatusDot  = $('micStatusDot');
-    const micStatusText = $('micStatusText');
-    const micHint       = $('micHint');
-    const waveCanvas    = $('waveCanvas');
-    const metroToggle   = $('metroToggle');
-    const metroBpmInput = $('metroBpmInput');
-    const metroSync     = $('metroSync');
-    const metroBeatsEl  = $('metroBeats');
-    const saveForm      = $('saveForm');
-    const saveInput     = $('saveInput');
-    const savedEntries  = $('savedEntries');
-    const toastEl       = $('toast');
-    const genreGrid     = $('genreGrid');
+const PHASES = ['warm-up', 'moderate', 'peak', 'cool-down'];
+const PHASE_LABELS = {
+  'warm-up': 'Warm-up',
+  'moderate': 'Moderate',
+  'peak': 'Peak',
+  'cool-down': 'Cool-down',
+};
 
-    // ── TOAST ─────────────────────────────────────────────────────────────────
-    let toastTimer = null;
-    function showToast(msg, duration = 2800) {
-      toastEl.textContent = msg;
-      toastEl.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toastEl.classList.remove('show'), duration);
+const playlist = {};
+PHASES.forEach(p => { playlist[p] = []; });
+
+// Drag state
+let dragData = null; // { track, fromPhase: string|null, fromIdx: number|null }
+
+/* ── API Key ──────────────────────────────────────────────────── */
+function refreshApiKeyUI() {
+  $('api-banner').style.display = apiKey ? 'none' : '';
+  if (apiKey) $('api-key-input').value = apiKey;
+}
+
+$('btn-save-key').addEventListener('click', () => {
+  const val = ($('api-key-input').value || '').trim();
+  if (!val) { toast('Please enter a LastFM API key.', 'error'); return; }
+  apiKey = val;
+  localStorage.setItem('lastfm-api-key', val);
+  refreshApiKeyUI();
+  toast('API key saved.', 'success');
+});
+
+$('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('btn-save-key').click();
+});
+
+/* ── LastFM API ───────────────────────────────────────────────── */
+const LASTFM_BASE = 'https://ws.audioscrobbler.com/2.0/';
+
+async function lastfmFetch(params) {
+  if (!apiKey) throw new Error('No API key set. Please enter your LastFM API key.');
+  const url = new URL(LASTFM_BASE);
+  Object.entries({ ...params, api_key: apiKey, format: 'json' })
+    .forEach(([k, v]) => url.searchParams.set(k, String(v)));
+  let res;
+  try {
+    res = await fetch(url.toString());
+  } catch (netErr) {
+    throw new Error('Network error — check your connection and try again.');
+  }
+  if (!res.ok) throw new Error(`Server error: HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.error === 10 || data.error === 4) throw new Error('Invalid API key. Check your LastFM key and try again.');
+  if (data.error === 6) throw new Error('Track or artist not found on LastFM.');
+  if (data.error) throw new Error(data.message || `LastFM error ${data.error}`);
+  return data;
+}
+
+function extractBPMFromTags(tags) {
+  if (!tags) return null;
+  const list = Array.isArray(tags) ? tags : [tags];
+  for (const tag of list) {
+    const m = (tag.name || '').match(/^(\d+)\s*bpm$/i);
+    if (m) {
+      const bpm = parseInt(m[1], 10);
+      if (bpm >= 40 && bpm <= 300) return bpm;
     }
+  }
+  return null;
+}
 
-    // ── BPM DISPLAY ───────────────────────────────────────────────────────────
-    function setCurrentBPM(bpm, source) {
-      currentBPM = Math.round(bpm);
-      bpmNumber.textContent = currentBPM;
-      metaSource.textContent = source || '—';
-      bpmNumber.classList.remove('pulse');
-      void bpmNumber.offsetWidth;
-      bpmNumber.classList.add('pulse');
-      updateIntensity(currentBPM);
-      updateNoteValues(currentBPM);
-      highlightGenres(currentBPM);
+function pickImage(images) {
+  const sizes = ['medium', 'small', 'large'];
+  for (const size of sizes) {
+    const found = (images || []).find(i => i.size === size);
+    if (found && found['#text']) return found['#text'];
+  }
+  return '';
+}
+
+async function enrichTrackBPM(track) {
+  try {
+    const data = await lastfmFetch({ method: 'track.getInfo', track: track.name, artist: track.artist, autocorrect: 1 });
+    const info = data.track;
+    if (!info) return;
+    const dur = parseInt(info.duration, 10);
+    if (dur > 0) track.duration = Math.round(dur / 1000);
+    const tags = info.toptags?.tag;
+    if (tags) {
+      const bpm = extractBPMFromTags(tags);
+      if (bpm) track.bpm = bpm;
     }
+  } catch { /* ignore per-track enrichment failures */ }
+}
 
-    function updateIntensity(bpm) {
-      let cls, label;
-      if (bpm <= 0) { cls = 'rest'; label = '⚡ Rest / No Signal'; }
-      else if (bpm < 95)  { cls = 'warmup';   label = '🟢 Warm-Up'; }
-      else if (bpm < 120) { cls = 'moderate'; label = '🟡 Moderate'; }
-      else if (bpm < 160) { cls = 'peak';     label = '🔴 Peak Intensity'; }
-      else                { cls = 'cooldown'; label = '💜 High Energy'; }
-      intensityBadge.className = `intensity-badge ${cls}`;
-      intensityBadge.textContent = label;
-    }
+/* ── Zone classification ──────────────────────────────────────── */
+const ZONES = [
+  { id: 'cooldown', label: 'Cool-down', min: 0,   max: 79  },
+  { id: 'warmup',   label: 'Warm-up',  min: 80,  max: 109 },
+  { id: 'moderate', label: 'Moderate', min: 110, max: 139 },
+  { id: 'peak',     label: 'Peak',     min: 140, max: 999 },
+];
 
-    function updateNoteValues(bpm) {
-      if (bpm <= 0) {
-        ['Whole','Half','Quarter','Eighth','Sixteenth','Triplet'].forEach(n => {
-          $(`note${n}`).textContent = '—';
-        });
-        return;
-      }
-      const quarter = 60000 / bpm;
-      const fmt = ms => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${Math.round(ms)}ms`;
-      $('noteWhole').textContent      = fmt(quarter * 4);
-      $('noteHalf').textContent       = fmt(quarter * 2);
-      $('noteQuarter').textContent    = fmt(quarter);
-      $('noteEighth').textContent     = fmt(quarter / 2);
-      $('noteSixteenth').textContent  = fmt(quarter / 4);
-      $('noteTriplet').textContent    = fmt(quarter * 2 / 3);
-    }
+function getZone(bpm) {
+  if (!bpm) return { id: 'unknown', label: '—' };
+  return ZONES.find(z => bpm >= z.min && bpm <= z.max) || { id: 'unknown', label: '—' };
+}
 
-    // ── GENRE GUIDE ───────────────────────────────────────────────────────────
-    function buildGenreGrid() {
-      const maxRange = Math.max(...GENRES.map(g => g.max)) + 20;
-      genreGrid.innerHTML = '';
-      GENRES.forEach((g, i) => {
-        const div = document.createElement('div');
-        div.className = 'genre-item';
-        div.setAttribute('role', 'listitem');
-        div.setAttribute('tabindex', '0');
-        div.setAttribute('aria-label', `${g.name}: ${g.min}–${g.max} BPM`);
-        const fillPct = ((g.max - g.min) / maxRange) * 100;
-        const leftPct = (g.min / maxRange) * 100;
-        div.innerHTML = `
-          <div class="genre-name">${g.name}</div>
-          <div class="genre-range">${g.min}–${g.max} BPM</div>
-          <div class="genre-bar"><div class="genre-bar-fill" style="width:${fillPct.toFixed(1)}%;margin-left:${leftPct.toFixed(1)}%"></div></div>
-        `;
-        div.addEventListener('click', () => {
-          const mid = Math.round((g.min + g.max) / 2);
-          metroBpmInput.value = mid;
-          showToast(`Set metronome to ${mid} BPM (${g.name})`);
-        });
-        div.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); div.click(); }
-        });
-        div.dataset.idx = i;
-        genreGrid.appendChild(div);
-      });
-    }
+function autoPhase(bpm) {
+  if (!bpm)       return 'moderate';
+  if (bpm < 80)   return 'cool-down';
+  if (bpm < 110)  return 'warm-up';
+  if (bpm < 140)  return 'moderate';
+  return 'peak';
+}
 
-    function highlightGenres(bpm) {
-      const items = genreGrid.querySelectorAll('.genre-item');
-      items.forEach((el, i) => {
-        const g = GENRES[i];
-        if (bpm > 0 && bpm >= g.min && bpm <= g.max) {
-          el.classList.add('match');
+function fmtDur(secs) {
+  if (!secs) return '';
+  const m = Math.floor(secs / 60);
+  const s = String(secs % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+/* ── Hero stats ───────────────────────────────────────────────── */
+function updateHeroStats() {
+  const all = PHASES.flatMap(p => playlist[p]);
+  const total = all.length;
+  const bpms = all.map(t => t.bpm).filter(Boolean);
+  $('stat-tracks').textContent = total;
+  if (bpms.length) {
+    const mn = Math.min(...bpms);
+    const mx = Math.max(...bpms);
+    const avg = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+    $('hero-bpm').innerHTML = `${avg}<span class="bpm-unit">BPM</span>`;
+    $('stat-range').textContent = mn === mx ? String(mn) : `${mn}–${mx}`;
+    $('stat-avg').textContent = String(avg);
+    const phasesUsed = PHASES.filter(p => playlist[p].length).length;
+    $('hero-sub').textContent = `${total} track${total !== 1 ? 's' : ''} across ${phasesUsed} phase${phasesUsed !== 1 ? 's' : ''}`;
+  } else {
+    $('hero-bpm').innerHTML = `—<span class="bpm-unit">BPM</span>`;
+    $('stat-range').textContent = '—';
+    $('stat-avg').textContent = '—';
+    $('hero-sub').textContent = total
+      ? `${total} track${total !== 1 ? 's' : ''} — set BPM values for stats`
+      : 'Search for tracks and build your workout playlist by phase';
+  }
+}
+
+/* ── Search ───────────────────────────────────────────────────── */
+function setSearchType(type) {
+  searchType = type;
+  $('toggle-track').classList.toggle('active', type === 'track');
+  $('toggle-track').setAttribute('aria-pressed', String(type === 'track'));
+  $('toggle-artist').classList.toggle('active', type === 'artist');
+  $('toggle-artist').setAttribute('aria-pressed', String(type === 'artist'));
+  $('search-input').placeholder = type === 'artist' ? 'Enter artist name…' : 'Enter track name…';
+}
+
+$('toggle-track').addEventListener('click', () => setSearchType('track'));
+$('toggle-artist').addEventListener('click', () => setSearchType('artist'));
+
+$('bpm-min').addEventListener('change', () => {
+  bpmFilter.min = parseInt($('bpm-min').value, 10) || 40;
+  renderResults();
+});
+$('bpm-max').addEventListener('change', () => {
+  bpmFilter.max = parseInt($('bpm-max').value, 10) || 300;
+  renderResults();
+});
+
+function setResultsState(msg, cls) {
+  const el = $('results-state');
+  el.textContent = msg;
+  el.className = 'results-state' + (cls ? ' ' + cls : '');
+  el.classList.remove('hidden');
+}
+
+function clearResultsState() {
+  $('results-state').className = 'results-state hidden';
+}
+
+function renderResults() {
+  const container = $('search-results');
+  container.setAttribute('aria-busy', 'false');
+  // Remove old track result elements
+  [...container.querySelectorAll('.track-result')].forEach(el => el.remove());
+
+  if (!searchResults.length) {
+    setResultsState('No results found. Try a different query.', '');
+    return;
+  }
+
+  const filtered = searchResults.filter(t => {
+    if (!t.bpm) return true; // show unknown-BPM tracks
+    return t.bpm >= bpmFilter.min && t.bpm <= bpmFilter.max;
+  });
+
+  if (!filtered.length) {
+    setResultsState(`No tracks with BPM in ${bpmFilter.min}–${bpmFilter.max} range. Adjust the filter or set BPM manually.`, '');
+    return;
+  }
+
+  clearResultsState();
+
+  filtered.forEach(track => {
+    const zone = getZone(track.bpm);
+    const el = document.createElement('div');
+    el.className = 'track-result';
+    el.setAttribute('role', 'listitem');
+    el.setAttribute('draggable', 'true');
+    el.dataset.trackUid = track._uid;
+
+    const imgHtml = track.image
+      ? `<img src="${esc(track.image)}" alt="" loading="lazy">`
+      : '♪';
+    const durStr = track.duration ? ` · ${fmtDur(track.duration)}` : '';
+    const zoneBadge = track.bpm
+      ? `<div class="track-zone-row"><span class="badge-zone zone-${zone.id}">${esc(zone.label)}</span></div>`
+      : '';
+    const bpmCol = track.bpm
+      ? `<div class="track-bpm-col">
+           <span class="track-bpm-num">${track.bpm}</span>
+           <span class="track-bpm-lbl">BPM</span>
+         </div>`
+      : `<div class="track-bpm-col">
+           <input type="number" class="bpm-manual-input" placeholder="BPM" min="40" max="300"
+             aria-label="Enter BPM for ${esc(track.name)}" title="Enter BPM manually">
+         </div>`;
+
+    el.innerHTML = `
+      <div class="track-thumb" aria-hidden="true">${imgHtml}</div>
+      <div class="track-main">
+        <div class="track-name">${esc(track.name)}</div>
+        <div class="track-artist">${esc(track.artist)}${esc(durStr)}</div>
+        ${zoneBadge}
+      </div>
+      ${bpmCol}
+      <button class="btn-add" type="button" aria-label="Add ${esc(track.name)} by ${esc(track.artist)} to playlist">+ Add</button>
+    `;
+
+    // Manual BPM entry
+    const bpmInput = el.querySelector('.bpm-manual-input');
+    if (bpmInput) {
+      bpmInput.addEventListener('click', e => e.stopPropagation());
+      bpmInput.addEventListener('change', () => {
+        const val = parseInt(bpmInput.value, 10);
+        if (val >= 40 && val <= 300) {
+          track.bpm = val;
+          renderResults();
         } else {
-          el.classList.remove('match');
+          bpmInput.value = '';
         }
+      });
+      bpmInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') bpmInput.dispatchEvent(new Event('change'));
       });
     }
 
-    // ── TAP TEMPO ─────────────────────────────────────────────────────────────
-    function handleTap() {
-      const now = Date.now();
-
-      if (tapResetTimer) clearTimeout(tapResetTimer);
-      tapResetTimer = setTimeout(() => resetTaps(), TAP_TIMEOUT_MS);
-
-      if (tapTimes.length > 0 && now - tapTimes[tapTimes.length - 1] > TAP_TIMEOUT_MS) {
-        tapTimes = [];
-      }
-
-      tapTimes.push(now);
-      if (tapTimes.length > MAX_TAPS) tapTimes.shift();
-
-      updateTapDots();
-
-      if (tapTimes.length < 2) {
-        tapCountLabel.textContent = `Keep tapping… (${tapTimes.length})`;
-        tapConfLabel.textContent = '';
-        metaTaps.textContent = '1';
-        return;
-      }
-
-      const intervals = [];
-      for (let i = 1; i < tapTimes.length; i++) {
-        intervals.push(tapTimes[i] - tapTimes[i - 1]);
-      }
-
-      const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const bpm = Math.round(60000 / avg);
-
-      const variance = intervals.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / intervals.length;
-      const stdDev = Math.sqrt(variance);
-      const confidence = Math.max(0, Math.min(100, Math.round(100 - (stdDev / avg) * 100)));
-
-      setCurrentBPM(bpm, 'Tap');
-      metaConf.textContent = `${confidence}%`;
-      metaTaps.textContent = tapTimes.length;
-      tapCountLabel.textContent = `${tapTimes.length} tap${tapTimes.length !== 1 ? 's' : ''} — rolling average`;
-      tapConfLabel.textContent = `${confidence}% confidence`;
-    }
-
-    function updateTapDots() {
-      for (let i = 0; i < 8; i++) {
-        const dot = $(`dot${i}`);
-        const idx = MAX_TAPS - 1 - i;
-        const filled = tapTimes.length > (MAX_TAPS - 1 - i);
-        if (filled) {
-          dot.classList.add('active');
-          if (i === 0) {
-            dot.classList.add('recent');
-          } else {
-            dot.classList.remove('recent');
-          }
-        } else {
-          dot.classList.remove('active', 'recent');
-        }
-      }
-    }
-
-    function resetTaps() {
-      tapTimes = [];
-      clearTimeout(tapResetTimer);
-      tapResetTimer = null;
-      updateTapDots();
-      tapCountLabel.textContent = 'No taps yet — keep tapping!';
-      tapConfLabel.textContent = '';
-      metaTaps.textContent = '—';
-      metaConf.textContent = '—';
-      metaSource.textContent = '—';
-      currentBPM = 0;
-      bpmNumber.textContent = '0';
-      updateIntensity(0);
-      updateNoteValues(0);
-      highlightGenres(0);
-    }
-
-    tapBtn.addEventListener('click', handleTap);
-    tapBtn.addEventListener('keydown', e => {
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleTap(); }
-    });
-    tapResetBtn.addEventListener('click', resetTaps);
-
-    // ── MICROPHONE BPM ────────────────────────────────────────────────────────
-    const waveCtx = waveCanvas.getContext('2d');
-
-    async function startMic() {
-      try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        micAudioCtx = new AudioContext();
-        const src = micAudioCtx.createMediaStreamSource(micStream);
-        micAnalyser = micAudioCtx.createAnalyser();
-        micAnalyser.fftSize = 1024;
-        micAnalyser.smoothingTimeConstant = 0.8;
-        src.connect(micAnalyser);
-
-        micStatusDot.classList.add('active');
-        micStatusText.textContent = 'Listening for beats…';
-        micBtnIcon.textContent = '⏹️';
-        micBtnText.textContent = 'Stop Mic Analysis';
-        micBtn.classList.add('active');
-        micHint.textContent = 'Play music near your device — beats detected via energy peaks';
-
-        micBeatHistory = [];
-        micLastBeatTime = 0;
-        micBPMHistory = [];
-        micDrawLoop();
-      } catch (err) {
-        micStatusDot.classList.add('error');
-        micStatusText.textContent = 'Microphone access denied';
-        micHint.textContent = 'Allow microphone access in your browser to use this feature';
-        showToast('Microphone access denied — check browser permissions');
-      }
-    }
-
-    function stopMic() {
-      if (micAnimFrame) { cancelAnimationFrame(micAnimFrame); micAnimFrame = null; }
-      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-      if (micAudioCtx) { micAudioCtx.close(); micAudioCtx = null; }
-      micAnalyser = null;
-      micStatusDot.classList.remove('active', 'error');
-      micStatusText.textContent = 'Microphone off';
-      micBtnIcon.textContent = '🎙️';
-      micBtnText.textContent = 'Start Mic Analysis';
-      micBtn.classList.remove('active');
-      micHint.textContent = 'Detects beats from ambient audio — works best with clear rhythmic music';
-      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
-    }
-
-    let micPrevEnergy = 0;
-    let micBeatCooldown = false;
-
-    function micDrawLoop() {
-      if (!micAnalyser) return;
-      micAnimFrame = requestAnimationFrame(micDrawLoop);
-
-      const bufLen = micAnalyser.frequencyBinCount;
-      const data = new Uint8Array(bufLen);
-      micAnalyser.getByteFrequencyData(data);
-
-      // ── Draw waveform ──
-      const w = waveCanvas.width;
-      const h = waveCanvas.height;
-      waveCtx.clearRect(0, 0, w, h);
-
-      const gradient = waveCtx.createLinearGradient(0, 0, w, 0);
-      gradient.addColorStop(0, '#6c63ff88');
-      gradient.addColorStop(0.5, '#ff658488');
-      gradient.addColorStop(1, '#43d9ad88');
-
-      waveCtx.beginPath();
-      const sliceW = w / bufLen;
-      let x = 0;
-      for (let i = 0; i < bufLen; i++) {
-        const y = h - (data[i] / 255) * h;
-        if (i === 0) waveCtx.moveTo(x, y);
-        else waveCtx.lineTo(x, y);
-        x += sliceW;
-      }
-      waveCtx.strokeStyle = gradient;
-      waveCtx.lineWidth = 1.5;
-      waveCtx.stroke();
-
-      // ── Beat detection (low-frequency energy peaks) ──
-      const bassRange = Math.floor(bufLen * 0.08);
-      let energy = 0;
-      for (let i = 0; i < bassRange; i++) energy += data[i];
-      energy /= bassRange;
-
-      const now = Date.now();
-      const energyRise = energy - micPrevEnergy;
-
-      if (energyRise > 18 && energy > 70 && !micBeatCooldown) {
-        const elapsed = now - micLastBeatTime;
-        if (elapsed > 300 && elapsed < 2000 && micLastBeatTime > 0) {
-          const instantBPM = 60000 / elapsed;
-          if (instantBPM >= 40 && instantBPM <= 240) {
-            micBPMHistory.push(instantBPM);
-            if (micBPMHistory.length > 12) micBPMHistory.shift();
-
-            if (micBPMHistory.length >= 4) {
-              const sorted = [...micBPMHistory].sort((a, b) => a - b);
-              const mid = Math.round(sorted.length / 2);
-              const medianBPM = sorted[mid];
-
-              setCurrentBPM(medianBPM, 'Mic');
-              metaConf.textContent = `${Math.min(99, Math.round(micBPMHistory.length / 12 * 100))}%`;
-              metaTaps.textContent = micBPMHistory.length;
-            }
-          }
-        }
-        micLastBeatTime = now;
-        micBeatCooldown = true;
-        setTimeout(() => { micBeatCooldown = false; }, 250);
-      }
-
-      micPrevEnergy = energy;
-    }
-
-    micBtn.addEventListener('click', () => {
-      if (micStream) { stopMic(); } else { startMic(); }
+    // Add button
+    el.querySelector('.btn-add').addEventListener('click', e => {
+      e.stopPropagation();
+      addToPlaylist({ ...track });
     });
 
-    // ── METRONOME ─────────────────────────────────────────────────────────────
-    function getMetroAudioCtx() {
-      if (!metroAudioCtx || metroAudioCtx.state === 'closed') {
-        metroAudioCtx = new AudioContext();
-      }
-      return metroAudioCtx;
+    // Drag from search results
+    el.addEventListener('dragstart', e => {
+      dragData = { track: { ...track }, fromPhase: null, fromIdx: null };
+      el.classList.add('drag-ghost');
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    el.addEventListener('dragend', () => el.classList.remove('drag-ghost'));
+
+    container.appendChild(el);
+  });
+}
+
+async function doSearch() {
+  const q = ($('search-input').value || '').trim();
+  if (!q) { toast('Please enter a search query.', 'error'); return; }
+  if (!apiKey) {
+    $('api-banner').style.display = '';
+    toast('Please enter your LastFM API key first.', 'error');
+    $('api-key-input').focus();
+    return;
+  }
+
+  $('btn-search').disabled = true;
+  $('btn-search').textContent = 'Searching…';
+  $('search-results').setAttribute('aria-busy', 'true');
+  [...$('search-results').querySelectorAll('.track-result')].forEach(el => el.remove());
+  setResultsState('Searching LastFM…', 'loading');
+
+  try {
+    let raw = [];
+    if (searchType === 'artist') {
+      const data = await lastfmFetch({ method: 'artist.getTopTracks', artist: q, limit: 20 });
+      const tracks = data.toptracks?.track || [];
+      const list = Array.isArray(tracks) ? tracks : [tracks];
+      raw = list.map(t => ({
+        _uid: uid(),
+        name: t.name,
+        artist: (typeof t.artist === 'object' ? t.artist.name : null) || q,
+        bpm: null,
+        duration: null,
+        listeners: parseInt(t.listeners, 10) || 0,
+        image: pickImage(t.image),
+      }));
+    } else {
+      const data = await lastfmFetch({ method: 'track.search', track: q, limit: 20 });
+      const matches = data.results?.trackmatches?.track;
+      const list = Array.isArray(matches) ? matches : (matches ? [matches] : []);
+      raw = list.map(t => ({
+        _uid: uid(),
+        name: t.name,
+        artist: t.artist,
+        bpm: null,
+        duration: null,
+        listeners: parseInt(t.listeners, 10) || 0,
+        image: pickImage(t.image),
+      }));
     }
 
-    function scheduleMetroBeat(beatTime, isAccent) {
-      const ctx = getMetroAudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+    searchResults = raw;
+    $('btn-search').disabled = false;
+    $('btn-search').textContent = 'Search';
 
-      osc.frequency.value = isAccent ? 1000 : 700;
-      gain.gain.setValueAtTime(isAccent ? 0.5 : 0.3, beatTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, beatTime + 0.08);
-      osc.start(beatTime);
-      osc.stop(beatTime + 0.09);
+    if (!raw.length) {
+      setResultsState('No results found. Try a different search.', '');
+      return;
     }
 
-    function metroScheduleLoop() {
-      const ctx = getMetroAudioCtx();
-      const bpm = parseInt(metroBpmInput.value, 10) || 120;
-      const secPerBeat = 60 / bpm;
-      const lookAhead = 0.1;
+    renderResults();
 
-      while (metroNextBeatTime < ctx.currentTime + lookAhead) {
-        const isAccent = (metroBeat % metroBeatsPerMeasure) === 0;
-        scheduleMetroBeat(metroNextBeatTime, isAccent);
-
-        const beatIdx = metroBeat % metroBeatsPerMeasure;
-        const beatEl = $(`mbeat${beatIdx}`);
-        if (beatEl) {
-          setTimeout(() => {
-            document.querySelectorAll('.metro-beat').forEach(b => b.classList.remove('on'));
-            beatEl.classList.add('on');
-          }, Math.max(0, (metroNextBeatTime - ctx.currentTime) * 1000));
-        }
-
-        metroNextBeatTime += secPerBeat;
-        metroBeat++;
-      }
-
-      metroScheduleId = setTimeout(metroScheduleLoop, 25);
-    }
-
-    function startMetronome() {
-      const ctx = getMetroAudioCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      metroBeat = 0;
-      metroNextBeatTime = ctx.currentTime + 0.05;
-      metroPlaying = true;
-      metroToggle.textContent = '⏸';
-      metroToggle.classList.add('playing');
-      metroToggle.setAttribute('aria-label', 'Stop metronome');
-      metroScheduleLoop();
-    }
-
-    function stopMetronome() {
-      clearTimeout(metroScheduleId);
-      metroPlaying = false;
-      metroToggle.textContent = '▶';
-      metroToggle.classList.remove('playing');
-      metroToggle.setAttribute('aria-label', 'Play metronome');
-      document.querySelectorAll('.metro-beat').forEach(b => b.classList.remove('on'));
-    }
-
-    metroToggle.addEventListener('click', () => {
-      if (metroPlaying) { stopMetronome(); } else { startMetronome(); }
+    // Enrich BPM from track.getInfo in background
+    Promise.allSettled(searchResults.map(t => enrichTrackBPM(t))).then(() => {
+      renderResults();
     });
 
-    metroSync.addEventListener('click', () => {
-      if (currentBPM > 0) {
-        metroBpmInput.value = currentBPM;
-        if (metroPlaying) { stopMetronome(); startMetronome(); }
-        showToast(`Metronome synced to ${currentBPM} BPM`);
-      } else {
-        showToast('No BPM detected yet — tap or use mic first');
-      }
-    });
+  } catch (err) {
+    $('btn-search').disabled = false;
+    $('btn-search').textContent = 'Search';
+    $('search-results').setAttribute('aria-busy', 'false');
+    setResultsState(err.message, 'error');
+    toast(err.message, 'error');
+  }
+}
 
-    metroBpmInput.addEventListener('change', () => {
-      const v = parseInt(metroBpmInput.value, 10);
-      if (isNaN(v) || v < 20) metroBpmInput.value = 20;
-      if (v > 300) metroBpmInput.value = 300;
-      if (metroPlaying) { stopMetronome(); startMetronome(); }
-    });
+$('btn-search').addEventListener('click', doSearch);
+$('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
 
-    metroBeatsEl.addEventListener('change', () => {
-      metroBeatsPerMeasure = parseInt(metroBeatsEl.value, 10);
-      updateMetroBeatStrip();
-      if (metroPlaying) { stopMetronome(); startMetronome(); }
-    });
+/* ── Playlist ─────────────────────────────────────────────────── */
+function phaseBPMRange(tracks) {
+  const bpms = tracks.map(t => t.bpm).filter(Boolean);
+  if (!bpms.length) return '—';
+  const mn = Math.min(...bpms);
+  const mx = Math.max(...bpms);
+  return mn === mx ? `${mn} BPM` : `${mn}–${mx} BPM`;
+}
 
-    function updateMetroBeatStrip() {
-      const strip = $('metroBeatStrip');
-      strip.innerHTML = '';
-      for (let i = 0; i < metroBeatsPerMeasure; i++) {
-        const div = document.createElement('div');
-        div.className = 'metro-beat';
-        div.id = `mbeat${i}`;
-        strip.appendChild(div);
-      }
+function addToPlaylist(track, phase) {
+  const targetPhase = phase || autoPhase(track.bpm);
+  playlist[targetPhase].push({ ...track, _uid: uid() });
+  renderPlaylist();
+  updateHeroStats();
+  toast(`"${track.name}" added to ${PHASE_LABELS[targetPhase]}.`, 'success');
+}
+
+function renderPlaylist() {
+  PHASES.forEach(phase => {
+    const tracks = playlist[phase];
+    const zone = $(`drop-${phase}`);
+    const emptyEl = $(`empty-${phase}`);
+    const metaEl = $(`meta-${phase}`);
+    const bpmEl  = $(`bpm-${phase}`);
+
+    [...zone.querySelectorAll('.playlist-track')].forEach(el => el.remove());
+
+    metaEl.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''}`;
+    bpmEl.textContent  = phaseBPMRange(tracks);
+
+    if (!tracks.length) {
+      emptyEl.classList.remove('hidden');
+      return;
     }
+    emptyEl.classList.add('hidden');
 
-    // ── SAVED BPMs ────────────────────────────────────────────────────────────
-    const STORAGE_KEY = 'bpm-analyzer-saved';
+    tracks.forEach((track, idx) => {
+      const el = document.createElement('div');
+      el.className = 'playlist-track';
+      el.setAttribute('role', 'listitem');
+      el.setAttribute('draggable', 'true');
+      el.dataset.phase = phase;
+      el.dataset.idx   = idx;
 
-    function loadSaved() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch { return []; }
-    }
+      const durStr = track.duration ? ` · ${fmtDur(track.duration)}` : '';
+      const bpmText = track.bpm ? `${track.bpm} BPM` : '— BPM';
+      const bpmCls  = track.bpm ? '' : ' no-bpm';
 
-    function saveSaved(list) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    }
+      el.innerHTML = `
+        <span class="drag-handle" aria-hidden="true">⠿</span>
+        <div class="pl-track-info">
+          <div class="pl-track-name">${esc(track.name)}</div>
+          <div class="pl-track-artist">${esc(track.artist)}${esc(durStr)}</div>
+        </div>
+        <span class="pl-track-bpm${bpmCls}">${esc(bpmText)}</span>
+        <button class="btn-remove" type="button"
+          aria-label="Remove ${esc(track.name)} from ${PHASE_LABELS[phase]}">×</button>
+      `;
 
-    function renderSaved() {
-      const list = loadSaved();
-      if (list.length === 0) {
-        savedEntries.innerHTML = `<div class="empty-state">No saved BPMs yet — tap or use mic, then save!</div>`;
-        return;
-      }
-      savedEntries.innerHTML = '';
-      list.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'saved-entry';
-        div.setAttribute('role', 'listitem');
-        div.innerHTML = `
-          <span class="saved-bpm">${item.bpm}</span>
-          <span class="saved-name">${escHtml(item.name)}</span>
-          <span class="saved-time">${item.time}</span>
-          <button class="saved-del" data-idx="${idx}" aria-label="Delete ${escHtml(item.name)} from saved list">✕</button>
-        `;
-        savedEntries.appendChild(div);
+      el.querySelector('.btn-remove').addEventListener('click', e => {
+        e.stopPropagation();
+        playlist[phase].splice(idx, 1);
+        renderPlaylist();
+        updateHeroStats();
       });
 
-      savedEntries.querySelectorAll('.saved-del').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const i = parseInt(btn.dataset.idx, 10);
-          const list2 = loadSaved();
-          list2.splice(i, 1);
-          saveSaved(list2);
-          renderSaved();
-          showToast('Entry removed');
-        });
+      el.addEventListener('dragstart', e => {
+        dragData = { track: { ...track }, fromPhase: phase, fromIdx: idx };
+        el.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
       });
-    }
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
 
-    function escHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    saveForm.addEventListener('submit', e => {
-      e.preventDefault();
-      if (currentBPM <= 0) {
-        showToast('Detect a BPM first — tap or use the mic!');
-        return;
-      }
-      const name = saveInput.value.trim() || 'Untitled';
-      const list = loadSaved();
-      const now = new Date();
-      list.unshift({
-        bpm: currentBPM,
-        name,
-        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-      if (list.length > 50) list.pop();
-      saveSaved(list);
-      renderSaved();
-      saveInput.value = '';
-      showToast(`Saved "${name}" at ${currentBPM} BPM`);
+      zone.appendChild(el);
     });
+  });
+}
 
-    // ── KEYBOARD SHORTCUT — Spacebar for tap ─────────────────────────────────
-    document.addEventListener('keydown', e => {
-      if (e.target === saveInput || e.target === metroBpmInput || e.target === metroBeatsEl) return;
-      if (e.key === ' ') {
-        e.preventDefault();
-        handleTap();
-        tapBtn.focus();
-      }
+// Drop zones
+PHASES.forEach(phase => {
+  const zone = $(`drop-${phase}`);
+
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = dragData?.fromPhase ? 'move' : 'copy';
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', e => {
+    if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+  });
+  zone.addEventListener('dragenter', e => e.preventDefault());
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (!dragData) return;
+
+    const { track, fromPhase, fromIdx } = dragData;
+
+    if (fromPhase !== null && fromIdx !== null) {
+      // Moving within/between playlist phases
+      playlist[fromPhase].splice(fromIdx, 1);
+    }
+    playlist[phase].push({ ...track, _uid: uid() });
+
+    dragData = null;
+    renderPlaylist();
+    updateHeroStats();
+  });
+});
+
+/* ── Export ───────────────────────────────────────────────────── */
+function buildExportText() {
+  const lines = ['WORKOUT PLAYLIST', '='.repeat(40), ''];
+  PHASES.forEach(phase => {
+    const tracks = playlist[phase];
+    if (!tracks.length) return;
+    lines.push(`[ ${PHASE_LABELS[phase].toUpperCase()} ]`);
+    tracks.forEach((t, i) => {
+      const bpm = t.bpm ? `${t.bpm} BPM` : 'BPM unknown';
+      const dur = t.duration ? ` (${fmtDur(t.duration)})` : '';
+      lines.push(`  ${i + 1}. ${t.name} — ${t.artist}  |  ${bpm}${dur}`);
     });
+    lines.push('');
+  });
+  const all = PHASES.flatMap(p => playlist[p]);
+  const bpms = all.map(t => t.bpm).filter(Boolean);
+  if (bpms.length) {
+    const avg = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+    lines.push(`SUMMARY: ${all.length} tracks | Avg BPM: ${avg} | Range: ${Math.min(...bpms)}–${Math.max(...bpms)}`);
+  } else {
+    lines.push(`SUMMARY: ${all.length} tracks`);
+  }
+  return lines.join('\n');
+}
 
-    // ── INIT ──────────────────────────────────────────────────────────────────
-    buildGenreGrid();
-    updateNoteValues(0);
-    renderSaved();
-    updateMetroBeatStrip();
-    updateIntensity(0);
-  </script>
+function fallbackDownload(text) {
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'workout-playlist.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Playlist downloaded as .txt', 'success');
+}
+
+$('btn-export').addEventListener('click', () => {
+  const all = PHASES.flatMap(p => playlist[p]);
+  if (!all.length) { toast('Playlist is empty — add some tracks first.', 'error'); return; }
+  const text = buildExportText();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => toast('Playlist copied to clipboard.', 'success'))
+      .catch(() => fallbackDownload(text));
+  } else {
+    fallbackDownload(text);
+  }
+});
+
+$('btn-clear').addEventListener('click', () => {
+  const total = PHASES.flatMap(p => playlist[p]).length;
+  if (!total) { toast('Playlist is already empty.', ''); return; }
+  if (!confirm(`Clear all ${total} tracks from the playlist?`)) return;
+  PHASES.forEach(p => { playlist[p] = []; });
+  renderPlaylist();
+  updateHeroStats();
+  toast('Playlist cleared.', 'success');
+});
+
+/* ── Init ─────────────────────────────────────────────────────── */
+refreshApiKeyUI();
+renderPlaylist();
+updateHeroStats();
+</script>
 </body>
 </html>

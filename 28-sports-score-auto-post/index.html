@@ -1,1474 +1,2677 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ScorePost — Sports Score Auto-Poster</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0a0a;
-      --surface: #141414;
-      --surface2: #1e1e1e;
-      --border: rgba(255,255,255,0.08);
-      --accent: #1db954;
-      --accent2: #ff6b6b;
-      --text: #ffffff;
-      --muted: #9ca3af;
-      --radius: 12px;
-      --font-display: 'Bebas Neue', Impact, sans-serif;
-      --font-body: 'Figtree', system-ui, sans-serif;
-      --font-mono: 'DM Mono', monospace;
-    }
-
-    html, body {
-      height: 100%;
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    /* Layout */
-    .app { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
-
-    /* Header */
-    header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .logo {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
-    .header-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
-    .header-sub { font-size: 12px; color: var(--muted); }
-
-    .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-
-    .live-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--green);
-      background: rgba(67, 217, 173, 0.1);
-      border: 1px solid rgba(67, 217, 173, 0.3);
-      border-radius: 20px;
-      padding: 4px 10px;
-    }
-
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      background: var(--green);
-      border-radius: 50%;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
-
-    /* Main content */
-    main {
-      display: grid;
-      grid-template-columns: 340px 1fr 320px;
-      gap: 0;
-      height: calc(100vh - 69px);
-      overflow: hidden;
-    }
-
-    /* Panels */
-    .panel {
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .panel:last-child { border-right: none; }
-
-    .panel-header {
-      padding: 16px 20px 12px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .panel-title {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
-
-    /* Match cards */
-    .match-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .match-card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: var(--border);
-      transition: background 0.2s;
-    }
-
-    .match-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(168,85,247, 0.15);
-    }
-
-    .match-card:hover::before { background: var(--accent); }
-
-    .match-card.followed { border-color: rgba(168,85,247, 0.5); }
-    .match-card.followed::before { background: var(--accent); }
-
-    .match-card.updated {
-      animation: flash-update 0.6s ease;
-    }
-
-    @keyframes flash-update {
-      0% { background: var(--surface2); }
-      30% { background: rgba(168,85,247, 0.15); }
-      100% { background: var(--surface2); }
-    }
-
-    .match-sport {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .sport-tag {
-      background: rgba(168,85,247, 0.15);
-      color: var(--accent);
-      border-radius: 4px;
-      padding: 2px 6px;
-    }
-
-    .match-status-badge {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 20px;
-    }
-
-    .status-live {
-      background: rgba(67, 217, 173, 0.15);
-      color: var(--green);
-    }
-
-    .status-ft {
-      background: rgba(136, 146, 176, 0.15);
-      color: var(--muted);
-    }
-
-    .status-ht {
-      background: rgba(247, 201, 72, 0.15);
-      color: var(--yellow);
-    }
-
-    .teams {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .team-side {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      flex: 1;
-    }
-
-    .team-emoji { font-size: 22px; }
-    .team-name { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; }
-
-    .score-display {
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .score-sep { color: var(--border); font-weight: 300; font-size: 20px; }
-
-    .score-num {
-      min-width: 28px;
-      text-align: center;
-      transition: color 0.3s;
-    }
-
-    .score-num.scored {
-      color: var(--green);
-      animation: score-pop 0.5s ease;
-    }
-
-    @keyframes score-pop {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.3); }
-      100% { transform: scale(1); }
-    }
-
-    .match-minute {
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .minute-dot {
-      width: 5px; height: 5px;
-      background: var(--green);
-      border-radius: 50%;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    .follow-toggle {
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 600;
-      padding: 3px 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .follow-toggle:hover { border-color: var(--accent); color: var(--accent); }
-    .follow-toggle.active { background: var(--accent); border-color: var(--accent); color: white; }
-
-    /* Config panel */
-    .section-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
-      margin-top: 16px;
-    }
-
-    .section-title:first-child { margin-top: 0; }
-
-    label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 5px;
-    }
-
-    input[type="text"], textarea, select {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 13px;
-      padding: 9px 12px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      font-family: inherit;
-      resize: vertical;
-    }
-
-    input[type="text"]:focus, textarea:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(168,85,247, 0.15);
-    }
-
-    textarea { min-height: 80px; line-height: 1.5; }
-
-    .input-group { margin-bottom: 14px; }
-
-    .template-vars {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 6px;
-    }
-
-    .var-chip {
-      font-size: 10px;
-      font-weight: 600;
-      background: rgba(168,85,247, 0.1);
-      border: 1px solid rgba(168,85,247, 0.3);
-      color: var(--accent);
-      border-radius: 4px;
-      padding: 2px 7px;
-      cursor: pointer;
-      transition: background 0.2s;
-      user-select: none;
-    }
-
-    .var-chip:hover { background: rgba(168,85,247, 0.2); }
-
-    .trigger-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .trigger-check {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 12px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      user-select: none;
-    }
-
-    .trigger-check:hover { border-color: var(--accent); }
-    .trigger-check.checked { border-color: var(--accent); background: rgba(168,85,247, 0.08); }
-
-    .trigger-check input { display: none; }
-
-    .trigger-icon { font-size: 14px; }
-    .trigger-label { font-size: 11px; font-weight: 600; color: var(--text); }
-
-    .custom-checkbox {
-      width: 14px; height: 14px;
-      border: 2px solid var(--border);
-      border-radius: 3px;
-      transition: all 0.15s;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .trigger-check.checked .custom-checkbox {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-
-    .custom-checkbox::after {
-      content: '';
-      width: 6px; height: 4px;
-      border-left: 2px solid white;
-      border-bottom: 2px solid white;
-      transform: rotate(-45deg) scaleX(0);
-      transition: transform 0.15s;
-    }
-
-    .trigger-check.checked .custom-checkbox::after { transform: rotate(-45deg) scaleX(1); }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 9px 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: white;
-    }
-
-    .btn-primary:hover { background: #5a52d5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(168,85,247, 0.3); }
-    .btn-primary:active { transform: translateY(0); }
-
-    .btn-sm { font-size: 11px; padding: 5px 10px; border-radius: 6px; }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
-
-    .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
-
-    /* Preview / Center panel */
-    .center-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-
-    .preview-box {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-      position: relative;
-      transition: border-color 0.3s;
-    }
-
-    .preview-box.has-post {
-      border-color: rgba(168,85,247, 0.4);
-      box-shadow: 0 0 20px rgba(168,85,247, 0.08);
-    }
-
-    .preview-empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .preview-empty .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
-
-    .social-mockup {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .social-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .social-avatar {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    .social-name { font-size: 13px; font-weight: 700; }
-    .social-handle { font-size: 11px; color: var(--muted); }
-    .social-time { font-size: 11px; color: var(--muted); margin-left: auto; }
-
-    .social-text {
-      font-size: 14px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .social-footer {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .social-action {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: default;
-      opacity: 0.6;
-    }
-
-    .would-post-tag {
-      position: absolute;
-      top: -10px;
-      left: 16px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
-
-    .trigger-info {
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(168,85,247, 0.05);
-      border: 1px solid rgba(168,85,247, 0.15);
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 12px;
-    }
-
-    /* Post history log */
-    .log-panel { display: flex; flex-direction: column; overflow: hidden; }
-
-    .log-entry {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      padding: 12px 14px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 10px;
-      animation: slide-in 0.4s ease;
-    }
-
-    @keyframes slide-in {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .log-entry-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .log-sport-icon { font-size: 14px; }
-
-    .log-match-name {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text);
-      flex: 1;
-    }
-
-    .log-time {
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    .log-trigger {
-      font-size: 10px;
-      color: var(--accent);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .log-caption {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .log-empty {
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      padding: 30px 20px;
-    }
-
-    .log-empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
-
-    .stat-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .stat-card {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--accent);
-      line-height: 1;
-      margin-bottom: 3px;
-    }
-
-    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-
-    /* Notification toast */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-    }
-
-    .toast {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 13px;
-      max-width: 300px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-      animation: toast-in 0.3s ease;
-      pointer-events: auto;
-    }
-
-    .toast.toast-success { border-color: rgba(67, 217, 173, 0.4); }
-    .toast.toast-info { border-color: rgba(168,85,247, 0.4); }
-
-    @keyframes toast-in {
-      from { opacity: 0; transform: translateX(20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes toast-out {
-      from { opacity: 1; transform: translateX(0); }
-      to { opacity: 0; transform: translateX(20px); }
-    }
-
-    .toast-icon { font-size: 16px; flex-shrink: 0; }
-    .toast-body { flex: 1; }
-    .toast-title { font-weight: 700; margin-bottom: 2px; }
-    .toast-msg { font-size: 11px; color: var(--muted); }
-
-    /* Next update timer */
-    .next-update {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .update-bar {
-      flex: 1;
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .update-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 2px;
-      transition: width 0.5s linear;
-    }
-
-    /* Venue config */
-    .venue-preview {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-
-    .venue-emoji { font-size: 24px; }
-    .venue-name-display { font-size: 13px; font-weight: 700; }
-    .venue-handle-display { font-size: 11px; color: var(--muted); }
-
-    /* Scrollable log */
-    .log-scroll { flex: 1; overflow-y: auto; padding: 16px 20px; }
-
-    /* Divider */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 16px 0;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; grid-template-rows: auto; overflow: auto; height: auto; }
-      .panel { max-height: 500px; }
-    }
-  /* === Media v2 Design System === */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    line-height: 1.6;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScorePost — Sports Score Dashboard + Social Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+/* Hallmark · macrostructure: Long Document · nav: N13 */
+
+/* ── Color extensions ── */
+:root {
+  --color-win-bg: oklch(56% 0.24 26 / 0.12);
+  --color-loss-bg: oklch(55% 0.20 25 / 0.10);
+  --color-draw-bg: oklch(62% 0.15 72 / 0.12);
+  --color-danger-ghost: oklch(55% 0.20 25 / 0.08);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ── N13 Inline ⌘K-pill nav ── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  height: 52px;
+  background: var(--color-paper);
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 var(--space-6);
+  gap: var(--space-4);
+}
+
+.nav-wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  font-style: normal;
+  white-space: nowrap;
+}
+.nav-wordmark span { color: var(--color-accent); }
+
+.nav-search-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-paper-2);
+  min-width: 220px;
+  max-width: 320px;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  user-select: none;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.nav-search-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
+.nav-search-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-search-kbd {
+  font-size: 10px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  color: var(--color-ink-muted);
+  flex-shrink: 0;
+}
+
+.nav-back-wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nav-back {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  transition: color 0.15s var(--ease-out);
+}
+.nav-back:hover { color: var(--color-ink); }
+.nav-back:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Document body ── */
+.doc-body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: calc(52px + var(--space-12)) var(--space-6) var(--space-16);
+}
+
+/* ── Page title ── */
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  font-style: normal;
+  line-height: 1.1;
+  margin-bottom: var(--space-3);
+}
+.page-title span { color: var(--color-accent); }
+
+.page-desc {
+  font-size: var(--text-base);
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+.doc-hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-8) 0;
+}
+
+/* ── Document sections ── */
+.doc-section {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.doc-section-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  font-style: normal;
+  margin-bottom: var(--space-4);
+}
+
+.doc-section-sub {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-4);
+  line-height: 1.6;
+}
+
+/* ── Search ── */
+.search-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.input-search {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  transition: border-color 0.15s var(--ease-out);
+}
+.input-search:focus { outline: none; border-color: var(--color-accent); }
+.input-search:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.input-search::placeholder { color: var(--color-ink-muted); }
+
+.btn-search {
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s var(--ease-out);
+}
+.btn-search:hover:not(:disabled) { opacity: 0.85; }
+.btn-search:active:not(:disabled) { opacity: 0.7; }
+.btn-search:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-search:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Search results */
+.search-results {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: none;
+  margin-bottom: var(--space-2);
+}
+.search-results.open { display: block; }
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: background 0.1s var(--ease-out);
+  border-bottom: 1px solid var(--color-border);
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--color-accent-subtle); }
+
+.team-badge-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  flex-shrink: 0;
+  background: var(--color-paper-2);
+}
+
+.team-badge-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.result-info { flex: 1; min-width: 0; }
+.result-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.result-sport {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.btn-follow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-accent-line);
+  background: transparent;
+  color: var(--color-accent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s var(--ease-out);
+  white-space: nowrap;
+}
+.btn-follow:hover { background: var(--color-accent-subtle); }
+.btn-follow:active { opacity: 0.75; }
+.btn-follow:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-follow.following {
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border-color: var(--color-accent);
+}
+
+/* ── Followed teams ── */
+.followed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.followed-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-paper-2);
+  transition: background 0.12s var(--ease-out), border-color 0.12s var(--ease-out);
+}
+.followed-item:hover { background: var(--color-paper-3); }
+.followed-item.active {
+  background: var(--color-paper-3);
+  border-color: var(--color-accent-line);
+  border-left: 3px solid var(--color-accent);
+}
+.followed-item:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.followed-info { flex: 1; min-width: 0; }
+.followed-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.followed-sport {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.btn-unfollow {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.12s var(--ease-out), background 0.12s var(--ease-out);
+}
+.btn-unfollow:hover { color: var(--color-danger); background: var(--color-danger-ghost); }
+.btn-unfollow:active { opacity: 0.7; }
+.btn-unfollow:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.followed-empty {
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  text-align: center;
+  line-height: 1.6;
+  background: var(--color-paper-2);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* ── League pills ── */
+.league-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.league-pill {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.12s var(--ease-out);
+  white-space: nowrap;
+}
+.league-pill:hover {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.league-pill:active { opacity: 0.75; }
+.league-pill:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.league-pill.active {
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border-color: var(--color-accent);
+}
+
+/* ── Config fields ── */
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.select-field {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-out);
+  width: 100%;
+}
+.select-field:focus { outline: none; border-color: var(--color-accent); }
+.select-field:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease-out);
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--color-paper);
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s var(--ease-out);
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--color-accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+.toggle-switch:focus-within .toggle-slider {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.toggle-text {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.schedule-status-line {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  margin-top: var(--space-1);
+}
+
+/* ── Score ticker strip ── */
+.ticker-strip {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ticker-strip::-webkit-scrollbar { display: none; }
+
+.ticker-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: max-content;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.ticker-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.ticker-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.ticker-badge.win  { background: var(--color-win-bg);  color: var(--color-success); }
+.ticker-badge.loss { background: var(--color-loss-bg); color: var(--color-danger); }
+.ticker-badge.draw { background: var(--color-draw-bg); color: var(--color-warn); }
+
+.ticker-empty {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+/* ── Empty state ── */
+.main-empty {
+  padding: var(--space-10) var(--space-4);
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper-2);
+}
+.main-empty-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+.main-empty-sub {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  max-width: 340px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* ── Results grid ── */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.result-card {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: box-shadow 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+  animation: card-in 0.2s var(--ease-out);
+}
+.result-card:hover {
+  box-shadow: 0 4px 16px var(--color-shadow-card);
+  transform: translateY(-1px);
+}
+
+.result-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-league {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  font-weight: 500;
+}
+
+.result-date {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.result-teams {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.result-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.team-badge-md {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.team-badge-md-placeholder {
+  width: 40px;
+  height: 40px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.result-team-name {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.result-score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.result-score {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.result-outcome-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+}
+.outcome-win  { background: var(--color-win-bg);  color: var(--color-success); }
+.outcome-loss { background: var(--color-loss-bg); color: var(--color-danger); }
+.outcome-draw { background: var(--color-draw-bg); color: var(--color-warn); }
+
+.result-venue {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.btn-gen-post {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px dashed var(--color-accent-line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: background 0.12s var(--ease-out), border-style 0.12s var(--ease-out);
+  text-align: center;
+}
+.btn-gen-post:hover { background: var(--color-accent-subtle); border-style: solid; }
+.btn-gen-post:active { opacity: 0.75; }
+.btn-gen-post:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ── Fixture cards ── */
+.fixture-list-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fixture-card {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  transition: box-shadow 0.15s var(--ease-out);
+  animation: card-in 0.2s var(--ease-out);
+}
+.fixture-card:hover { box-shadow: 0 2px 8px var(--color-shadow-card); }
+
+.fixture-date-block {
+  text-align: center;
+  flex-shrink: 0;
+  min-width: 52px;
+}
+.fixture-day {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  font-style: normal;
+  color: var(--color-ink);
+  line-height: 1;
+}
+.fixture-month {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.fixture-sep {
+  width: 1px;
+  height: 40px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+.fixture-teams {
+  flex: 1;
+  min-width: 0;
+}
+.fixture-matchup {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fixture-meta {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.btn-gen-upcoming {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.12s var(--ease-out);
+  white-space: nowrap;
+}
+.btn-gen-upcoming:hover {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+.btn-gen-upcoming:active { opacity: 0.75; }
+.btn-gen-upcoming:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ── Section head row (for results/fixtures) ── */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.section-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  font-style: normal;
+  color: var(--color-ink);
+}
+
+.section-sub {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+/* ── Social post generator ── */
+.post-gen-panel {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.post-gen-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-paper);
+  gap: var(--space-4);
+}
+
+.post-gen-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-style: normal;
+  color: var(--color-ink);
+}
+
+.post-context {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.post-gen-body {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Platform tabs */
+.platform-tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-1);
+}
+
+.platform-tab {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition: all 0.12s var(--ease-out);
+  text-align: center;
+  white-space: nowrap;
+}
+.platform-tab:hover { color: var(--color-ink); }
+.platform-tab:active { opacity: 0.75; }
+.platform-tab:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.platform-tab.active {
+  background: var(--color-paper-2);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+}
+
+.post-preview-box {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-height: 140px;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.char-count {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  text-align: right;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.char-count.over { color: var(--color-danger); }
+
+.btn-copy {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+}
+.btn-copy:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-copy:active { transform: translateY(0); opacity: 0.7; }
+.btn-copy:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Controls row */
+.post-controls-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.control-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tone-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tone-pill {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.12s var(--ease-out);
+}
+.tone-pill:hover {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent);
+}
+.tone-pill:active { opacity: 0.75; }
+.tone-pill:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.tone-pill.active {
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border-color: var(--color-accent);
+}
+
+.hashtag-box {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-height: 52px;
+  align-items: flex-start;
+}
+
+.hashtag-chip {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-2);
+  cursor: pointer;
+  transition: background 0.12s var(--ease-out);
+}
+.hashtag-chip:hover { background: var(--color-accent-bg); }
+.hashtag-chip:active { opacity: 0.75; }
+.hashtag-chip:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Saved posts */
+.saved-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.saved-post-item {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: border-color 0.12s var(--ease-out), background 0.12s var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.saved-post-item:hover {
+  border-color: var(--color-accent-line);
+  background: var(--color-accent-subtle);
+}
+.saved-post-item:active { opacity: 0.75; }
+.saved-post-item:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.saved-post-platform {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-accent);
+  border-left: 2px solid var(--color-accent);
+  padding-left: var(--space-2);
+}
+
+.saved-post-preview {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Loading ── */
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Footer ── */
+.doc-footer {
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.footer-credit {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.footer-credit a {
+  color: var(--color-ink-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s var(--ease-out);
+}
+.footer-credit a:hover { color: var(--color-ink); }
+.footer-credit a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: 2px; }
+
+.footer-ts {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 600;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px var(--color-shadow);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  pointer-events: none;
+  max-width: 320px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--color-success); }
+.toast.error   { background: var(--color-danger); }
+
+/* ── Animations ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Social accounts ── */
+.social-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.social-account-card {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.social-account-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.social-account-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  background: var(--color-paper-3);
+  color: var(--color-ink-muted);
+}
+
+.social-account-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  flex: 1;
+  min-width: 0;
+}
+
+.social-account-status {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.social-account-status.connected {
+  background: oklch(62% 0.18 155 / 0.12);
+  color: var(--color-success);
+}
+.social-account-status.disconnected {
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-border);
+}
+
+.social-connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.input-text {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  transition: border-color 0.15s var(--ease-out);
+  width: 100%;
+}
+.input-text:focus { outline: none; border-color: var(--color-accent); }
+.input-text:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.input-text::placeholder { color: var(--color-ink-muted); }
+
+.btn-connect {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-paper);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease-out);
+  width: 100%;
+}
+.btn-connect:hover:not(:disabled) { opacity: 0.85; }
+.btn-connect:active:not(:disabled) { opacity: 0.7; }
+.btn-connect:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-connect:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-disconnect {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  color: var(--color-danger);
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out);
+  align-self: flex-start;
+}
+.btn-disconnect:hover { background: var(--color-danger-ghost); }
+.btn-disconnect:active { opacity: 0.7; }
+.btn-disconnect:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.social-api-note {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  line-height: 1.55;
+}
+.social-api-note a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.social-api-note a:hover { color: var(--color-accent-hover); }
+.social-api-note strong { color: var(--color-ink); }
+
+/* ── Trigger config ── */
+.trigger-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.trigger-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.trigger-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.trigger-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+/* ── Brand editor ── */
+.brand-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.brand-editor-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.input-color {
+  width: 40px;
+  height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.input-color:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ── Post now + error ── */
+.btn-post-now {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent-dim);
+  color: var(--color-paper);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease-out), transform 0.15s var(--ease-out);
+  margin-top: var(--space-2);
+}
+.btn-post-now:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+.btn-post-now:active:not(:disabled) { transform: translateY(0); opacity: 0.7; }
+.btn-post-now:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn-post-now:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.post-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  background: var(--color-neg-bg);
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+  line-height: 1.5;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  html, body { overflow-x: clip; }
+
+  .doc-body {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
   }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse 700px 500px at 70% -10%, rgba(29,185,84,0.08) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  body > * { position: relative; z-index: 1; }
-
-  h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem); letter-spacing: 0.02em; color: var(--text); line-height: 1; }
-  h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: 0.04em; color: var(--accent); }
-  h3 { font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
-
-  .container, main, .wrapper, .app { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
-
-  .card, .result, .item, .book, .movie, .album, .article, .show, .post, .score, [class*="card"], [class*="item"], [class*="result"] {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    transition: transform 0.2s, background 0.2s;
-    animation: mediaFade 0.4s ease both;
-  }
-  .card:hover, .item:hover, [class*="card"]:hover { transform: translateY(-2px); background: var(--surface2); }
-
-  input, select, textarea {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    padding: 0.75rem 1rem;
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    width: 100%;
-    transition: border-color 0.2s;
-  }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-
-  button, .btn, input[type="submit"], input[type="button"] {
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 999px;
-    padding: 0.75rem 2rem;
-    font-family: var(--font-body);
-    font-weight: 800;
-    font-size: 0.9rem;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    transition: transform 0.15s, filter 0.15s;
-  }
-  button:hover { transform: scale(1.03); filter: brightness(1.1); }
-  button:active { transform: scale(0.97); }
-
-  .tag, .badge, .genre, .category, .label, .type, .sport, .league {
-    display: inline-block;
-    background: rgba(29,185,84,0.12);
-    border: 1px solid rgba(29,185,84,0.25);
-    color: var(--accent);
-    border-radius: 4px;
-    padding: 0.15rem 0.6rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+  .config-grid {
+    grid-template-columns: 1fr;
   }
 
-  .score, .rating, .stat, .number, .count {
-    font-family: var(--font-mono);
-    font-size: 1.8rem;
-    font-weight: 500;
-    color: var(--accent);
+  .nav-search-pill {
+    min-width: 0;
+    max-width: 140px;
   }
 
-  .live, .trending, .new { color: var(--accent2); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  .nav-search-kbd { display: none; }
 
-  table { width: 100%; border-collapse: collapse; }
-  th { padding: 0.5rem 1rem; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; border-bottom: 1px solid var(--border); }
-  td { padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
-
-  @keyframes mediaFade {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: none; }
+  .results-grid {
+    grid-template-columns: 1fr;
   }
 
-  @keyframes livePulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+  .post-gen-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
   }
 
-  .live::before { content: '● '; animation: livePulse 1.5s ease infinite; }
+  .post-context { max-width: 100%; }
+
+  .platform-tabs { flex-wrap: wrap; }
+  .trigger-grid { grid-template-columns: 1fr; }
+  .brand-editor-row { flex-direction: column; align-items: stretch; }
+  .input-color { width: 100%; height: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-card, .fixture-card { animation: none; }
+  .btn-copy:hover { transform: none; }
+  .spinner { animation: none; border-top-color: var(--color-accent); }
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="logo">🏆</div>
-    <div>
-      <div class="header-title">ScorePost</div>
-      <div class="header-sub">Sports Score Auto-Poster for Venues</div>
-    </div>
-    <div class="header-right">
-      <div class="next-update">
-        <span>Next update</span>
-        <div class="update-bar">
-          <div class="update-fill" id="updateBar" style="width:100%"></div>
-        </div>
-        <span id="updateCountdown">10s</span>
-      </div>
-      <div class="live-badge">
-        <div class="live-dot"></div>
-        <span>LIVE</span>
-      </div>
-    </div>
-  </header>
 
-  <main>
-    <!-- Left: Live Scores -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title">
-          📺 Live Matches
+<!-- N13 Inline ⌘K-pill nav -->
+<nav class="nav" aria-label="Application navigation">
+  <span class="nav-wordmark" aria-label="ScorePost">Score<span>Post</span></span>
+
+  <div class="nav-search-pill" aria-hidden="true">
+    <svg class="nav-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="4.5"/>
+      <path d="M10.5 10.5L14 14" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-search-text">Search or press ⌘K…</span>
+    <span class="nav-search-kbd">⌘K</span>
+  </div>
+
+  <div class="nav-back-wrap">
+    <a href="../index.html" class="nav-back" aria-label="Back to all apps">← All Apps</a>
+  </div>
+</nav>
+
+<!-- Long Document body -->
+<div class="doc-body">
+
+  <!-- Page title -->
+  <h1 class="page-title">Score<span>Post</span></h1>
+  <p class="page-desc">Keep your social media buzzing on game day — search for teams, follow their scores, and generate branded social posts the moment results come in.</p>
+
+  <hr class="doc-hr">
+
+  <!-- Team Search -->
+  <section class="doc-section" aria-label="Team search">
+    <h2 class="doc-section-title">Search Teams</h2>
+    <p class="doc-section-sub">Find teams across football, basketball, baseball, and more.</p>
+    <div class="search-row">
+      <input
+        type="text"
+        class="input-search"
+        id="search-input"
+        placeholder="e.g. Arsenal, Lakers…"
+        aria-label="Search for a team"
+        autocomplete="off"
+      >
+      <button class="btn-search" id="btn-search" aria-label="Search">Go</button>
+    </div>
+    <div class="search-results" id="search-results" role="listbox" aria-label="Search results"></div>
+  </section>
+
+  <!-- Followed Teams -->
+  <section class="doc-section" aria-label="Followed teams">
+    <h2 class="doc-section-title">Followed Teams</h2>
+    <div class="followed-list" id="followed-list" role="list" aria-label="Followed teams">
+      <div class="followed-empty" id="followed-empty">Search and follow teams to see their results here.</div>
+    </div>
+  </section>
+
+  <!-- Quick Leagues -->
+  <section class="doc-section" aria-label="Quick leagues">
+    <h2 class="doc-section-title">Quick Leagues</h2>
+    <p class="doc-section-sub">Browse recent results from a major league without following individual teams.</p>
+    <div class="league-pills" role="group" aria-label="League shortcuts">
+      <button class="league-pill" data-id="4328" aria-label="English Premier League">EPL</button>
+      <button class="league-pill" data-id="4391" aria-label="NFL">NFL</button>
+      <button class="league-pill" data-id="4387" aria-label="NBA">NBA</button>
+      <button class="league-pill" data-id="4424" aria-label="MLB">MLB</button>
+      <button class="league-pill" data-id="4380" aria-label="NHL">NHL</button>
+    </div>
+  </section>
+
+  <!-- Configuration -->
+  <section class="doc-section" aria-label="Post configuration">
+    <h2 class="doc-section-title">Post Configuration</h2>
+    <div class="config-grid">
+      <div class="field-block">
+        <label class="field-label" for="template-select">Post Template</label>
+        <select class="select-field" id="template-select" aria-label="Post template">
+          <option value="result">Match Result</option>
+          <option value="upcoming">Upcoming Match</option>
+          <option value="summary">Season Summary</option>
+        </select>
+      </div>
+      <div class="field-block">
+        <label class="field-label" for="interval-select">Auto-Post Interval</label>
+        <select class="select-field" id="interval-select" aria-label="Post interval">
+          <option value="after-result">After each result</option>
+          <option value="daily">Daily summary</option>
+          <option value="hourly">Hourly</option>
+        </select>
+        <div class="toggle-field" style="margin-top:var(--space-3);">
+          <label class="toggle-switch" aria-label="Toggle auto-posting">
+            <input type="checkbox" id="autopost-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-text">Auto-posting</span>
+        </div>
+        <div id="schedule-status" class="schedule-status-line">Schedule: OFF</div>
+      </div>
+      <div class="field-block" style="grid-column:1/-1;margin-top:var(--space-2);">
+        <label class="field-label">Post Triggers</label>
+        <p class="doc-section-sub" style="margin-bottom:var(--space-2);">Choose which game events automatically generate and send a social post. Full-time detection is live — kickoff, goal, and halftime require a premium live-score API.</p>
+        <div class="trigger-grid" role="group" aria-label="Post event triggers">
+          <label class="trigger-item">
+            <input type="checkbox" class="trigger-checkbox" id="trigger-kickoff" checked>
+            <span class="trigger-label">Kickoff</span>
+          </label>
+          <label class="trigger-item">
+            <input type="checkbox" class="trigger-checkbox" id="trigger-goal" checked>
+            <span class="trigger-label">Goal / Score</span>
+          </label>
+          <label class="trigger-item">
+            <input type="checkbox" class="trigger-checkbox" id="trigger-halftime">
+            <span class="trigger-label">Halftime</span>
+          </label>
+          <label class="trigger-item">
+            <input type="checkbox" class="trigger-checkbox" id="trigger-fulltime" checked>
+            <span class="trigger-label">Full-time</span>
+          </label>
         </div>
       </div>
-      <div class="panel-body" id="matchesPanel"></div>
-    </div>
-
-    <!-- Center: Preview + Config -->
-    <div class="center-panel panel">
-      <div class="panel-header">
-        <div class="panel-title">✏️ Caption &amp; Preview</div>
-      </div>
-      <div class="panel-body" style="display:flex; flex-direction:column; gap:0;">
-        <!-- Caption Preview -->
-        <div style="margin-bottom:16px;" id="previewArea">
-          <div class="preview-box" id="previewBox">
-            <div class="preview-empty" id="previewEmpty">
-              <div class="empty-icon">📡</div>
-              <div>Follow a team to see your auto-post preview here</div>
-              <div style="margin-top:6px;font-size:11px;color:var(--muted)">Score updates trigger automatic caption generation</div>
+      <div class="field-block" style="grid-column:1/-1;margin-top:var(--space-2);">
+        <label class="field-label">Brand Template</label>
+        <div class="brand-editor">
+          <div>
+            <label class="field-label" for="brand-venue-name" style="margin-bottom:var(--space-1);">Venue Name</label>
+            <input type="text" class="input-text" id="brand-venue-name" placeholder="e.g. The Sports Bar &amp; Grill" autocomplete="off" aria-label="Venue name — appended to every post">
+          </div>
+          <div class="brand-editor-row">
+            <div>
+              <label class="field-label" for="brand-color" style="margin-bottom:var(--space-1);">Color</label>
+              <input type="color" class="input-color" id="brand-color" value="#cc3300" aria-label="Brand accent color">
+            </div>
+            <div style="flex:1;min-width:0;">
+              <label class="field-label" for="brand-logo-url" style="margin-bottom:var(--space-1);">Logo URL (optional)</label>
+              <input type="url" class="input-text" id="brand-logo-url" placeholder="https://…/logo.png" autocomplete="off" aria-label="Brand logo URL">
             </div>
           </div>
         </div>
-
-        <!-- Config -->
-        <div class="section-title">Venue Profile</div>
-        <div class="input-group">
-          <label for="venueName">Venue / Page Name</label>
-          <input type="text" id="venueName" placeholder="e.g. The Corner Sports Bar" value="The Corner Sports Bar" />
-        </div>
-        <div class="input-group">
-          <label for="venueHandle">Social Handle</label>
-          <input type="text" id="venueHandle" placeholder="@yourcornerbar" value="@cornersportsbar" />
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section-title">Caption Template</div>
-        <div class="input-group">
-          <label for="captionTemplate">Post template</label>
-          <textarea id="captionTemplate">⚽ GOAL ALERT! {home_team} {score} {away_team}
-We're watching LIVE at {venue}! 🍺
-Minute {minute} — Come join us! #GameDay #Sports</textarea>
-          <div class="template-vars" id="templateVars"></div>
-        </div>
-
-        <div class="section-title">Auto-Post Triggers</div>
-        <div class="trigger-grid" id="triggerGrid"></div>
-
-        <div class="divider"></div>
-        <button class="btn btn-primary" id="testPostBtn" style="width:100%; margin-top:4px;">
-          🚀 Simulate Manual Post
-        </button>
       </div>
     </div>
+  </section>
 
-    <!-- Right: Post History -->
-    <div class="panel log-panel">
-      <div class="panel-header">
-        <div class="panel-title">📋 Post History</div>
+  <!-- Social Accounts -->
+  <section class="doc-section" aria-label="Social accounts">
+    <h2 class="doc-section-title">Social Accounts</h2>
+    <p class="doc-section-sub">Connect your Facebook Page and Instagram Business account to post directly. Get a Page Access Token from <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">Meta Graph API Explorer</a> with <strong>pages_manage_posts</strong> permission.</p>
+    <div class="social-accounts-list" id="social-accounts-list"></div>
+  </section>
+
+  <!-- Score Ticker Strip -->
+  <section class="doc-section" aria-label="Recent scores">
+    <h2 class="doc-section-title">Recent Scores</h2>
+    <div class="ticker-strip" aria-label="Score ticker">
+      <div class="ticker-inner" id="ticker-inner">
+        <span class="ticker-empty" id="ticker-empty">Follow teams to see live scores here</span>
       </div>
-      <div style="padding: 14px 20px 0; flex-shrink:0;">
-        <div class="stat-row">
-          <div class="stat-card">
-            <div class="stat-value" id="statTotal">0</div>
-            <div class="stat-label">Would Post</div>
+    </div>
+  </section>
+
+  <!-- Empty state (shown until a team is followed) -->
+  <div class="main-empty" id="main-empty" role="status">
+    <p class="main-empty-title">No teams followed yet</p>
+    <p class="main-empty-sub">Search for teams above and follow them to load their recent results, upcoming fixtures, and generate social posts.</p>
+  </div>
+
+  <!-- Recent Results (hidden until a team is followed) -->
+  <section class="doc-section" id="results-section" style="display:none;" aria-label="Recent results">
+    <div class="section-head">
+      <h2 class="section-title">Recent Results</h2>
+      <span class="section-sub" id="results-sub"></span>
+    </div>
+    <div class="results-grid" id="results-grid" role="list" aria-label="Recent match results">
+      <div class="loading-row"><div class="spinner" aria-hidden="true"></div> Loading results…</div>
+    </div>
+  </section>
+
+  <!-- Upcoming Fixtures (hidden until a team is followed) -->
+  <section class="doc-section" id="fixtures-section" style="display:none;" aria-label="Upcoming fixtures">
+    <div class="section-head">
+      <h2 class="section-title">Upcoming Fixtures</h2>
+      <span class="section-sub" id="fixtures-sub"></span>
+    </div>
+    <div id="fixtures-list" role="list" aria-label="Upcoming fixtures" style="display:flex;flex-direction:column;gap:var(--space-3);">
+      <div class="loading-row"><div class="spinner" aria-hidden="true"></div> Loading fixtures…</div>
+    </div>
+  </section>
+
+  <!-- Social Post Generator (hidden until Generate Post is clicked) -->
+  <section class="doc-section" id="post-gen-section" style="display:none;" aria-label="Social post generator">
+    <h2 class="doc-section-title">Social Post Generator</h2>
+    <div class="post-gen-panel">
+      <div class="post-gen-header">
+        <span class="post-gen-title">Post Preview</span>
+        <span class="post-context" id="post-context">No match selected</span>
+      </div>
+      <div class="post-gen-body">
+        <!-- Platform tabs + preview -->
+        <div>
+          <div class="platform-tabs" role="tablist" aria-label="Social platforms">
+            <button class="platform-tab active" role="tab" aria-selected="true" data-platform="twitter">𝕏 Twitter</button>
+            <button class="platform-tab" role="tab" aria-selected="false" data-platform="instagram">Instagram</button>
+            <button class="platform-tab" role="tab" aria-selected="false" data-platform="linkedin">LinkedIn</button>
           </div>
-          <div class="stat-card">
-            <div class="stat-value" id="statGoals" style="color:var(--green)">0</div>
-            <div class="stat-label">Score Events</div>
+          <div class="post-preview-box" id="post-preview" aria-live="polite" style="margin-top:var(--space-3);">
+            Select a match and click Generate Post to preview your social content.
           </div>
-          <div class="stat-card">
-            <div class="stat-value" id="statTeams" style="color:var(--yellow)">0</div>
-            <div class="stat-label">Teams Followed</div>
+          <div class="char-count" id="char-count">0 / 280 chars</div>
+          <button class="btn-copy" id="btn-copy">Copy to Clipboard</button>
+          <button class="btn-post-now" id="btn-post-now" disabled>No accounts connected — add in Social Accounts</button>
+          <div class="post-error" id="post-error" role="alert" aria-live="polite" style="display:none;"></div>
+        </div>
+
+        <!-- Tone + hashtags + saved -->
+        <div class="post-controls-block">
+          <span class="control-label">Tone</span>
+          <div class="tone-pills" role="group" aria-label="Post tone">
+            <button class="tone-pill active" data-tone="hype">Hype</button>
+            <button class="tone-pill" data-tone="professional">Professional</button>
+            <button class="tone-pill" data-tone="casual">Casual</button>
+            <button class="tone-pill" data-tone="stats">Stats-heavy</button>
           </div>
         </div>
-      </div>
-      <div class="log-scroll" id="logScroll">
-        <div class="log-empty" id="logEmpty">
-          <div class="log-empty-icon">📜</div>
-          <div>No posts yet</div>
-          <div style="margin-top:4px;font-size:10px;">Follow teams and score events will auto-log here</div>
+
+        <div class="post-controls-block">
+          <span class="control-label">Hashtag Suggestions</span>
+          <div class="hashtag-box" id="hashtag-box" aria-label="Suggested hashtags">
+            <span style="font-size:var(--text-xs);color:var(--color-ink-muted);">Generate a post to see hashtags</span>
+          </div>
+        </div>
+
+        <div class="post-controls-block">
+          <span class="control-label">Saved Posts (last 5)</span>
+          <div class="saved-posts-list" id="saved-posts-list" aria-label="Saved posts"></div>
         </div>
       </div>
     </div>
-  </main>
+  </section>
+
+  <!-- Footer -->
+  <footer class="doc-footer" aria-label="Page footer">
+    <p class="footer-credit">
+      Data via <a href="https://www.thesportsdb.com/" target="_blank" rel="noopener">TheSportsDB API</a> — free tier, public endpoints
+    </p>
+    <time class="footer-ts" id="footer-ts" datetime=""></time>
+  </footer>
+
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<!-- Toast -->
+<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
 <script>
-  // === State ===
-  const state = {
-    followedTeams: new Set(),
-    postLog: [],
-    totalPosts: 0,
-    totalGoals: 0,
-    triggers: {
-      goal: true,
-      halftime: true,
-      fulltime: true,
-      kickoff: false
-    },
-    updateInterval: 10,
-    elapsed: 0
-  };
+// ── Helpers ───────────────────────────────────────────────────
+const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDate = (s) => {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
-  // === Match data ===
-  const matches = [
-    {
-      id: 'match1',
-      sport: 'Soccer',
-      sportIcon: '⚽',
-      league: 'Premier League',
-      home: { name: 'Man City', emoji: '🔵', score: 2 },
-      away: { name: 'Arsenal', emoji: '🔴', score: 1 },
-      minute: 67,
-      status: 'LIVE',
-      halfDone: false,
-      scorePrevHome: 2,
-      scorePrevAway: 1
-    },
-    {
-      id: 'match2',
-      sport: 'Soccer',
-      sportIcon: '⚽',
-      league: 'La Liga',
-      home: { name: 'Barcelona', emoji: '🔵🔴', score: 0 },
-      away: { name: 'Real Madrid', emoji: '⚪', score: 0 },
-      minute: 23,
-      status: 'LIVE',
-      halfDone: false,
-      scorePrevHome: 0,
-      scorePrevAway: 0
-    },
-    {
-      id: 'match3',
-      sport: 'Basketball',
-      sportIcon: '🏀',
-      league: 'NBA',
-      home: { name: 'Lakers', emoji: '💜', score: 87 },
-      away: { name: 'Celtics', emoji: '🟢', score: 91 },
-      minute: 'Q3',
-      status: 'LIVE',
-      halfDone: false,
-      scorePrevHome: 87,
-      scorePrevAway: 91
-    },
-    {
-      id: 'match4',
-      sport: 'NFL',
-      sportIcon: '🏈',
-      league: 'NFL',
-      home: { name: 'Chiefs', emoji: '🔴', score: 14 },
-      away: { name: 'Eagles', emoji: '🦅', score: 10 },
-      minute: 'Q2',
-      status: 'LIVE',
-      halfDone: false,
-      scorePrevHome: 14,
-      scorePrevAway: 10
+const SPORTSDB = 'https://www.thesportsdb.com/api/v1/json/3';
+
+// ── Storage ───────────────────────────────────────────────────
+const store = {
+  teams: {
+    get: () => { try { return JSON.parse(localStorage.getItem('sp_teams') || '[]'); } catch { return []; } },
+    save: (t) => localStorage.setItem('sp_teams', JSON.stringify(t)),
+  },
+  schedule: {
+    get: () => { try { return JSON.parse(localStorage.getItem('sp_schedule') || '{"on":false,"interval":"after-result"}'); } catch { return {on:false,interval:'after-result'}; } },
+    save: (s) => localStorage.setItem('sp_schedule', JSON.stringify(s)),
+  },
+  savedPosts: {
+    get: () => { try { return JSON.parse(localStorage.getItem('sp_saved_posts') || '[]'); } catch { return []; } },
+    save: (p) => localStorage.setItem('sp_saved_posts', JSON.stringify(p)),
+  },
+  social: {
+    get: () => { try { return JSON.parse(localStorage.getItem('sp_social') || '{"fb":null,"ig":null}'); } catch { return {fb:null,ig:null}; } },
+    save: (s) => localStorage.setItem('sp_social', JSON.stringify(s)),
+  },
+  brand: {
+    get: () => { try { return JSON.parse(localStorage.getItem('sp_brand') || '{"name":"","color":"#cc3300","logo":""}'); } catch { return {name:'',color:'#cc3300',logo:''}; } },
+    save: (b) => localStorage.setItem('sp_brand', JSON.stringify(b)),
+  },
+  triggers: {
+    get: () => { try { return JSON.parse(localStorage.getItem('sp_triggers') || '{"kickoff":true,"goal":true,"halftime":false,"fulltime":true}'); } catch { return {kickoff:true,goal:true,halftime:false,fulltime:true}; } },
+    save: (t) => localStorage.setItem('sp_triggers', JSON.stringify(t)),
+  },
+};
+
+// ── State ─────────────────────────────────────────────────────
+let followedTeams = store.teams.get();   // [{id, name, badge, sport, country}]
+let activeTeamId  = null;
+let currentMatchData = null;  // match obj for post gen
+let activePlatform = 'twitter';
+let activeTone = 'hype';
+let activeTemplate = 'result';
+let allResults = [];    // [{team, event}]
+let allFixtures = [];   // [{team, event}]
+let savedPosts = store.savedPosts.get();
+let socialAccounts = store.social.get();
+let brandConfig = store.brand.get();
+let autopostInterval = null;
+let lastPollTime     = null;
+const seenEventIds   = new Set(JSON.parse(localStorage.getItem('sp_seen_events') || '[]'));
+
+const CHAR_LIMITS = { twitter: 280, instagram: 2200, linkedin: 3000 };
+
+// ── API ───────────────────────────────────────────────────────
+async function apiGet(path) {
+  const res = await fetch(`${SPORTSDB}${path}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ── Team search ───────────────────────────────────────────────
+const searchInput = document.getElementById('search-input');
+const btnSearch   = document.getElementById('btn-search');
+const searchResultsEl = document.getElementById('search-results');
+
+async function doSearch() {
+  const q = searchInput.value.trim();
+  if (!q) return;
+  btnSearch.disabled = true;
+  btnSearch.textContent = '…';
+  searchResultsEl.innerHTML = '<div class="loading-row"><div class="spinner"></div> Searching…</div>';
+  searchResultsEl.classList.add('open');
+  try {
+    const data = await apiGet(`/searchteams.php?t=${encodeURIComponent(q)}`);
+    const teams = data.teams || [];
+    if (!teams.length) {
+      searchResultsEl.innerHTML = '<div class="loading-row" style="color:var(--color-ink-muted);">No teams found.</div>';
+      return;
     }
-  ];
-
-  // === Template variables ===
-  const templateVarDefs = [
-    { key: '{home_team}', desc: 'Home team name' },
-    { key: '{away_team}', desc: 'Away team name' },
-    { key: '{score}', desc: 'Current score' },
-    { key: '{minute}', desc: 'Game minute/period' },
-    { key: '{venue}', desc: 'Your venue name' },
-    { key: '{league}', desc: 'League name' }
-  ];
-
-  // === Trigger definitions ===
-  const triggerDefs = [
-    { key: 'goal', label: 'Goal / Score', icon: '⚡' },
-    { key: 'halftime', label: 'Half Time', icon: '⏸️' },
-    { key: 'fulltime', label: 'Full Time', icon: '🏁' },
-    { key: 'kickoff', label: 'Kick Off', icon: '🎯' }
-  ];
-
-  // === DOM helpers ===
-  function el(id) { return document.getElementById(id); }
-
-  function buildCaption(match, triggerType) {
-    const template = el('captionTemplate').value;
-    const score = `${match.home.score}-${match.away.score}`;
-    const minute = typeof match.minute === 'number' ? `${match.minute}'` : match.minute;
-    const venue = el('venueName').value || 'Our Venue';
-
-    return template
-      .replace(/{home_team}/g, match.home.name)
-      .replace(/{away_team}/g, match.away.name)
-      .replace(/{score}/g, score)
-      .replace(/{minute}/g, minute)
-      .replace(/{venue}/g, venue)
-      .replace(/{league}/g, match.league);
-  }
-
-  // === Render matches ===
-  function renderMatches() {
-    const panel = el('matchesPanel');
-    panel.innerHTML = '';
-
-    matches.forEach(m => {
-      const isFollowed = state.followedTeams.has(m.id);
-      const card = document.createElement('article');
-      card.className = `match-card${isFollowed ? ' followed' : ''}`;
-      card.id = `card-${m.id}`;
-      card.setAttribute('aria-label', `${m.home.name} vs ${m.away.name}`);
-
-      const statusCls = m.status === 'LIVE' ? 'status-live' : m.status === 'FT' ? 'status-ft' : 'status-ht';
-      const minuteDisplay = typeof m.minute === 'number' ? `${m.minute}'` : m.minute;
-      const isLive = m.status === 'LIVE' || m.status === 'HT';
-
-      card.innerHTML = `
-        <button class="follow-toggle${isFollowed ? ' active' : ''}" data-id="${m.id}" aria-pressed="${isFollowed}" title="${isFollowed ? 'Unfollow team' : 'Follow team'}">
-          ${isFollowed ? '★ Following' : '☆ Follow'}
+    searchResultsEl.innerHTML = '';
+    teams.slice(0, 8).forEach(t => {
+      const alreadyFollowing = followedTeams.some(f => f.id === t.idTeam);
+      const item = document.createElement('div');
+      item.className = 'search-result-item';
+      item.setAttribute('role', 'option');
+      item.innerHTML = `
+        ${t.strTeamBadge
+          ? `<img class="team-badge-sm" src="${esc(t.strTeamBadge)}/tiny" alt="${esc(t.strTeam)} badge" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+             <div class="team-badge-placeholder" style="display:none">🏆</div>`
+          : `<div class="team-badge-placeholder">🏆</div>`}
+        <div class="result-info">
+          <div class="result-name">${esc(t.strTeam)}</div>
+          <div class="result-sport">${esc(t.strSport || '')} · ${esc(t.strCountry || '')}</div>
+        </div>
+        <button class="btn-follow${alreadyFollowing ? ' following' : ''}" data-id="${t.idTeam}" aria-label="${alreadyFollowing ? 'Unfollow' : 'Follow'} ${esc(t.strTeam)}">
+          ${alreadyFollowing ? '✓ Following' : '+ Follow'}
         </button>
-        <div class="match-sport">
-          <span class="sport-tag">${m.sport}</span>
-          <span style="color:var(--muted)">${m.league}</span>
-          <span class="match-status-badge ${statusCls}">${m.status}</span>
-        </div>
-        <div class="teams">
-          <div class="team-side">
-            <div class="team-emoji">${m.home.emoji}</div>
-            <div class="team-name">${m.home.name}</div>
-          </div>
-          <div class="score-display">
-            <span class="score-num" id="score-h-${m.id}">${m.home.score}</span>
-            <span class="score-sep">—</span>
-            <span class="score-num" id="score-a-${m.id}">${m.away.score}</span>
-          </div>
-          <div class="team-side">
-            <div class="team-emoji">${m.away.emoji}</div>
-            <div class="team-name">${m.away.name}</div>
-          </div>
-        </div>
-        <div class="match-minute">
-          ${isLive && m.status !== 'FT' ? `<div class="minute-dot"></div>` : ''}
-          ${minuteDisplay}
-          ${m.sport === 'Soccer' ? `· ${m.league}` : ''}
-        </div>
       `;
-
-      panel.appendChild(card);
-    });
-
-    // Attach follow listeners
-    panel.querySelectorAll('.follow-toggle').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      item.querySelector('.btn-follow').addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = btn.dataset.id;
-        if (state.followedTeams.has(id)) {
-          state.followedTeams.delete(id);
-          showToast('Unfollowed', `Stopped following ${getMatchName(id)}`, 'info');
-        } else {
-          state.followedTeams.add(id);
-          showToast('Following!', `Now tracking ${getMatchName(id)} — auto-posts enabled`, 'success');
-        }
-        updateStats();
-        renderMatches();
-        updatePreview();
+        toggleFollow(t.idTeam, t.strTeam, t.strTeamBadge, t.strSport, t.strCountry);
+        doSearch(); // refresh
       });
+      searchResultsEl.appendChild(item);
     });
+  } catch(err) {
+    searchResultsEl.innerHTML = `<div class="loading-row" style="color:var(--color-danger);">Error: ${esc(err.message)}</div>`;
+  } finally {
+    btnSearch.disabled = false;
+    btnSearch.textContent = 'Go';
   }
+}
 
-  function getMatchName(id) {
-    const m = matches.find(x => x.id === id);
-    return m ? `${m.home.name} vs ${m.away.name}` : id;
+btnSearch.addEventListener('click', doSearch);
+searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+
+// Close results on outside click
+document.addEventListener('pointerdown', (e) => {
+  if (!searchResultsEl.contains(e.target) && e.target !== searchInput && e.target !== btnSearch) {
+    searchResultsEl.classList.remove('open');
   }
+}, { passive: true });
 
-  // === Render template vars ===
-  function renderTemplateVars() {
-    const container = el('templateVars');
-    templateVarDefs.forEach(v => {
-      const chip = document.createElement('button');
-      chip.className = 'var-chip';
-      chip.textContent = v.key;
-      chip.title = v.desc;
-      chip.setAttribute('type', 'button');
-      chip.addEventListener('click', () => {
-        const ta = el('captionTemplate');
-        const pos = ta.selectionStart;
-        const before = ta.value.slice(0, pos);
-        const after = ta.value.slice(pos);
-        ta.value = `${before}${v.key}${after}`;
-        ta.focus();
-        ta.setSelectionRange(pos + v.key.length, pos + v.key.length);
-        updatePreview();
-      });
-      container.appendChild(chip);
-    });
-  }
-
-  // === Render triggers ===
-  function renderTriggers() {
-    const grid = el('triggerGrid');
-    grid.innerHTML = '';
-    triggerDefs.forEach(t => {
-      const label = document.createElement('label');
-      label.className = `trigger-check${state.triggers[t.key] ? ' checked' : ''}`;
-      label.setAttribute('role', 'checkbox');
-      label.setAttribute('aria-checked', String(state.triggers[t.key]));
-      label.tabIndex = 0;
-      label.innerHTML = `
-        <input type="checkbox" ${state.triggers[t.key] ? 'checked' : ''} />
-        <div class="custom-checkbox"></div>
-        <span class="trigger-icon">${t.icon}</span>
-        <span class="trigger-label">${t.label}</span>
-      `;
-
-      const toggle = () => {
-        state.triggers[t.key] = !state.triggers[t.key];
-        label.classList.toggle('checked');
-        label.setAttribute('aria-checked', String(state.triggers[t.key]));
-        updatePreview();
-      };
-
-      label.addEventListener('click', toggle);
-      label.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
-      grid.appendChild(label);
-    });
-  }
-
-  // === Preview ===
-  function updatePreview(match, triggerType) {
-    const box = el('previewBox');
-    const empty = el('previewEmpty');
-
-    const followed = matches.filter(m => state.followedTeams.has(m.id));
-    const targetMatch = match || (followed.length > 0 ? followed[0] : null);
-
-    if (!targetMatch) {
-      box.className = 'preview-box';
-      box.innerHTML = `<div class="preview-empty" id="previewEmpty">
-        <div class="empty-icon">📡</div>
-        <div>Follow a team to see your auto-post preview here</div>
-        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Score updates trigger automatic caption generation</div>
-      </div>`;
-      return;
+// ── Follow / Unfollow ─────────────────────────────────────────
+function toggleFollow(id, name, badge, sport, country) {
+  const idx = followedTeams.findIndex(t => t.id === id);
+  if (idx >= 0) {
+    followedTeams.splice(idx, 1);
+    if (activeTeamId === id) {
+      activeTeamId = followedTeams[0]?.id || null;
     }
+    toast(`Unfollowed ${name}`);
+  } else {
+    followedTeams.push({ id, name, badge, sport, country });
+    if (!activeTeamId) activeTeamId = id;
+    toast(`Following ${name}`, 'success');
+  }
+  store.teams.save(followedTeams);
+  renderFollowedList();
+  refreshDashboard();
+}
 
-    const caption = buildCaption(targetMatch, triggerType);
-    const trigger = triggerType || 'goal';
-    const venueName = el('venueName').value || 'Your Venue';
-    const venueHandle = el('venueHandle').value || '@yourpage';
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    box.className = 'preview-box has-post';
-    box.innerHTML = `
-      <div class="would-post-tag">Would Post</div>
-      <div class="trigger-info">
-        <span>🔔</span>
-        <span>Triggered by: <strong>${trigger.charAt(0).toUpperCase() + trigger.slice(1)}</strong> — ${targetMatch.home.name} vs ${targetMatch.away.name}</span>
+// ── Followed list ─────────────────────────────────────────────
+function renderFollowedList() {
+  const el = document.getElementById('followed-list');
+  const empty = document.getElementById('followed-empty');
+  if (!followedTeams.length) {
+    el.innerHTML = '';
+    el.appendChild(createEl('div', { className:'followed-empty', id:'followed-empty', textContent:'Search and follow teams to see their results here.' }));
+    return;
+  }
+  el.innerHTML = '';
+  followedTeams.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'followed-item' + (t.id === activeTeamId ? ' active' : '');
+    item.setAttribute('role', 'listitem');
+    item.setAttribute('aria-label', t.name);
+    item.tabIndex = 0;
+    item.innerHTML = `
+      ${t.badge
+        ? `<img class="team-badge-sm" src="${esc(t.badge)}/tiny" alt="${esc(t.name)} badge" onerror="this.style.display='none'">`
+        : `<div class="team-badge-placeholder">🏆</div>`}
+      <div class="followed-info">
+        <div class="followed-name">${esc(t.name)}</div>
+        <div class="followed-sport">${esc(t.sport || '')}</div>
       </div>
-      <div class="social-mockup">
-        <div class="social-header">
-          <div class="social-avatar">🏆</div>
-          <div>
-            <div class="social-name">${venueName}</div>
-            <div class="social-handle">${venueHandle}</div>
-          </div>
-          <div class="social-time">Just now</div>
-        </div>
-        <div class="social-text">${escapeHtml(caption)}</div>
-        <div class="social-footer">
-          <span class="social-action">👍 Like</span>
-          <span class="social-action">💬 Comment</span>
-          <span class="social-action">🔁 Share</span>
-          <span style="margin-left:auto;font-size:10px;color:var(--accent);font-weight:600;">Facebook · Instagram</span>
-        </div>
-      </div>
+      <button class="btn-unfollow" title="Unfollow" aria-label="Unfollow ${esc(t.name)}">×</button>
     `;
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // === Post to log ===
-  function addToLog(match, triggerType, caption) {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-    state.postLog.unshift({ match, triggerType, caption, time: timeStr });
-    state.totalPosts++;
-    if (triggerType === 'goal') state.totalGoals++;
-
-    renderLog();
-    updateStats();
-    updatePreview(match, triggerType);
-  }
-
-  function renderLog() {
-    const scroll = el('logScroll');
-    const empty = el('logEmpty');
-
-    if (state.postLog.length === 0) {
-      scroll.innerHTML = `<div class="log-empty" id="logEmpty">
-        <div class="log-empty-icon">📜</div>
-        <div>No posts yet</div>
-        <div style="margin-top:4px;font-size:10px;">Follow teams and score events will auto-log here</div>
-      </div>`;
-      return;
-    }
-
-    scroll.innerHTML = '';
-    state.postLog.slice(0, 20).forEach(entry => {
-      const div = document.createElement('article');
-      div.className = 'log-entry';
-      div.innerHTML = `
-        <div class="log-entry-header">
-          <span class="log-sport-icon">${entry.match.sportIcon}</span>
-          <span class="log-match-name">${entry.match.home.name} vs ${entry.match.away.name}</span>
-          <span class="log-time">${entry.time}</span>
-        </div>
-        <div class="log-trigger">${entry.triggerType}</div>
-        <div class="log-caption">${escapeHtml(entry.caption)}</div>
-      `;
-      scroll.appendChild(div);
+    item.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-unfollow')) return;
+      activeTeamId = t.id;
+      renderFollowedList();
+      loadTeamData(t.id, t.name);
     });
-  }
+    item.querySelector('.btn-unfollow').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFollow(t.id, t.name, t.badge, t.sport, t.country);
+    });
+    item.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') { activeTeamId = t.id; renderFollowedList(); loadTeamData(t.id, t.name); }
+    });
+    el.appendChild(item);
+  });
+}
 
-  function updateStats() {
-    el('statTotal').textContent = state.totalPosts;
-    el('statGoals').textContent = state.totalGoals;
-    el('statTeams').textContent = state.followedTeams.size;
-  }
+function createEl(tag, props) {
+  const el = document.createElement(tag);
+  Object.assign(el, props);
+  return el;
+}
 
-  // === Toast ===
-  function showToast(title, msg, type) {
-    const container = el('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    const icon = type === 'success' ? '✅' : type === 'info' ? '💡' : '⚠️';
-    toast.innerHTML = `
-      <span class="toast-icon">${icon}</span>
-      <div class="toast-body">
-        <div class="toast-title">${escapeHtml(title)}</div>
-        <div class="toast-msg">${escapeHtml(msg)}</div>
+// ── Load team data ────────────────────────────────────────────
+async function loadTeamData(teamId, teamName) {
+  document.getElementById('main-empty').style.display = 'none';
+  document.getElementById('results-section').style.display = 'block';
+  document.getElementById('fixtures-section').style.display = 'block';
+  document.getElementById('results-sub').textContent = teamName;
+  document.getElementById('fixtures-sub').textContent = teamName;
+
+  const resultsGrid = document.getElementById('results-grid');
+  const fixturesList = document.getElementById('fixtures-list');
+  resultsGrid.innerHTML = '<div class="loading-row"><div class="spinner" aria-hidden="true"></div> Loading results…</div>';
+  fixturesList.innerHTML = '<div class="loading-row"><div class="spinner" aria-hidden="true"></div> Loading fixtures…</div>';
+
+  try {
+    const [pastData, nextData] = await Promise.all([
+      apiGet(`/eventslast.php?id=${teamId}`),
+      apiGet(`/eventsnext.php?id=${teamId}`),
+    ]);
+
+    const events = pastData.results || [];
+    const upcoming = nextData.events || [];
+
+    renderResults(events, teamName);
+    renderFixtures(upcoming, teamName);
+    updateTicker(events, teamName);
+  } catch(err) {
+    resultsGrid.innerHTML = `<div class="loading-row" style="color:var(--color-danger);">Failed to load: ${esc(err.message)}</div>`;
+    fixturesList.innerHTML = '';
+  }
+}
+
+// ── Render results ────────────────────────────────────────────
+function renderResults(events, teamName) {
+  const grid = document.getElementById('results-grid');
+  if (!events.length) {
+    grid.innerHTML = '<div class="loading-row" style="color:var(--color-ink-muted);">No recent results found.</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  events.forEach(ev => {
+    const homeScore = parseInt(ev.intHomeScore ?? '', 10);
+    const awayScore = parseInt(ev.intAwayScore ?? '', 10);
+    const hasScore = !isNaN(homeScore) && !isNaN(awayScore);
+    let outcome = 'draw';
+    if (hasScore) {
+      const isHome = (ev.strHomeTeam || '').toLowerCase().includes(teamName.toLowerCase());
+      if (homeScore > awayScore) outcome = isHome ? 'win' : 'loss';
+      else if (awayScore > homeScore) outcome = isHome ? 'loss' : 'win';
+      else outcome = 'draw';
+    }
+    const outcomeLabel = { win: 'WIN', loss: 'LOSS', draw: 'DRAW' }[outcome];
+
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.setAttribute('role', 'listitem');
+    card.innerHTML = `
+      <div class="result-card-header">
+        <span class="result-league">${esc(ev.strLeague || '')}</span>
+        <span class="result-date">${fmtDate(ev.dateEvent)}</span>
       </div>
+      <div class="result-teams">
+        <div class="result-team">
+          ${ev.strHomeTeamBadge
+            ? `<img class="team-badge-md" src="${esc(ev.strHomeTeamBadge)}/tiny" alt="${esc(ev.strHomeTeam)} badge" onerror="this.outerHTML='<div class=\\'team-badge-md-placeholder\\'>🏟</div>'">`
+            : `<div class="team-badge-md-placeholder">🏟</div>`}
+          <span class="result-team-name">${esc(ev.strHomeTeam || '')}</span>
+        </div>
+        <div class="result-score-block">
+          <span class="result-score">${hasScore ? `${homeScore}–${awayScore}` : 'v'}</span>
+          ${hasScore ? `<span class="result-outcome-badge outcome-${outcome}">${outcomeLabel}</span>` : ''}
+        </div>
+        <div class="result-team">
+          ${ev.strAwayTeamBadge
+            ? `<img class="team-badge-md" src="${esc(ev.strAwayTeamBadge)}/tiny" alt="${esc(ev.strAwayTeam)} badge" onerror="this.outerHTML='<div class=\\'team-badge-md-placeholder\\'>🏟</div>'">`
+            : `<div class="team-badge-md-placeholder">🏟</div>`}
+          <span class="result-team-name">${esc(ev.strAwayTeam || '')}</span>
+        </div>
+      </div>
+      ${ev.strVenue ? `<div class="result-venue">${esc(ev.strVenue)}</div>` : ''}
+      <button class="btn-gen-post" data-ev-id="${esc(ev.idEvent)}" aria-label="Generate social post for this match">Generate Post</button>
     `;
-    container.appendChild(toast);
-    setTimeout(() => {
-      toast.style.animation = 'toast-out 0.3s ease forwards';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
-
-  // === Score simulation ===
-  function simulateScoreUpdate() {
-    const followed = matches.filter(m => state.followedTeams.has(m.id) && m.status === 'LIVE');
-
-    matches.forEach(m => {
-      if (m.status !== 'LIVE') return;
-
-      m.scorePrevHome = m.home.score;
-      m.scorePrevAway = m.away.score;
-
-      // Random events
-      const rand = Math.random();
-
-      if (m.sport === 'Soccer') {
-        // advance minute
-        if (typeof m.minute === 'number') m.minute = Math.min(m.minute + 2, 90);
-
-        if (rand < 0.15) {
-          // goal scored
-          if (Math.random() < 0.5) m.home.score++;
-          else m.away.score++;
-        }
-
-        if (m.minute === 45 && !m.halfDone) {
-          m.status = 'HT';
-          m.halfDone = true;
-          if (state.followedTeams.has(m.id) && state.triggers.halftime) {
-            const caption = buildCaption(m, 'halftime');
-            addToLog(m, 'halftime', caption);
-            showToast('Half Time!', `${m.home.name} ${m.home.score}-${m.away.score} ${m.away.name}`, 'info');
-          }
-        } else if (m.minute >= 90) {
-          m.status = 'FT';
-          if (state.followedTeams.has(m.id) && state.triggers.fulltime) {
-            const caption = buildCaption(m, 'fulltime');
-            addToLog(m, 'fulltime', caption);
-            showToast('Full Time!', `Final: ${m.home.name} ${m.home.score}-${m.away.score} ${m.away.name}`, 'success');
-          }
-        }
-      } else if (m.sport === 'Basketball') {
-        if (rand < 0.6) {
-          const pts = [2, 3, 2, 2, 3, 1][Math.floor(Math.random() * 6)];
-          if (Math.random() < 0.5) m.home.score += pts;
-          else m.away.score += pts;
-        }
-      } else if (m.sport === 'NFL') {
-        if (rand < 0.1) {
-          const pts = Math.random() < 0.5 ? 7 : 3;
-          if (Math.random() < 0.5) m.home.score += pts;
-          else m.away.score += pts;
-        }
-      }
-
-      // Check for score change
-      const homeScored = m.home.score > m.scorePrevHome;
-      const awayScored = m.away.score > m.scorePrevAway;
-
-      if ((homeScored || awayScored) && state.followedTeams.has(m.id) && state.triggers.goal) {
-        const caption = buildCaption(m, 'goal');
-        addToLog(m, 'goal', caption);
-
-        const scorer = homeScored ? m.home.name : m.away.name;
-        const sportWord = m.sport === 'Soccer' ? 'GOAL' : m.sport === 'Basketball' ? 'SCORE' : 'TD';
-        showToast(`${sportWord}! 🎉`, `${scorer} scores! ${m.home.name} ${m.home.score}-${m.away.score} ${m.away.name}`, 'success');
-
-        // Flash score
-        const hEl = document.getElementById(`score-h-${m.id}`);
-        const aEl = document.getElementById(`score-a-${m.id}`);
-        if (hEl && homeScored) { hEl.classList.add('scored'); setTimeout(() => hEl.classList.remove('scored'), 600); }
-        if (aEl && awayScored) { aEl.classList.add('scored'); setTimeout(() => aEl.classList.remove('scored'), 600); }
-      }
+    card.querySelector('.btn-gen-post').addEventListener('click', () => {
+      openPostGenerator(ev, teamName, 'result');
     });
+    grid.appendChild(card);
+  });
+}
 
-    // Re-render match cards
-    renderMatches();
+// ── Render fixtures ───────────────────────────────────────────
+function renderFixtures(events, teamName) {
+  const list = document.getElementById('fixtures-list');
+  if (!events.length) {
+    list.innerHTML = '<div class="loading-row" style="color:var(--color-ink-muted);">No upcoming fixtures found.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  events.forEach(ev => {
+    const d = ev.dateEvent ? new Date(ev.dateEvent) : null;
+    const day   = d ? d.getDate() : '?';
+    const month = d ? d.toLocaleString('en-GB', { month: 'short' }).toUpperCase() : '';
+
+    const card = document.createElement('div');
+    card.className = 'fixture-card';
+    card.setAttribute('role', 'listitem');
+    card.innerHTML = `
+      <div class="fixture-date-block">
+        <div class="fixture-day">${day}</div>
+        <div class="fixture-month">${month}</div>
+      </div>
+      <div class="fixture-sep" aria-hidden="true"></div>
+      <div class="fixture-teams">
+        <div class="fixture-matchup">${esc(ev.strHomeTeam || '')} vs ${esc(ev.strAwayTeam || '')}</div>
+        <div class="fixture-meta">${esc(ev.strLeague || '')}${ev.strTime ? ' · ' + ev.strTime.slice(0,5) : ''}</div>
+      </div>
+      <button class="btn-gen-upcoming" aria-label="Generate upcoming match post">Post</button>
+    `;
+    card.querySelector('.btn-gen-upcoming').addEventListener('click', () => {
+      openPostGenerator(ev, teamName, 'upcoming');
+    });
+    list.appendChild(card);
+  });
+}
+
+// ── Score ticker ──────────────────────────────────────────────
+function updateTicker(events, teamName) {
+  const ticker = document.getElementById('ticker-inner');
+  const empty  = document.getElementById('ticker-empty');
+  if (empty) empty.remove();
+
+  events.slice(0, 5).forEach(ev => {
+    const homeScore = parseInt(ev.intHomeScore ?? '', 10);
+    const awayScore = parseInt(ev.intAwayScore ?? '', 10);
+    const hasScore  = !isNaN(homeScore) && !isNaN(awayScore);
+    const isHome    = (ev.strHomeTeam || '').toLowerCase().includes(teamName.toLowerCase());
+    let outcome = 'draw';
+    if (hasScore) {
+      if (homeScore > awayScore) outcome = isHome ? 'win' : 'loss';
+      else if (awayScore > homeScore) outcome = isHome ? 'loss' : 'win';
+    }
+    const badgeLabel = { win:'WIN', loss:'LOSS', draw:'DRAW' }[outcome];
+
+    const item = document.createElement('div');
+    item.className = 'ticker-item';
+    item.innerHTML = `
+      <span>${esc(ev.strHomeTeam || '')}</span>
+      <span class="ticker-score">${hasScore ? `${homeScore}–${awayScore}` : '–'}</span>
+      <span>${esc(ev.strAwayTeam || '')}</span>
+      ${hasScore ? `<span class="ticker-badge ${outcome}">${badgeLabel}</span>` : ''}
+    `;
+    ticker.appendChild(item);
+  });
+}
+
+// ── Quick league ──────────────────────────────────────────────
+document.querySelectorAll('.league-pill').forEach(pill => {
+  pill.addEventListener('click', async () => {
+    document.querySelectorAll('.league-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    const leagueId = pill.dataset.id;
+    const leagueName = pill.textContent.trim();
+
+    document.getElementById('main-empty').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('fixtures-section').style.display = 'none';
+    document.getElementById('results-sub').textContent = leagueName;
+
+    const grid = document.getElementById('results-grid');
+    grid.innerHTML = '<div class="loading-row"><div class="spinner" aria-hidden="true"></div> Loading league events…</div>';
+
+    try {
+      const data = await apiGet(`/eventspastleague.php?id=${leagueId}`);
+      const events = data.events || [];
+      renderResults(events.slice(0,10), leagueName);
+      updateTicker(events.slice(0,5), leagueName);
+    } catch(err) {
+      grid.innerHTML = `<div class="loading-row" style="color:var(--color-danger);">Failed to load: ${esc(err.message)}</div>`;
+    }
+  });
+});
+
+// ── Refresh dashboard (on follow/unfollow) ────────────────────
+function refreshDashboard() {
+  if (!followedTeams.length) {
+    document.getElementById('main-empty').style.display = '';
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('fixtures-section').style.display = 'none';
+    return;
+  }
+  const team = followedTeams.find(t => t.id === activeTeamId) || followedTeams[0];
+  if (team) loadTeamData(team.id, team.name);
+}
+
+// ── Post generator ────────────────────────────────────────────
+function openPostGenerator(event, teamName, template) {
+  currentMatchData = { event, teamName };
+  activeTemplate = document.getElementById('template-select').value || template;
+  document.getElementById('post-gen-section').style.display = 'block';
+  document.getElementById('post-gen-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const homeScore = parseInt(event.intHomeScore ?? '', 10);
+  const awayScore = parseInt(event.intAwayScore ?? '', 10);
+  const hasScore  = !isNaN(homeScore) && !isNaN(awayScore);
+  const matchLabel = `${event.strHomeTeam} vs ${event.strAwayTeam}`;
+  document.getElementById('post-context').textContent = matchLabel;
+
+  generatePost();
+  renderHashtags(event, teamName);
+  updatePostNowButton();
+}
+
+function generatePost() {
+  if (!currentMatchData) return;
+  const { event: ev, teamName } = currentMatchData;
+  const tmpl = activeTemplate;
+  const platform = activePlatform;
+  const tone = activeTone;
+
+  const homeScore = parseInt(ev.intHomeScore ?? '', 10);
+  const awayScore = parseInt(ev.intAwayScore ?? '', 10);
+  const hasScore  = !isNaN(homeScore) && !isNaN(awayScore);
+  const scoreStr  = hasScore ? `${homeScore}–${awayScore}` : 'TBD';
+  const home      = ev.strHomeTeam || 'Home Team';
+  const away      = ev.strAwayTeam || 'Away Team';
+  const league    = ev.strLeague || '';
+  const venue     = ev.strVenue || '';
+  const dateStr   = fmtDate(ev.dateEvent);
+
+  let text = '';
+
+  if (tmpl === 'upcoming') {
+    const openers = {
+      hype:         `🔥 IT'S ALMOST TIME! 🔥\n\n${home} vs ${away} — the wait is nearly over!`,
+      professional: `Upcoming fixture: ${home} vs ${away}`,
+      casual:       `Don't forget — ${home} vs ${away} is coming up!`,
+      stats:        `📊 Preview: ${home} vs ${away}`,
+    };
+    text = `${openers[tone]}\n\n📅 ${dateStr}${venue ? `\n📍 ${venue}` : ''}${league ? `\n🏆 ${league}` : ''}`;
+    if (platform === 'twitter') text += `\n\n#${slugify(home)} #${slugify(away)} #Football`;
+    if (platform === 'instagram') text += `\n\n📲 Follow for live updates!\n\n#${slugify(home)} #${slugify(away)} #MatchDay #Football`;
+    if (platform === 'linkedin') text += `\n\nAnother exciting fixture is on the way. ${home} and ${away} are set to meet on ${dateStr}${league ? ` in the ${league}` : ''}. Worth watching!`;
+
+  } else if (tmpl === 'result') {
+    const isHome = home.toLowerCase().includes(teamName.toLowerCase());
+    let outcomeWord = 'DRAW';
+    if (hasScore) {
+      if (homeScore > awayScore) outcomeWord = isHome ? 'WIN' : 'LOSS';
+      else if (awayScore > homeScore) outcomeWord = isHome ? 'LOSS' : 'WIN';
+    }
+    const openers = {
+      hype:         `🚨 FULL TIME! 🚨\n\n${home} ${scoreStr} ${away}\n\n${outcomeWord === 'WIN' ? '🎉 WHAT A RESULT!' : outcomeWord === 'LOSS' ? '😤 Tough one, but we go again.' : '🤝 A hard-fought draw!'}`,
+      professional: `Full time: ${home} ${scoreStr} ${away}. ${league ? `${league} — ` : ''}${dateStr}.`,
+      casual:       `Final score: ${home} ${scoreStr} ${away}. ${outcomeWord === 'WIN' ? 'Great result!' : outcomeWord === 'LOSS' ? 'Unlucky today.' : 'A fair result in the end.'}`,
+      stats:        `📊 FT: ${home} ${scoreStr} ${away}\n🏆 ${league}\n📅 ${dateStr}${venue ? `\n📍 ${venue}` : ''}`,
+    };
+    text = openers[tone];
+    if (platform === 'twitter') text += `\n\n#${slugify(home)} #${slugify(away)}${league ? ` #${slugify(league)}` : ''}`;
+    if (platform === 'instagram') text += `\n\n📲 Double-tap if you watched!\n\n#${slugify(home)} #${slugify(away)} #MatchDay${league ? ` #${slugify(league)}` : ''}`;
+    if (platform === 'linkedin') text += `\n\nFull-time score from ${league}: ${home} ${scoreStr} ${away}. A significant result in the table. ${dateStr}${venue ? `, at ${venue}` : ''}.`;
+
+  } else { // summary
+    text = {
+      hype:         `📣 Season update for ${teamName}!\n\nStay tuned — more drama, more goals, more action ahead. 🏆`,
+      professional: `Season summary: ${teamName} continues their campaign in ${league || 'the league'}.`,
+      casual:       `Quick update on ${teamName}'s season — what a ride it's been so far!`,
+      stats:        `📊 Season overview — ${teamName}\n🏆 Competition: ${league || 'N/A'}\n📅 As of ${dateStr}`,
+    }[tone];
   }
 
-  // === Countdown timer ===
-  let tickCount = 0;
-  const INTERVAL = state.updateInterval;
-
-  function tick() {
-    tickCount++;
-    const remaining = INTERVAL - (tickCount % INTERVAL);
-    const pct = ((tickCount % INTERVAL) / INTERVAL) * 100;
-
-    el('updateCountdown').textContent = `${remaining}s`;
-    el('updateBar').style.width = `${100 - pct}%`;
-
-    if (tickCount % INTERVAL === 0) {
-      simulateScoreUpdate();
-    }
+  // Append brand signature
+  const limit = CHAR_LIMITS[platform];
+  if (brandConfig.name) {
+    const sig = `\n\n— ${brandConfig.name}`;
+    if (text.length + sig.length <= limit) text += sig;
   }
 
-  // === Manual post ===
-  el('testPostBtn').addEventListener('click', () => {
-    const followed = matches.filter(m => state.followedTeams.has(m.id));
-    if (followed.length === 0) {
-      showToast('No team followed', 'Please follow at least one team first', 'info');
-      return;
-    }
-    const m = followed[0];
-    const caption = buildCaption(m, 'manual');
-    addToLog(m, 'manual', caption);
-    showToast('Posted!', `Manual post queued for ${m.home.name} vs ${m.away.name}`, 'success');
+  const trimmed = text.slice(0, limit);
+
+  document.getElementById('post-preview').textContent = trimmed;
+  const charCount = document.getElementById('char-count');
+  charCount.textContent = `${trimmed.length} / ${limit} chars`;
+  charCount.className = 'char-count' + (trimmed.length >= limit ? ' over' : '');
+}
+
+function slugify(s) {
+  return (s || '').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+}
+
+function renderHashtags(ev, teamName) {
+  const box = document.getElementById('hashtag-box');
+  const sport = (ev.strSport || '').toLowerCase();
+  const home  = ev.strHomeTeam || '';
+  const away  = ev.strAwayTeam || '';
+  const league = ev.strLeague || '';
+
+  const tags = [
+    `#${slugify(home)}`,
+    `#${slugify(away)}`,
+    league ? `#${slugify(league)}` : null,
+    '#MatchDay',
+    sport.includes('soccer') || sport.includes('football') ? '#Football' : null,
+    sport.includes('basket') ? '#NBA' : null,
+    sport.includes('american') ? '#NFL' : null,
+    sport.includes('baseball') ? '#MLB' : null,
+    sport.includes('hockey') ? '#NHL' : null,
+    '#Sports',
+    '#LiveScores',
+  ].filter(Boolean);
+
+  box.innerHTML = '';
+  tags.forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'hashtag-chip';
+    chip.textContent = tag;
+    chip.title = 'Click to copy';
+    chip.addEventListener('click', () => {
+      navigator.clipboard.writeText(tag).then(() => toast(`Copied ${tag}`, 'success')).catch(() => toast('Copy failed — select manually', 'error'));
+    });
+    box.appendChild(chip);
+  });
+}
+
+// ── Platform tabs ─────────────────────────────────────────────
+document.querySelectorAll('.platform-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.platform-tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+    activePlatform = tab.dataset.platform;
+    generatePost();
+  });
+});
+
+// ── Tone pills ────────────────────────────────────────────────
+document.querySelectorAll('.tone-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    activeTone = pill.dataset.tone;
+    generatePost();
+  });
+});
+
+// ── Template selector ─────────────────────────────────────────
+document.getElementById('template-select').addEventListener('change', (e) => {
+  activeTemplate = e.target.value;
+  if (currentMatchData) generatePost();
+});
+
+// ── Copy to clipboard ─────────────────────────────────────────
+document.getElementById('btn-copy').addEventListener('click', () => {
+  const text = document.getElementById('post-preview').textContent;
+  if (!text || !currentMatchData) return;
+
+  navigator.clipboard.writeText(text).then(() => {
+    toast('Copied to clipboard!', 'success');
+    savePost(text);
+  }).catch(() => {
+    toast('Copy failed — select text manually', 'error');
+  });
+});
+
+function savePost(text) {
+  const entry = {
+    platform: activePlatform,
+    text,
+    ts: Date.now(),
+  };
+  savedPosts.unshift(entry);
+  savedPosts = savedPosts.slice(0, 5);
+  store.savedPosts.save(savedPosts);
+  renderSavedPosts();
+}
+
+function renderSavedPosts() {
+  const list = document.getElementById('saved-posts-list');
+  list.innerHTML = '';
+  if (!savedPosts.length) {
+    list.innerHTML = '<div style="font-size:var(--text-xs);color:var(--color-ink-muted);">No saved posts yet.</div>';
+    return;
+  }
+  savedPosts.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'saved-post-item';
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
+    item.innerHTML = `
+      <span class="saved-post-platform">${p.platform}</span>
+      <span class="saved-post-preview">${esc(p.text)}</span>
+    `;
+    item.addEventListener('click', () => {
+      document.getElementById('post-preview').textContent = p.text;
+      const limit = CHAR_LIMITS[p.platform] || 280;
+      const cc = document.getElementById('char-count');
+      cc.textContent = `${p.text.length} / ${limit} chars`;
+      cc.className = 'char-count' + (p.text.length >= limit ? ' over' : '');
+    });
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') item.click();
+    });
+    list.appendChild(item);
+  });
+}
+
+// ── Auto-post schedule ────────────────────────────────────────
+const autopostToggle   = document.getElementById('autopost-toggle');
+const intervalSelect   = document.getElementById('interval-select');
+const scheduleStatus   = document.getElementById('schedule-status');
+
+const POLL_MS = {
+  'after-result': 5  * 60 * 1000,  // 5 min  — new results check
+  'hourly':       30 * 60 * 1000,  // 30 min — in-browser approximation
+  'daily':        60 * 60 * 1000,  // 60 min — low-frequency summary
+};
+
+function updateScheduleStatus() {
+  const s = store.schedule.get();
+  if (s.on) {
+    const freqLabel = { 'after-result': 'every 5 min', 'hourly': 'every 30 min', 'daily': 'every hour' }[s.interval] || s.interval;
+    const lastStr   = lastPollTime ? ` · Last check: ${lastPollTime.toLocaleTimeString()}` : '';
+    scheduleStatus.textContent = `Active — polling ${freqLabel}${lastStr}`;
+  } else {
+    scheduleStatus.textContent = 'Schedule: OFF';
+  }
+}
+
+function startAutopostSchedule() {
+  if (autopostInterval) clearInterval(autopostInterval);
+  const s = store.schedule.get();
+  const ms = POLL_MS[s.interval] || POLL_MS['after-result'];
+  autopostInterval = setInterval(runAutopostCycle, ms);
+  runAutopostCycle(); // fire immediately on enable
+  updateScheduleStatus();
+}
+
+function stopAutopostSchedule() {
+  if (autopostInterval) { clearInterval(autopostInterval); autopostInterval = null; }
+  updateScheduleStatus();
+}
+
+function syncSchedule() {
+  const s = store.schedule.get();
+  autopostToggle.checked = s.on;
+  intervalSelect.value   = s.interval;
+  updateScheduleStatus();
+  if (s.on) startAutopostSchedule();
+}
+
+autopostToggle.addEventListener('change', () => {
+  const s = store.schedule.get();
+  s.on = autopostToggle.checked;
+  store.schedule.save(s);
+  if (s.on) {
+    startAutopostSchedule();
+    toast('Auto-post schedule started — polling for new results', 'success');
+  } else {
+    stopAutopostSchedule();
+    toast('Auto-post schedule stopped');
+  }
+});
+
+intervalSelect.addEventListener('change', () => {
+  const s = store.schedule.get();
+  s.interval = intervalSelect.value;
+  store.schedule.save(s);
+  updateScheduleStatus();
+  if (s.on) startAutopostSchedule(); // restart with new interval
+});
+
+// ── Social accounts ───────────────────────────────────────────
+function renderSocialAccounts() {
+  const list = document.getElementById('social-accounts-list');
+  list.innerHTML = '';
+
+  const accounts = [
+    {
+      key: 'fb',
+      label: 'Facebook Page',
+      icon: 'FB',
+      fields: [
+        { id: 'fb-page-id', placeholder: 'Facebook Page ID (e.g. 123456789)', label: 'Page ID', type: 'text' },
+        { id: 'fb-token',   placeholder: 'Page Access Token', label: 'Access Token', type: 'text' },
+      ],
+      note: 'Get your token from <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener">Meta Graph API Explorer</a> with <strong>pages_manage_posts</strong> permission.',
+      connectedMeta: (d) => `Page ID: ${esc(d.pageId)}`,
+    },
+    {
+      key: 'ig',
+      label: 'Instagram Business',
+      icon: 'IG',
+      fields: [
+        { id: 'ig-account-id', placeholder: 'Instagram Business Account ID', label: 'Account ID', type: 'text' },
+        { id: 'ig-token',      placeholder: 'Page Access Token (same as Facebook)', label: 'Access Token', type: 'text' },
+      ],
+      note: 'Instagram Business posting uses your Facebook Page Access Token. Find your IG Account ID in Meta Business Suite &rarr; Settings.',
+      connectedMeta: (d) => `Account ID: ${esc(d.accountId)}`,
+    },
+  ];
+
+  accounts.forEach(({ key, label, icon, fields, note, connectedMeta }) => {
+    const connected = !!socialAccounts[key];
+    const card = document.createElement('div');
+    card.className = 'social-account-card';
+    card.innerHTML = `
+      <div class="social-account-header">
+        <div class="social-account-icon">${icon}</div>
+        <span class="social-account-name">${label}</span>
+        <span class="social-account-status ${connected ? 'connected' : 'disconnected'}">${connected ? 'Connected' : 'Not connected'}</span>
+      </div>
+      ${connected
+        ? `<div style="font-size:var(--text-xs);color:var(--color-ink-muted);">${connectedMeta(socialAccounts[key])}</div>
+           <button class="btn-disconnect" data-platform="${key}" aria-label="Disconnect ${label}">Disconnect</button>`
+        : `<div class="social-connect-form">
+             ${fields.map(f => `
+               <div>
+                 <label class="field-label" for="${f.id}" style="margin-bottom:var(--space-1);">${f.label}</label>
+                 <input type="${f.type}" class="input-text" id="${f.id}" placeholder="${f.placeholder}" autocomplete="off" aria-label="${f.label}">
+               </div>
+             `).join('')}
+             <p class="social-api-note">${note}</p>
+             <button class="btn-connect" data-platform="${key}" aria-label="Connect ${label}">Connect ${label}</button>
+           </div>`
+      }
+    `;
+    list.appendChild(card);
   });
 
-  // === Caption template live update ===
-  el('captionTemplate').addEventListener('input', () => updatePreview());
-  el('venueName').addEventListener('input', () => updatePreview());
-  el('venueHandle').addEventListener('input', () => updatePreview());
+  list.querySelectorAll('.btn-connect').forEach(btn => {
+    btn.addEventListener('click', () => connectAccount(btn.dataset.platform));
+  });
+  list.querySelectorAll('.btn-disconnect').forEach(btn => {
+    btn.addEventListener('click', () => disconnectAccount(btn.dataset.platform));
+  });
 
-  // === Kickoff simulation ===
-  function checkKickoff() {
-    matches.forEach(m => {
-      if (state.followedTeams.has(m.id) && state.triggers.kickoff && typeof m.minute === 'number' && m.minute === 0) {
-        const caption = buildCaption(m, 'kickoff');
-        addToLog(m, 'kickoff', caption);
-        showToast(`Kickoff!`, `${m.home.name} vs ${m.away.name} has started!`, 'info');
+  updatePostNowButton();
+}
+
+function connectAccount(platform) {
+  if (platform === 'fb') {
+    const pageId = document.getElementById('fb-page-id')?.value.trim();
+    const token  = document.getElementById('fb-token')?.value.trim();
+    if (!pageId) { toast('Enter a Facebook Page ID', 'error'); return; }
+    if (!token)  { toast('Enter a Page Access Token', 'error'); return; }
+    socialAccounts.fb = { pageId, token };
+  } else if (platform === 'ig') {
+    const accountId = document.getElementById('ig-account-id')?.value.trim();
+    const token     = document.getElementById('ig-token')?.value.trim();
+    if (!accountId) { toast('Enter an Instagram Business Account ID', 'error'); return; }
+    if (!token)     { toast('Enter a Page Access Token', 'error'); return; }
+    socialAccounts.ig = { accountId, token };
+  }
+  store.social.save(socialAccounts);
+  renderSocialAccounts();
+  toast(`${platform === 'fb' ? 'Facebook Page' : 'Instagram'} connected`, 'success');
+}
+
+function disconnectAccount(platform) {
+  socialAccounts[platform] = null;
+  store.social.save(socialAccounts);
+  renderSocialAccounts();
+  toast(`${platform === 'fb' ? 'Facebook Page' : 'Instagram'} disconnected`);
+}
+
+function updatePostNowButton() {
+  const btn = document.getElementById('btn-post-now');
+  if (!btn) return;
+  const hasAccount = !!(socialAccounts.fb || socialAccounts.ig);
+  const hasMatch   = !!currentMatchData;
+  const text       = document.getElementById('post-preview')?.textContent || '';
+  const hasContent = text.trim().length > 0 && text !== 'Select a match and click Generate Post to preview your social content.';
+  if (!hasAccount) {
+    btn.disabled = true;
+    btn.textContent = 'No accounts connected — add in Social Accounts';
+  } else if (!hasMatch || !hasContent) {
+    btn.disabled = true;
+    btn.textContent = 'Generate a post preview first';
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Post to Connected Accounts';
+  }
+}
+
+// ── Post to Meta Graph API ─────────────────────────────────────
+async function postToMeta() {
+  const text = document.getElementById('post-preview').textContent;
+  if (!text || !currentMatchData) return;
+
+  const btn   = document.getElementById('btn-post-now');
+  const errEl = document.getElementById('post-error');
+  const prev  = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Posting…';
+  errEl.style.display = 'none';
+
+  const posted = [];
+  const errors = [];
+
+  if (socialAccounts.fb) {
+    try {
+      const res = await fetch(
+        `https://graph.facebook.com/v18.0/${encodeURIComponent(socialAccounts.fb.pageId)}/feed`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, access_token: socialAccounts.fb.token }),
+        }
+      );
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      posted.push('Facebook');
+    } catch (e) {
+      errors.push(`Facebook: ${e.message}`);
+    }
+  }
+
+  if (socialAccounts.ig) {
+    try {
+      // Step 1: create media container (text-only via IMAGE type with placeholder)
+      const createRes = await fetch(
+        `https://graph.facebook.com/v18.0/${encodeURIComponent(socialAccounts.ig.accountId)}/media`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caption: text,
+            media_type: 'IMAGE',
+            image_url: brandConfig.logo || 'https://placehold.co/1080x1080/1a1a2e/cc3300?text=ScorePost',
+            access_token: socialAccounts.ig.token,
+          }),
+        }
+      );
+      const createJson = await createRes.json();
+      if (createJson.error) throw new Error(createJson.error.message);
+      // Step 2: publish container
+      const pubRes = await fetch(
+        `https://graph.facebook.com/v18.0/${encodeURIComponent(socialAccounts.ig.accountId)}/media_publish`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creation_id: createJson.id, access_token: socialAccounts.ig.token }),
+        }
+      );
+      const pubJson = await pubRes.json();
+      if (pubJson.error) throw new Error(pubJson.error.message);
+      posted.push('Instagram');
+    } catch (e) {
+      errors.push(`Instagram: ${e.message}`);
+    }
+  }
+
+  if (posted.length) {
+    toast(`Posted to ${posted.join(' + ')}`, 'success');
+    savePost(text);
+  }
+  if (errors.length) {
+    errEl.textContent = errors.join(' · ');
+    errEl.style.display = 'block';
+  }
+
+  btn.textContent = prev;
+  updatePostNowButton();
+}
+
+document.getElementById('btn-post-now').addEventListener('click', postToMeta);
+
+// ── Auto-post helpers ─────────────────────────────────────────
+function buildAutoPostText(ev, teamName) {
+  const home   = ev.strHomeTeam || 'Home';
+  const away   = ev.strAwayTeam || 'Away';
+  const score  = `${ev.intHomeScore}–${ev.intAwayScore}`;
+  const league = ev.strLeague || '';
+  const brand  = store.brand.get();
+  let text = `Full time: ${home} ${score} ${away}`;
+  if (league) text += ` · ${league}`;
+  if (brand.name) text += `\n\n— ${brand.name}`;
+  return text;
+}
+
+async function sendToMeta(text) {
+  const social = store.social.get();
+  if (social.fb) {
+    try {
+      const res = await fetch(
+        `https://graph.facebook.com/v18.0/${encodeURIComponent(social.fb.pageId)}/feed`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, access_token: social.fb.token }) }
+      );
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+    } catch(e) {
+      const errEl = document.getElementById('post-error');
+      errEl.textContent = `Auto-post Facebook error: ${e.message}`;
+      errEl.style.display = 'block';
+    }
+  }
+  if (social.ig) {
+    try {
+      const brand = store.brand.get();
+      const createRes = await fetch(
+        `https://graph.facebook.com/v18.0/${encodeURIComponent(social.ig.accountId)}/media`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            caption: text, media_type: 'IMAGE',
+            image_url: brand.logo || 'https://placehold.co/1080x1080/1a1a2e/cc3300?text=ScorePost',
+            access_token: social.ig.token,
+          }) }
+      );
+      const createJson = await createRes.json();
+      if (createJson.error) throw new Error(createJson.error.message);
+      const pubRes = await fetch(
+        `https://graph.facebook.com/v18.0/${encodeURIComponent(social.ig.accountId)}/media_publish`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creation_id: createJson.id, access_token: social.ig.token }) }
+      );
+      const pubJson = await pubRes.json();
+      if (pubJson.error) throw new Error(pubJson.error.message);
+    } catch(e) {
+      const errEl = document.getElementById('post-error');
+      errEl.textContent = `Auto-post Instagram error: ${e.message}`;
+      errEl.style.display = 'block';
+    }
+  }
+}
+
+async function runAutopostCycle() {
+  const triggers = store.triggers.get();
+  const social   = store.social.get();
+  if (!followedTeams.length) return;
+  if (!social.fb && !social.ig) return;
+
+  lastPollTime = new Date();
+  updateScheduleStatus();
+
+  for (const team of followedTeams) {
+    try {
+      const data   = await apiGet(`/eventslast.php?id=${team.id}`);
+      const events = data.results || [];
+      for (const ev of events.slice(0, 3)) {
+        if (seenEventIds.has(ev.idEvent)) continue;
+        seenEventIds.add(ev.idEvent);
+        const arr = [...seenEventIds].slice(-200);
+        localStorage.setItem('sp_seen_events', JSON.stringify(arr));
+        const hasScore = ev.intHomeScore !== null && ev.intAwayScore !== null;
+        if (hasScore && triggers.fulltime) {
+          const text = buildAutoPostText(ev, team.name);
+          await sendToMeta(text);
+          toast(`Auto-posted: ${ev.strHomeTeam} ${ev.intHomeScore}–${ev.intAwayScore} ${ev.strAwayTeam}`, 'success');
+        }
       }
+    } catch { /* network errors silenced — next cycle will retry */ }
+  }
+}
+
+// ── Brand editor ──────────────────────────────────────────────
+function initBrandEditor() {
+  const nameInput  = document.getElementById('brand-venue-name');
+  const colorInput = document.getElementById('brand-color');
+  const logoInput  = document.getElementById('brand-logo-url');
+
+  if (nameInput)  nameInput.value  = brandConfig.name  || '';
+  if (colorInput) colorInput.value = brandConfig.color || '#cc3300';
+  if (logoInput)  logoInput.value  = brandConfig.logo  || '';
+
+  const persist = () => {
+    brandConfig.name  = nameInput?.value.trim()  || '';
+    brandConfig.color = colorInput?.value        || '#cc3300';
+    brandConfig.logo  = logoInput?.value.trim()  || '';
+    store.brand.save(brandConfig);
+    if (currentMatchData) generatePost();
+  };
+
+  [nameInput, colorInput, logoInput].forEach(el => {
+    if (el) el.addEventListener('input', persist);
+  });
+}
+
+// ── Trigger config ────────────────────────────────────────────
+function initTriggers() {
+  const triggerMap = store.triggers.get();
+  Object.entries(triggerMap).forEach(([key, val]) => {
+    const el = document.getElementById(`trigger-${key}`);
+    if (el) el.checked = val;
+  });
+  document.querySelectorAll('.trigger-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const current = store.triggers.get();
+      const key = cb.id.replace('trigger-', '');
+      current[key] = cb.checked;
+      store.triggers.save(current);
     });
-  }
+  });
+}
 
-  // === Init ===
-  function init() {
-    renderMatches();
-    renderTemplateVars();
-    renderTriggers();
-    renderLog();
-    updateStats();
-    updatePreview();
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 3200);
+}
 
-    // Start ticker every second
-    setInterval(tick, 1000);
-  }
+// ── Footer timestamp ──────────────────────────────────────────
+(function() {
+  const ts = document.getElementById('footer-ts');
+  const now = new Date();
+  ts.dateTime = now.toISOString();
+  ts.textContent = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+})();
 
-  init();
+// ── Init ──────────────────────────────────────────────────────
+syncSchedule();
+renderFollowedList();
+renderSavedPosts();
+renderSocialAccounts();
+initBrandEditor();
+initTriggers();
+
+if (followedTeams.length) {
+  activeTeamId = followedTeams[0].id;
+  refreshDashboard();
+} else {
+  document.getElementById('main-empty').style.display = '';
+}
 </script>
 </body>
 </html>
